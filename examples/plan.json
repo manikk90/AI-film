@@ -1,0 +1,55 @@
+{
+  "treatment": "Restrained live-action suspense. Natural practical night lighting, muted blue and warm amber. Preserve Meera's blue kurta and the letter's right-pocket continuity. This text-only example demonstrates records, not visual consistency.",
+  "decisions": [
+    {"description": "Use a restrained, realistic visual treatment.", "basis": "inferred", "status": "resolved"},
+    {"description": "The kurta is faded blue and the letter moves from table to right hand to right pocket.", "basis": "screenplay", "status": "resolved"}
+  ],
+  "preamble_unit_ids": [],
+  "beats": [
+    {"id": "B01", "scene_id": "SC001", "source_unit_ids": ["U00002"], "kind": "action", "description": "Meera enters the room wearing her faded blue kurta."},
+    {"id": "B02", "scene_id": "SC001", "source_unit_ids": ["U00002"], "kind": "context", "description": "A folded letter is visible on the table."},
+    {"id": "B03", "scene_id": "SC001", "source_unit_ids": ["U00003"], "kind": "action", "description": "Meera picks up the letter with her right hand."},
+    {"id": "B04", "scene_id": "SC001", "source_unit_ids": ["U00003"], "kind": "action", "description": "Meera reads the letter."},
+    {"id": "B05", "scene_id": "SC001", "source_unit_ids": ["U00003"], "kind": "action", "description": "Meera hides the letter in her right pocket."},
+    {"id": "B06", "scene_id": "SC002", "source_unit_ids": ["U00005"], "kind": "action", "description": "Meera steps into the courtyard in the same costume; the letter remains concealed."},
+    {"id": "B07", "scene_id": "SC002", "source_unit_ids": ["U00006"], "kind": "dialogue", "description": "Meera says exactly: No one can know."}
+  ],
+  "shots": [
+    {
+      "id": "SH001", "scene_id": "SC001", "beat_ids": ["B01", "B02"], "asset_ids": [], "input_asset_ids": [],
+      "duration_seconds": 5, "aspect_ratio": "16:9",
+      "visual_description": "A small room at night. Meera wears a faded blue cotton kurta. A folded letter sits on a wooden table by the door.",
+      "action": "Meera enters through the doorway, notices the folded letter and stops beside the table.",
+      "camera": "Static medium-wide shot, doorway and tabletop both readable.",
+      "lighting": "A warm practical lamp illuminates the tabletop; soft blue night light enters from the doorway.",
+      "audio": "Quiet room tone and footsteps; no dialogue or music.",
+      "start_state": "Meera outside the doorway; letter folded on table.",
+      "end_state": "Meera beside table; letter remains folded on table.",
+      "acceptance_criteria": ["Entrance and folded letter are visible in the same shot", "Meera wears the faded blue kurta"]
+    },
+    {
+      "id": "SH002", "scene_id": "SC001", "beat_ids": ["B03", "B04", "B05"], "asset_ids": [], "input_asset_ids": [],
+      "duration_seconds": 8, "aspect_ratio": "16:9",
+      "visual_description": "Meera in a faded blue cotton kurta stands beside the wooden table in the same small room.",
+      "action": "With her right hand Meera lifts the folded letter, opens and reads it, then folds and tucks it into her right kurta pocket. Her reaction is contained alarm.",
+      "camera": "Steady medium shot with face, right hand, tabletop and right pocket visible.",
+      "lighting": "The same warm practical lamp and soft blue doorway light.",
+      "audio": "Paper rustle and room tone; no dialogue or music.",
+      "start_state": "Meera beside table; letter remains folded on table.",
+      "end_state": "Letter concealed in Meera's right pocket; tabletop empty.",
+      "acceptance_criteria": ["Pickup, reading and concealment occur in that order", "Letter stays in the right hand until placed in the right pocket", "No duplicate letter appears"]
+    },
+    {
+      "id": "SH003", "scene_id": "SC002", "beat_ids": ["B06", "B07"], "asset_ids": [], "input_asset_ids": [],
+      "duration_seconds": 5, "aspect_ratio": "16:9",
+      "visual_description": "A quiet courtyard outside the small room at night. Meera wears the same faded blue cotton kurta.",
+      "action": "Meera steps outside, checks the empty courtyard and whispers: No one can know.",
+      "camera": "Medium tracking shot settling into a still frame on her face.",
+      "lighting": "Soft night light with a warm spill from the room behind her.",
+      "audio": "Meera whispers the exact line 'No one can know.' Quiet exterior ambience; no music. Use a dialogue-capable workflow.",
+      "start_state": "Meera at the doorway; letter concealed in her right pocket.",
+      "end_state": "Meera in the courtyard; letter still concealed in her right pocket.",
+      "acceptance_criteria": ["Same face, hair and blue kurta as the room scene", "Letter is not visible in either hand", "The exact dialogue is audible and belongs to Meera"]
+    }
+  ]
+}

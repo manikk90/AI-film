@@ -1,0 +1,8 @@
+{
+  "name": "Portable composed-keyframe handoff (not a verified provider profile)",
+  "input_mode": "single-image",
+  "max_references": 1,
+  "durations": [],
+  "aspect_ratios": [],
+  "verification": {"status": "portable-template"}
+}

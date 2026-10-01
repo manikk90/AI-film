@@ -1,0 +1,8 @@
+{
+  "name": "Portable text-only handoff (not a verified provider profile)",
+  "input_mode": "text",
+  "max_references": 0,
+  "durations": [],
+  "aspect_ratios": [],
+  "verification": {"status": "portable-template"}
+}
