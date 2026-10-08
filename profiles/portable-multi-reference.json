@@ -1,0 +1,8 @@
+{
+  "name": "Portable multi-reference handoff (not a verified provider profile)",
+  "input_mode": "multi-reference",
+  "max_references": null,
+  "durations": [],
+  "aspect_ratios": [],
+  "verification": {"status": "portable-template"}
+}
