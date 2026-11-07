@@ -15,7 +15,7 @@
 | 8 Production | director | film folder, 06-qc.md, final/editor/ | blocked until Gate 3 | | |
 | Gate 4: final cut | owner | final/ | todo | | |
 | 9 Publishing kit | social | 07-publish-kit.md | todo | | |
-| 10 Learn | orchestrator | studio/LEARNINGS.md | todo | | |
+| 10 Learn | orchestrator | studio/LEARNINGS.md | todo | | token totals from `python3 studio/caveman.py usage` |
 
 ## Requests between agents
 - <from → to: what is needed, by which stage>
