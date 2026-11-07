@@ -13,10 +13,11 @@
  *   - Lemo-Opuscar films: window.render(t) and window.DUR
  * It waits for document.fonts and window.READY (when the page defines it), draws every frame at t = from + i / fps,
  * takes the canvas as PNG and pipes it to FFmpeg. It prints the output path and the frame count.
- * Playwright and its Chromium are pre-installed in the cloud session (require('playwright')).
+ * Requires Playwright and Chromium. Set AIFILM_CHROMIUM_EXECUTABLE to use an installed browser.
  */
 'use strict';
 const { chromium } = require('playwright');
+const { launchOptions } = require('./chromium.cjs');
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -40,7 +41,7 @@ function args(argv) {
 (async () => {
   const a = args(process.argv.slice(2));
   if (!fs.existsSync(a.page)) { console.error(`page not found: ${a.page}`); process.exit(2); }
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(launchOptions());
   const page = await browser.newPage({ viewport: { width: a.w, height: a.h } });
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));

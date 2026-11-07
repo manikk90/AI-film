@@ -110,7 +110,10 @@ def build_graph(root, edl, probes, textfiles, sub_shift=0.0, cache=None):
         dur = E.clip_duration(clip)
         if clip["id"] in cache:
             inputs += ["-i", str(cache[clip["id"]])]
-            graph.append("[{}:v]setpts=PTS-STARTPTS,settb=AVTB[v{}]".format(i, i))
+            # Matroska cache streams can expose an unknown filter frame rate on
+            # FFmpeg 7. xfade requires CFR inputs, even when cached pixels already
+            # have the requested cadence. Restore the EDL rate explicitly.
+            graph.append("[{}:v]setpts=PTS-STARTPTS,fps={},settb=AVTB[v{}]".format(i, edl["format"].get("fps", 30), i))
             graph.append("[{}:a]asetpts=PTS-STARTPTS,atrim=0:{:.4f}[a{}]".format(i, dur, i))
             continue
         src = inside(root, edl["sources"][clip["source"]])

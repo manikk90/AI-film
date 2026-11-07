@@ -12,6 +12,7 @@
  */
 'use strict';
 const { chromium } = require('playwright');
+const { launchOptions } = require('../../studio/chromium.cjs');
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -33,7 +34,7 @@ function parse(argv) {
 (async () => {
   const a = parse(process.argv.slice(2));
   if (!fs.existsSync(a.page)) { console.error('template not found: ' + a.page); process.exit(2); }
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(launchOptions());
   const page = await browser.newPage({ viewport: { width: a.w, height: a.h } });
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
