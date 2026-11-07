@@ -5,6 +5,7 @@ Every style the studio can pick from, in one place, for the social agent's style
 - **Library styles (66)**, from [Lemo-Opuscar](https://github.com/lemomo-ai/lemo-opuscar) `styles/<slug>/`. Each has a demo film and engine code, so these are the reliable, faster picks.
 - **Draft styles (67)**, from this repo's [`styles/`](../styles/README.md). Each has a written `STYLE.md` but no engine yet, so it needs more build time and an owner-approved preview.
 - **Ready formats (47)**, imported skills from the owner's Ai-Animation repo (`studio/IMPORTED_SKILLS.json`). Each is a whole recipe, run as `/<name>` or picked as the format in a studio run, inside `studio/SKILL_HARNESS.md`. They have not been rendered in this repo yet.
+- **Format prompts (12)**, from the "12 Claude Video Formats" guide (`studio/formats/`). Each is a one-line prompt (`Format: <name>.`) for `studio/templates/format-prompt.md`. They have a first-try result in the guide, not in this repo.
 
 Rebuild this file with `python3 studio/build_style_menu.py --lemo <lemo-opuscar clone>` when either library changes.
 
@@ -313,3 +314,22 @@ Kind says where the words come from and which gate applies (see `studio/SKILL_HA
 | Neon outline | `/neon-outline` | a 9:16 talking-head clip | clip | - |
 | RGB glitch live | `/rgb-glitch-live` | a 9:16 talking-head clip | clip | brands |
 | Triptych timecode | `/triptych-timecode` | three clips | clip | - |
+
+## Format prompts (12, from the 12 Claude Video Formats guide)
+
+Put `Format: <typed>.` as the last line of `studio/templates/format-prompt.md`. Prefer the nearest library style for a full film.
+
+| Format | हिंदी | Slug | Typed | Look | Good for | Nearest |
+|---|---|---|---|---|---|---|
+| Kinetic typography | काइनेटिक टाइपोग्राफ़ी | `kinetic-typography` | Kinetic typography | The film is built from the words themselves: huge condensed letters fill the frame, stack behind objects and become parts of the set. | Quotes and one-line hooks, Announcements and lists, Punchy explainers | `kinetic-type`, `swiss-motion`, `/kinetic-lyrics` |
+| Pixel art game | पिक्सेल आर्ट गेम | `pixel-art-game` | Pixel art game | The story becomes a game level: chunky pixels, a HUD with progress and a counter, and dialogue-box text. | Journeys and processes as levels, Nostalgia, Kids and gaming audiences | `pixel-rpg` |
+| Claymation | क्लेमेशन स्टॉप मोशन | `claymation-stop-motion` | Claymation stop motion | Everything looks modelled in clay, with swirled fingerprint marks pressed into every surface and objects that come alive. | Warm family stories, Food and drink, Kids | `claymation`, `felt-stopmotion` |
+| Anime opening | एनीमे ओपनिंग | `anime-opening` | Anime opening | An anime title sequence: dramatic skies, speed lines, diagonal split frames, a giant symbol filling the screen and a title card. | Hype intros and series openers, Mythic action, Youth audiences | `cel-anime-80s`, `/anime-reel` |
+| Whiteboard sketch | व्हाइटबोर्ड स्केच | `whiteboard-sketch` | Whiteboard sketch | A drawn hand and marker build the page stroke by stroke on a whiteboard, with one coloured line tying the story together. | Explainers and how-it-works, Timelines, Education | `whiteboard`, `chalkboard` |
+| 80s VHS commercial | 80 के दशक का VHS विज्ञापन | `80s-vhs-commercial` | 80s VHS commercial | An 80s tape ad: the tape machine is part of the story, with PLAY and FF overlays, a tape counter, static and a retro sunset. | Retro ads and satire, Comedy, Nostalgia (the VCR and Doordarshan era) | `vaporwave`, `ascii-crt`, `synthwave` |
+| Rubber hose cartoon | रबर होज़ कार्टून | `rubber-hose-cartoon` | Rubber hose cartoon | A 1930s cartoon: everything gets eyes and white gloves, bodies bend like hoses, sunbursts behind, film grain on every frame. | Comedy, Food and drink, Retro ads | `rubber-hose` |
+| Isometric 3D | आइसोमेट्रिक 3D | `isometric-3d` | Isometric 3D | One connected isometric world seen from a fixed angle, with the subject moving through it like a model railway. | Processes and supply chains, Village and city worlds, Infographics | `isometric-picture-book`, `iso-infographic` |
+| Paper cut-out | पेपर कट-आउट | `paper-cut-out` | Paper cut-out | Layers of cut card with soft shadows under each piece: flames, waves and skies stacked as paper, words on paper strips. | Folk tales, Festivals, Gentle stories | `collage-cutout`, `papercut-red`, `paper-popup` |
+| Comic book | कॉमिक बुक | `comic-book` | Comic book | Comic panels, halftone dots, starbursts, speech bubbles and onomatopoeia that the film invents itself. | Action, Comedy and case-file humour, Story beats in panels | `halftone-dossier`, `/comic-halftone`, `/comic-reel` |
+| Neon synthwave (not in the guide's reel) | नियॉन सिंथवेव | `neon-synthwave` | Neon synthwave | A neon road into a striped sunset with a glowing grid on both sides; the road is the timeline. | Tech and AI, Music and nightlife, Retro-futurism | `synthwave`, `vaporwave` |
+| Liquid motion (not in the guide's reel) | लिक्विड मोशन | `liquid-motion` | Liquid motion | Liquid is the transition: swirls of it fill the frame and carry the viewer into the next scene. | Chai, coffee and food, Product reveals, Smooth transitions | `liquid-glass`, `ebru-marbling` |

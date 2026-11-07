@@ -79,6 +79,12 @@ The owner's Ai-Animation repo brought 47 format skills, listed in `studio/IMPORT
 - **Rendering:** `node studio/render_canvas.cjs` renders any canvas page locally, and its `--stills` option makes the Gate 3 preview frames. `daksh-ai`'s template rendered end to end with it on 2026-11-02.
 - **Word timing:** `studio/word_timing.py` aligns known words (a script, lyrics, the locked dialogue) offline. On Kokoro speech, line starts were within 20 ms and 90 % of word starts within 17 ms (2026-11-02). Transcribing unknown speech still needs the owner to allow the Whisper or alignment hosts (see the harness).
 
+## Format prompts
+
+The 12 looks from the "12 Claude Video Formats" guide are saved in `studio/formats/` and listed under "Format prompts" in `STYLE_MENU.md`. They include kinetic typography, claymation, pixel art game, whiteboard sketch, 80s VHS, anime opening, comic book and liquid motion.
+
+Each is one prompt line (`Format: <name>.`) for `studio/templates/format-prompt.md`, which writes a page that `studio/render_canvas.cjs` renders frame by frame. They have a first-try result in the guide, not in this repo.
+
 ## Rules that never bend
 - No production before the owner approves the script (Gate 2), and none before the owner approves 3 timecode frames and the music sketch (Gate 3).
 - Music gets special attention at every stage.
