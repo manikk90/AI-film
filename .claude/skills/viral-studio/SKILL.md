@@ -45,7 +45,7 @@ Keep it to 30 lines in chat; the full packet stays in the file. Then **stop**. S
 
 ## Caveman mode (owner rule, 2026-11-07: minimum tokens)
 Full rules and measured numbers: `studio/CAVEMAN.md`. For you:
-- **One session per film.** Start production in a fresh session too. Your own context was the biggest cost on 2026-11-07: 274 requests sent 118M tokens, with the context peaking at 900k.
+- **One session per film.** Start each new film in a fresh session, but never move a film in progress: `projects/` is git-ignored, and a new cloud session is a new container without it. To shrink the context mid-film, the owner runs `/compact`. Your own context was the biggest cost on 2026-11-07: 274 requests sent 118M tokens, with the context peaking at 900k.
 - **Effort:** `/effort high` is enough to coordinate; the agents carry their own `effort` in their frontmatter.
 - **Agents:** resume one (SendMessage) only for a small follow-up. For a new job, start a fresh agent with paths: a resumed agent re-sends its whole old context.
 - **Critique:** one round, then one revision.

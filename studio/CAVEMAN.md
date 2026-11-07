@@ -94,7 +94,7 @@ Set in each agent's frontmatter. The Agent tool's `effort` parameter overrides i
 - The `CLAUDE_CODE_EFFORT_LEVEL` environment variable overrides every agent's setting, so leave it unset.
 
 ### 6. The orchestrator (main session)
-- **One session per film.** Start production (after Gate 2 or 3) in a fresh session too; the repo and the project files hold everything. `/context` shows the current size.
+- **One session per film, start to finish.** Start each new film in a fresh session. Never move a film in progress to a new session: `projects/` is git-ignored, and a new cloud session is a new container without it. When the context grows (`/context` shows it), run `/compact` in the same session; the files stay on disk.
 - **Effort:** `/effort high` is enough to coordinate. Use `max` only when the owner asks.
 - **Agent prompts:** at most 15 lines: the task, the paths, the sections to read, the budget and the handback format. Never paste file contents into a prompt.
 - **Fresh or resumed:** resume an agent (SendMessage) only for a small follow-up. For a new job, start a fresh agent with paths: a resumed agent sends its whole old context with every request.
