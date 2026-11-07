@@ -671,3 +671,67 @@ class ClipCacheCase(unittest.TestCase):
         self.assertEqual(len(list((self.edit / "renders" / "cache").glob("*.mkv"))), 3)
         with self.assertRaisesRegex(ProductionError, "quality"):
             R.render(self.edit, quality="ultra")
+
+
+class MotionStaticTest(unittest.TestCase):
+    def test_templates_and_theme_roles(self):
+        from aifilm.editor import craft as C, motion as MO
+        names = [t["name"] for t in MO.templates()]
+        self.assertEqual(len(names), 10)
+        self.assertEqual(len(set(names)), 10)
+        for t in MO.templates():
+            self.assertTrue(t["description"] and t["vars"] and t["duration"] > 0, t["name"])
+        for theme in C.data()["colour_themes"]:
+            r = MO.roles(theme["colours"])
+            rgb = lambda h: tuple(int(h.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))  # noqa: E731
+            with self.subTest(theme=theme["id"]):
+                self.assertGreaterEqual(C.contrast(rgb(r["accent"]), rgb(r["bg"])), 3.0)
+                self.assertGreaterEqual(C.contrast(rgb(r["ink"]), rgb(r["bg"])), 4.5)
+
+
+@unittest.skipUnless(HAS_FFMPEG, "FFmpeg is required for media tests")
+class MotionRenderCase(unittest.TestCase):
+    """Renders every template small and short (synthetic text values)."""
+
+    def setUp(self):
+        from aifilm.editor import motion as MO
+        if not MO.available():
+            self.skipTest("Node + Playwright are required for motion templates")
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.base = Path(self.temp.name)
+
+    def test_every_template_renders_transparent_stills(self):
+        from aifilm.editor import motion as MO
+        for t in MO.templates():
+            with self.subTest(template=t["name"]):
+                extra = {"dim": 0} if t["name"] == "highlight-box" else {}  # its outside dim is intentional
+                png = MO.render(t["name"], self.base / t["name"], (180, 320), 1.5, extra, theme="neon-mumbai", stills=[0.9])[0]
+                raw = subprocess.run(["ffmpeg", "-v", "error", "-i", png, "-f", "rawvideo", "-pix_fmt", "rgba", "-"], capture_output=True).stdout
+                alphas = raw[3::4]
+                self.assertEqual(len(alphas), 180 * 320)
+                self.assertGreater(sum(1 for a in alphas if a > 200), 50, "nothing drawn")
+                self.assertGreater(sum(1 for a in alphas if a == 0), len(alphas) // 3, "background is not transparent")
+
+    def test_mov_has_alpha_and_add_places_it(self):
+        from aifilm.editor import motion as MO
+        out = MO.render("lower-third", self.base / "lt.mov", (180, 320), 0.5, {"name": "परीक्षण"}, fps=10)
+        self.assertEqual(out["frames"], 5)
+        pix = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=pix_fmt", "-of", "csv=p=0",
+                              str(self.base / "lt.mov")], capture_output=True, text=True).stdout.strip()
+        self.assertTrue(pix.startswith("yuva"), pix)
+        ff("-f", "lavfi", "-i", "testsrc2=s=320x180:r=30:d=2", "-c:v", "libx264", "-pix_fmt", "yuv420p", self.base / "a.mp4")
+        edit = self.base / "edit"
+        T.ingest(edit, [self.base / "a.mp4"])
+        (edit / "caps.srt").write_text("1\n00:00:00,000 --> 00:00:01,500\nsynthetic caption\n", encoding="utf-8")
+        write_json(edit / "edl.json", {"version": 1, "format": {"width": 180, "height": 320, "fps": 10}, "sources": {"A": "raw/a.mp4"},
+                                       "clips": [{"id": "C01", "source": "A", "in": 0, "out": 1.5}], "subtitles": {"file": "caps.srt"},
+                                       "typography": {"theme": "clean-tech"}})
+        placed = MO.placement(edit, read_json(edit / "edl.json"), 0.2, 1.0)
+        self.assertLess(placed["bottom_limit"], 0.75)
+        entry = MO.add(edit, "callout", 0.2, 1.0, {"x": 0.3, "y": 0.4, "label": "यहाँ"})
+        edl = E.load(edit)
+        self.assertEqual(edl["overlays"][0]["file"], entry["file"])
+        self.assertTrue((edit / entry["file"]).exists())
+        with self.assertRaisesRegex(ProductionError, "Unknown motion template"):
+            MO.template("nope")

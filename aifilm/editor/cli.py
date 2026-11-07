@@ -67,6 +67,17 @@ def parser():
     p.add_argument("families", nargs="*")
     p.add_argument("--pairing")
     p.add_argument("--weights", default="400,700")
+    p = c.add_parser("motion", help="Motion-graphics templates: list, render, still, add (canvas + Playwright; cloud and laptop)")
+    p.add_argument("action", choices=["list", "render", "still", "add"])
+    p.add_argument("template", nargs="?")
+    p.add_argument("target", nargs="?", help="render/still: output path; add: the edit folder")
+    p.add_argument("--size", default="1080x1920")
+    p.add_argument("--duration", type=float)
+    p.add_argument("--vars", default="{}", help="JSON of template variables, e.g. '{\"name\": \"Asha\"}'")
+    p.add_argument("--theme")
+    p.add_argument("--pairing")
+    p.add_argument("--at", type=float, default=0.0, help="add: overlay start time in the edit (seconds)")
+    p.add_argument("--times", default="0.5,1.5", help="still: comma-separated timecodes")
     p = c.add_parser("approve-style", help="Owner decision 1: record the finalised style")
     p.add_argument("edit")
     p.add_argument("slug")
@@ -168,6 +179,21 @@ def main(argv=None):
                 result = F.install_pairing(C.pairing(args.pairing))
             else:
                 result = [f for fam in args.families for f in F.install(fam, [int(w) for w in args.weights.split(",")])]
+        elif cmd == "motion":
+            from . import motion as MO
+            if args.action == "list":
+                result = [{"name": m["name"], "description": m["description"], "duration": m["duration"], "vars": m["vars"]} for m in MO.templates()]
+            else:
+                require_args = args.template and args.target
+                if not require_args:
+                    raise ProductionError("motion {} needs a template and a target".format(args.action))
+                variables = json.loads(args.vars)
+                if args.action == "add":
+                    result = MO.add(args.target, args.template, args.at, args.duration, variables)
+                else:
+                    size = tuple(int(x) for x in args.size.split("x"))
+                    stills = [float(x) for x in args.times.split(",")] if args.action == "still" else None
+                    result = MO.render(args.template, args.target, size, args.duration, variables, args.theme, args.pairing, stills=stills)
         elif cmd == "approve-style":
             G.style(args.slug)
             result = E.approve_style(args.edit, args.slug, args.words)

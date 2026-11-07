@@ -50,6 +50,10 @@ Mann is the studio's editor agent (`.claude/agents/mann.md`). Give it raw footag
 | `craft-check <edit>` | Automatic craft checks (safe zones, captions, type hierarchy, fonts/Devanagari, text contrast, 30-degree rule, transitions, grades, variety, flash safety, music under voice); exit 1 on a FAIL; also part of `storyboard` and `qc` |
 | `pairings`, `themes` | Font pairings (Devanagari verified) and colour themes |
 | `fonts-install --pairing <id>` / `fonts-install <Family>…` | Fetch open-licensed fonts from npm (@fontsource), merge Latin + Devanagari into one TTF per weight, install to `~/.local/share/fonts/mann` (`MANN_FONTS` overrides) |
+| `motion list` | The 10 motion-graphics templates and their variables |
+| `motion still <template> <out-prefix> [--theme id] [--pairing id] [--vars json] [--times 0.5,1.5]` | PNG stills of a template, to look at |
+| `motion render <template> <out.mov\|out.mp4> [--size 1080x1920] [--duration s] [--theme] [--pairing] [--vars json]` | Standalone clip: `.mov` = ProRes 4444 with alpha, `.mp4` = on the theme background |
+| `motion add <template> <edit> --at s [--duration s] [--vars json]` | Render sized to the edit with its theme and fonts, keep it above the captions and off the tracked face, and add it to `edl.json` as an overlay |
 | `validate <edit>` | Check `edl.json`, print the timeline and pace |
 | `render <edit> --quality draft\|standard\|best` | Encoder speed vs size; clips come from the per-clip cache (`renders/cache/`) and only changed clips are re-processed |
 | `storyboard <edit> [--two] [--changed] [--only C04]` | Numbered frames from the full edit graph + `STORYBOARD.md` (pace, sound plan, changes); `--changed` makes a part storyboard when only some clips changed |
@@ -60,6 +64,10 @@ Mann is the studio's editor agent (`.claude/agents/mann.md`). Give it raw footag
 | `analyze-style <video> <workdir> --name …` | Cut rhythm, pace curve, palette, tone, loudness, silences, one frame per shot, draft style sheet |
 | `publish-style <workdir> <slug>` | Save a finished sheet + targets to `editor/styles/<slug>/` |
 | `mg-new <edit> <name>` / `mg-render <edit> <name>` | Hyperframes composition in `<edit>/mg/<name>/` → `mg/<name>.mov` with alpha |
+
+## Motion templates (`editor/motion/`)
+
+`lower-third`, `title-card`, `counter` (Indian digit grouping), `callout`, `progress-bar`, `cta`, `kinetic-words`, `map-pin`, `stat-card`, `highlight-box`. Each is a canvas page drawn as a pure function of time (`templates/*.html`, shared `lib.js`), rendered by `render_motion.cjs` with Playwright Chromium and FFmpeg: the same command runs in the cloud session and on a laptop, with no `npx` and no network fetch. Colours come from a craft colour theme (roles chosen by measured contrast and saturation), fonts from a font pairing (Devanagari shaped by Chromium). Use them on their own (`motion render`) or inside an edit (`motion add`). Hyperframes (`mg-new`/`mg-render`) stays available for custom compositions where `npx`/the CLI is allowed.
 
 ## Edit folder (`projects/<slug>/edit/`, git-ignored)
 

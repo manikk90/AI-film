@@ -1,0 +1,33 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>cta</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas></canvas>
+<script type="application/json" id="meta">{"description": "A pill button that pops in (follow / subscribe) with an icon", "duration": 3, "vars": {"text": "Follow karo", "icon": "bell"}, "name": "cta"}</script>
+<script>
+/* Mann motion template `cta` (see editor/motion/lib.js for the contract). */
+const MOTION = {
+defaults: JSON.parse(document.getElementById('meta').textContent).vars,
+icon(ctx, kind, x, y, r, col) {
+  ctx.save(); ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = r * 0.22; ctx.lineCap = 'round';
+  if (kind === 'heart') { ctx.beginPath(); ctx.moveTo(x, y + r * 0.8); ctx.bezierCurveTo(x - r * 1.4, y - r * 0.2, x - r * 0.6, y - r * 1.2, x, y - r * 0.35);
+    ctx.bezierCurveTo(x + r * 0.6, y - r * 1.2, x + r * 1.4, y - r * 0.2, x, y + r * 0.8); ctx.fill(); }
+  else if (kind === 'plus') { ctx.beginPath(); ctx.moveTo(x - r * 0.7, y); ctx.lineTo(x + r * 0.7, y); ctx.moveTo(x, y - r * 0.7); ctx.lineTo(x, y + r * 0.7); ctx.stroke(); }
+  else { ctx.beginPath(); ctx.moveTo(x - r * 0.7, y + r * 0.5); ctx.quadraticCurveTo(x - r * 0.6, y - r * 0.9, x, y - r * 0.9);
+    ctx.quadraticCurveTo(x + r * 0.6, y - r * 0.9, x + r * 0.7, y + r * 0.5); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y + r * 0.72, r * 0.2, 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore();
+},
+render(ctx, t, v, W, H) {
+  const s = M.safe(W, H, v), base = Math.min(W, H), e = M.env(t, v.duration, 0.01, 0.35);
+  const ts = M.fit(ctx, v.text, s.w * 0.6, base * 0.055, v, 'display'); ctx.font = M.font(v, 'display', ts);
+  const ir = ts * 0.45, w = ctx.measureText(v.text).width + ir * 2 + base * 0.12, h = ts * 1.9;
+  const cx = (s.x0 + s.x1) / 2, cy = s.y1 - h, pop = M.outBack(M.prog(t, 0, 0.45)), wig = Math.sin(Math.max(0, t - 0.8) * 18) * Math.exp(-Math.max(0, t - 0.8) * 4) * 0.35;
+  ctx.save(); ctx.globalAlpha = e; ctx.translate(cx, cy); ctx.scale(pop, pop); M.shadow(ctx, true);
+  ctx.fillStyle = v.accent; M.rrect(ctx, -w / 2, -h / 2, w, h, h / 2); ctx.fill(); M.shadow(ctx, false);
+  const ix = -w / 2 + base * 0.045 + ir; ctx.save(); ctx.translate(ix, 0); ctx.rotate(wig); MOTION.icon(ctx, v.icon, 0, 0, ir, v.bg); ctx.restore();
+  ctx.fillStyle = v.bg; ctx.textBaseline = 'middle'; ctx.fillText(v.text, ix + ir + base * 0.03, 0); ctx.restore();
+}
+};
+</script>
+<script src="../lib.js"></script>
+</body></html>

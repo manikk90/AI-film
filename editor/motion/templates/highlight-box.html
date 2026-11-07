@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>highlight-box</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas></canvas>
+<script type="application/json" id="meta">{"description": "A box that draws around a region (x, y, w, h in 0-1), optional dim outside, with a tag", "duration": 3, "vars": {"x": 0.15, "y": 0.35, "w": 0.7, "h": 0.15, "label": "Important", "dim": 0.35}, "name": "highlight-box"}</script>
+<script>
+/* Mann motion template `highlight-box` (see editor/motion/lib.js for the contract). */
+const MOTION = {
+defaults: JSON.parse(document.getElementById('meta').textContent).vars,
+render(ctx, t, v, W, H) {
+  const base = Math.min(W, H), e = M.env(t, v.duration, 0.01, 0.35), x = v.x * W, y = v.y * H, w = v.w * W, h = v.h * H;
+  ctx.save(); ctx.globalAlpha = e;
+  if (v.dim > 0) { ctx.fillStyle = `rgba(0,0,0,${v.dim * M.prog(t, 0, 0.4)})`; ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.rect(x, y, w, h); ctx.fill('evenodd'); }
+  const per = 2 * (w + h), k = M.outCubic(M.prog(t, 0, 0.6));
+  ctx.strokeStyle = v.accent; ctx.lineWidth = base * 0.01; ctx.setLineDash([per * k, per]); M.rrect(ctx, x, y, w, h, base * 0.015); ctx.stroke(); ctx.setLineDash([]);
+  if (v.label) { const ls = base * 0.038; ctx.font = M.font(v, 'display', ls); const lw = ctx.measureText(v.label).width + base * 0.04, lh = ls * 1.5;
+    ctx.globalAlpha = e * M.prog(t, 0.45, 0.75); ctx.fillStyle = v.accent; M.rrect(ctx, x, y - lh - base * 0.012, lw, lh, base * 0.01); ctx.fill();
+    ctx.fillStyle = v.bg; ctx.textBaseline = 'middle'; ctx.fillText(v.label, x + base * 0.02, y - lh / 2 - base * 0.012); }
+  ctx.restore();
+}
+};
+</script>
+<script src="../lib.js"></script>
+</body></html>

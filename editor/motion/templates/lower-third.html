@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>lower-third</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas></canvas>
+<script type="application/json" id="meta">{"description": "Name and title bar that slides in from the left, inside the safe zone", "duration": 4, "vars": {"name": "Naam Yahan", "title": "Role / City"}, "name": "lower-third"}</script>
+<script>
+/* Mann motion template `lower-third` (see editor/motion/lib.js for the contract). */
+const MOTION = {
+defaults: JSON.parse(document.getElementById('meta').textContent).vars,
+render(ctx, t, v, W, H) {
+  const s = M.safe(W, H, v), base = Math.min(W, H), e = M.env(t, v.duration, 0.55, 0.4);
+  const pad = base * 0.035, ns = M.fit(ctx, v.name, s.w * 0.8, base * 0.062, v, 'display'), ts = M.fit(ctx, v.title, s.w * 0.8, base * 0.036, v, 'text');
+  ctx.font = M.font(v, 'display', ns); const nw = ctx.measureText(v.name).width;
+  ctx.font = M.font(v, 'text', ts); const tw = ctx.measureText(v.title).width;
+  const bw = Math.max(nw, tw) + pad * 2, bh = ns * 1.25 + ts * 1.35 + pad * 1.4, x = s.x0, y = s.y1 - bh - base * 0.04;
+  const k = M.outCubic(M.prog(t, 0.1, 0.55)) * e;
+  ctx.save(); ctx.globalAlpha = e;
+  ctx.fillStyle = v.accent; ctx.fillRect(x, y, base * 0.014, bh * M.outCubic(M.prog(t, 0, 0.3)));
+  ctx.beginPath(); ctx.rect(x + base * 0.014, y, bw * k, bh); ctx.clip();
+  ctx.fillStyle = M.alpha(v.bg, 0.86); ctx.fillRect(x + base * 0.014, y, bw, bh);
+  ctx.textBaseline = 'top'; ctx.fillStyle = v.ink; ctx.font = M.font(v, 'display', ns);
+  ctx.fillText(v.name, x + base * 0.014 + pad, y + pad * 0.7 + (1 - k) * base * 0.02);
+  ctx.fillStyle = v.accent; ctx.font = M.font(v, 'text', ts);
+  ctx.fillText(v.title, x + base * 0.014 + pad, y + pad * 0.7 + ns * 1.25);
+  ctx.restore();
+}
+};
+</script>
+<script src="../lib.js"></script>
+</body></html>

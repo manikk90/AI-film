@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>kinetic-words</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas></canvas>
+<script type="application/json" id="meta">{"description": "Words punch in one at a time, centred; wrap a key word in *stars* for the accent", "duration": 3, "vars": {"text": "Ye *sach* nahi hai"}, "name": "kinetic-words"}</script>
+<script>
+/* Mann motion template `kinetic-words` (see editor/motion/lib.js for the contract). */
+const MOTION = {
+defaults: JSON.parse(document.getElementById('meta').textContent).vars,
+init(v) { MOTION.words = v.text.split(/\s+/).filter(Boolean).map(w => ({ word: w.replace(/\*/g, ''), key: /^\*.*\*$/.test(w) })); },
+render(ctx, t, v, W, H) {
+  const s = M.safe(W, H, v), base = Math.min(W, H), ws = MOTION.words, n = ws.length, step = v.duration * 0.88 / n;
+  const i = Math.min(n - 1, Math.floor(t / step)), w = ws[i], local = t - i * step;
+  const size = M.fit(ctx, w.word, s.w * 0.9, base * (w.key ? 0.19 : 0.15), v, 'display', 900);
+  const k = M.outBack(M.prog(local, 0, 0.18)), sc = M.lerp(1.45, 1, k), out = i === n - 1 ? M.env(t, v.duration, 0.01, 0.25) : 1;
+  ctx.save(); ctx.globalAlpha = M.prog(local, 0, 0.06) * out; ctx.translate((s.x0 + s.x1) / 2, M.cy(s, H, v, 0.45)); ctx.scale(sc, sc);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; M.shadow(ctx, true);
+  ctx.fillStyle = w.key ? v.accent : v.ink; ctx.font = M.font(v, 'display', size, 900); ctx.fillText(w.word, 0, 0); ctx.restore();
+}
+};
+</script>
+<script src="../lib.js"></script>
+</body></html>

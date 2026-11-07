@@ -1,0 +1,27 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>map-pin</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas></canvas>
+<script type="application/json" id="meta">{"description": "A pin drops on a point (x, y in 0-1) with ripples and a place label", "duration": 3, "vars": {"x": 0.5, "y": 0.5, "label": "Mumbai"}, "name": "map-pin"}</script>
+<script>
+/* Mann motion template `map-pin` (see editor/motion/lib.js for the contract). */
+const MOTION = {
+defaults: JSON.parse(document.getElementById('meta').textContent).vars,
+render(ctx, t, v, W, H) {
+  const s = M.safe(W, H, v), base = Math.min(W, H), e = M.env(t, v.duration, 0.01, 0.35);
+  const px = v.x * W, py = v.y * H, r = base * 0.035, land = M.outBack(M.prog(t, 0, 0.5)), y = M.lerp(py - H * 0.15, py, land);
+  ctx.save(); ctx.globalAlpha = e;
+  for (let k = 0; k < 2; k++) { const rt = (t - 0.5 - k * 0.4) % 1.2; if (t > 0.5 + k * 0.4 && rt >= 0) {
+    ctx.strokeStyle = M.alpha(v.accent, 1 - rt / 1.2); ctx.lineWidth = base * 0.006; ctx.beginPath(); ctx.ellipse(px, py, r * (1 + rt * 3), r * 0.45 * (1 + rt * 3), 0, 0, Math.PI * 2); ctx.stroke(); } }
+  M.shadow(ctx, true); ctx.fillStyle = v.accent; ctx.beginPath(); ctx.arc(px, y - r * 1.6, r, Math.PI * 0.85, Math.PI * 2.15);
+  ctx.lineTo(px, y); ctx.closePath(); ctx.fill(); ctx.fillStyle = v.bg; ctx.beginPath(); ctx.arc(px, y - r * 1.6, r * 0.4, 0, Math.PI * 2); ctx.fill();
+  const ls = M.fit(ctx, v.label, s.w * 0.6, base * 0.045, v, 'display'); ctx.font = M.font(v, 'display', ls);
+  const lw = ctx.measureText(v.label).width + base * 0.05, lh = ls * 1.6, lx = M.clamp(px - lw / 2, s.x0, s.x1 - lw), ly = M.clamp(py - r * 3.4 - lh, s.y0, s.y1 - lh);
+  ctx.globalAlpha = e * M.prog(t, 0.5, 0.8); ctx.fillStyle = M.alpha(v.bg, 0.9); M.rrect(ctx, lx, ly, lw, lh, base * 0.012); ctx.fill();
+  M.shadow(ctx, false); ctx.fillStyle = v.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(v.label, lx + lw / 2, ly + lh / 2);
+  ctx.restore();
+}
+};
+</script>
+<script src="../lib.js"></script>
+</body></html>
