@@ -1,0 +1,27 @@
+{
+ "slug": "miniature-diorama",
+ "num": "74",
+ "en": "Miniature Diorama",
+ "hi": "मिनिएचर डायोरामा",
+ "cn": "微缩模型景观",
+ "category_en": "Animation Techniques",
+ "category_hi": "एनिमेशन तकनीक",
+ "category_cn": "动画技法",
+ "status": "draft",
+ "film": null,
+ "line": "Proposed demo: a tiny hand-made village on a kitchen table wakes up for a festival morning while a real cup of chai steams at the edge of frame.",
+ "line_hi": "प्रस्तावित डेमो: रसोई की मेज़ पर हाथ से बना छोटा-सा गाँव त्योहार की सुबह जागता है, और फ़्रेम के किनारे असली चाय का कप भाप छोड़ता है।",
+ "line_cn": "拟议演示：厨房桌上一座手工小村庄在节日清晨醒来，画面边缘一杯真实的奶茶冒着热气。",
+ "uses": [
+  "Story shorts",
+  "Place & travel",
+  "Brand worlds"
+ ],
+ "nearest": [
+  "tilt-shift",
+  "memphis-diorama",
+  "brick-toy"
+ ],
+ "frame_sec": null,
+ "dur": 0
+}

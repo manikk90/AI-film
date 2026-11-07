@@ -1,0 +1,27 @@
+{
+ "slug": "cgi-motion",
+ "num": "72",
+ "en": "CGI Motion",
+ "hi": "CGI मोशन",
+ "cn": "CGI 动态",
+ "category_en": "Animation Techniques",
+ "category_hi": "एनिमेशन तकनीक",
+ "category_cn": "动画技法",
+ "status": "draft",
+ "film": null,
+ "line": "Proposed demo: a soft glossy ball rolls through a pastel studio of ramps and cloth, each satisfying interaction landing on a beat of the music.",
+ "line_hi": "प्रस्तावित डेमो: एक मुलायम चमकदार गेंद रैंप और कपड़े वाले पेस्टल स्टूडियो से लुढ़कती है; हर संतोषजनक टक्कर संगीत की बीट पर होती है।",
+ "line_cn": "拟议演示：一颗柔软光亮的小球滚过由坡道和布料组成的粉彩工作室，每次令人满足的碰撞都落在音乐的节拍上。",
+ "uses": [
+  "Satisfying loops",
+  "Brand idents & product teasers",
+  "Music visuals"
+ ],
+ "nearest": [
+  "glass-product",
+  "teardown",
+  "white-model"
+ ],
+ "frame_sec": null,
+ "dur": 0
+}

@@ -1,0 +1,27 @@
+{
+ "slug": "minimal-ink-essay",
+ "num": "71",
+ "en": "Minimal Ink Essay",
+ "hi": "मिनिमल इंक निबंध",
+ "cn": "极简墨线随笔",
+ "category_en": "Internet & Digital",
+ "category_hi": "इंटरनेट और डिजिटल",
+ "category_cn": "网络与数字",
+ "status": "draft",
+ "film": null,
+ "line": "Proposed demo: a two-minute essay on why focus beats talent, drawn as sparse white ink figures on black paper that appear one stroke per idea.",
+ "line_hi": "प्रस्तावित डेमो: दो मिनट का निबंध कि ध्यान प्रतिभा से क्यों जीतता है, काले काग़ज़ पर विरल सफ़ेद स्याही की आकृतियों में, हर विचार पर एक स्ट्रोक।",
+ "line_cn": "拟议演示：一篇两分钟的随笔，讲专注为何胜过天赋，用黑纸上稀疏的白色墨线人物，一个想法一笔。",
+ "uses": [
+  "Self-improvement essays",
+  "Philosophy & mindset",
+  "Founder & creator talks"
+ ],
+ "nearest": [
+  "one-line",
+  "ink-wash",
+  "dark-keynote"
+ ],
+ "frame_sec": null,
+ "dur": 0
+}

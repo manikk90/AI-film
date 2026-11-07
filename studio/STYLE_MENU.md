@@ -3,7 +3,7 @@
 Every style the studio can pick from, in one place, for the social agent's style suggestions and the director's format brief.
 
 - **Library styles (66)**, from [Lemo-Opuscar](https://github.com/lemomo-ai/lemo-opuscar) `styles/<slug>/`. Each has a demo film and engine code, so these are the reliable, faster picks.
-- **Draft styles (67)**, from this repo's [`styles/`](../styles/README.md). Each has a written `STYLE.md` but no engine yet, so it needs more build time and an owner-approved preview.
+- **Draft styles (74)**, from this repo's [`styles/`](../styles/README.md). Each has a written `STYLE.md` but no engine yet, so it needs more build time and an owner-approved preview.
 - **Ready formats (47)**, imported skills from the owner's Ai-Animation repo (`studio/IMPORTED_SKILLS.json`). Each is a whole recipe, run as `/<name>` or picked as the format in a studio run, inside `studio/SKILL_HARNESS.md`. They have not been rendered in this repo yet.
 - **Format prompts (12)**, from the "12 Claude Video Formats" guide (`studio/formats/`). Each is a one-line prompt (`Format: <name>.`) for `studio/templates/format-prompt.md`. They have a first-try result in the guide, not in this repo.
 
@@ -133,7 +133,7 @@ Rebuild this file with `python3 studio/build_style_menu.py --lemo <lemo-opuscar 
 | Silkscreen Travel Poster | `silkscreen-poster` | Opaque, hard-edged flat inks pulled one colour at a time through a screen: 4–6 inks per poster, stepped colour bands instead of gradients, thin paper-white g… | Destination guides, Tourism, Event posters |
 | Woodcut Print | `woodcut` | A relief print that carves itself: every frame is a black wood block, and light only exists where a knife has cut it away. One colour at most, and only for t… | Folk tales, Craft brands, Book trailers |
 
-## Draft styles (67, no demo yet)
+## Draft styles (74, no demo yet)
 
 
 ### Indian Traditions
@@ -179,14 +179,18 @@ Rebuild this file with `python3 studio/build_style_menu.py --lemo <lemo-opuscar 
 
 | Style | हिंदी | Slug | Look | Good for |
 |---|---|---|---|---|
+| CGI Motion | CGI मोशन | `cgi-motion` | Glossy, tactile 3D motion design: soft-body balls, inflatable shapes, cloth and ramps in a seamless pastel studio, lit by big soft lights, moving in satisfyi… | Satisfying loops, Brand idents & product teasers, Music visuals |
 | Cel-shaded 3D | सेल-शेडेड 3D | `cel-shaded-3d` | Three-dimensional models rendered to look hand-drawn: flat colour bands from a stepped light ramp, ink outlines of constant weight, hard shadow shapes, and c… | Game & app promos, Kids' adventure series, Brand mascots |
 | Claymation | क्लेमेशन | `claymation` | Stop-motion with oil-based modelling clay: soft rounded characters and props sculpted by hand, fingerprints and tool marks left in, surfaces that "boil" a li… | Character comedy, Children's education, Mascots & product stories |
 | Cut-paper Collage | कोलाज | `collage-cutout` | A tabletop of printed scraps (magazine-like cuttings, torn newsprint, kraft paper, tape, staples, handwriting) animated as cut-outs a frame at a time: mismat… | Social commentary, Culture and brand explainers, Music video |
 | Felt Stop-motion | फ़ेल्ट स्टॉप-मोशन | `felt-stopmotion` | Needle-felted wool characters on a set of felt sheets and wool roving, shot with a macro lens a pose at a time: soft fuzzy silhouettes, bead eyes, matte satu… | Children's story, Gentle brand film, Nature fable |
+| Flat Vector Explainer | फ़्लैट वेक्टर एक्सप्लेनर | `flat-vector-explainer` | Science explained in clean flat shapes: rounded geometric characters and objects, soft single-direction shading, bright saturated colours on dark or deep-col… | Science explainers, Health & body, Education |
 | Flipbook | फ़्लिपबुक | `flipbook` | Pencil drawings on the corners of a notebook or pad, one drawing per page, brought to life by a thumb flipping the pages: graphite lines that boil because ev… | Short comic gag, Social short, Teaching how animation works |
+| Glow Sketch | ग्लो स्केच | `glow-sketch` | Hand-drawn line art that emits light: a single pen draws white and coloured strokes on near-black paper, every stroke blooms like a neon tube or a light-pain… | Explainers & how-it-works, Science & tech stories, Motivational shorts |
 | Kinetic Typography | काइनेटिक टाइपोग्राफी | `kinetic-type` | The words are the cast: the spoken text is set in type, and every word enters, acts and leaves on its own syllable, so reading and listening become one motion. | Poetry & lyric videos, Speeches & manifestos, Social explainers |
 | Knitted World | बुना हुआ संसार | `knit-world` | A world made of knitted and crocheted fabric: every surface is a lattice of yarn stitches, colour is a knitting chart, objects are stuffed and seamed, and a … | Children's story, Systems and connections explainer, Seasonal film |
 | Manga Screentone | मांगा स्क्रीनटोन | `manga-screentone` | Black-and-white comic printing set in motion: pressure-tapered pen ink, mechanical dot tones cut to shape, speed and focus lines, and a page whose panel bord… | Sports & action, Youth campaigns, Serialised stories |
+| Miniature Diorama | मिनिएचर डायोरामा | `miniature-diorama` | A tiny hand-built world sitting on a real table: a model village or city on a wooden base, foam trees, painted houses and little figures, shot with a macro l… | Story shorts, Place & travel, Brand worlds |
 | Origami | ओरिगामी | `origami` | Single sheets of paper folded into every shape on screen: flat facets with crisp creases, coloured on one side and white on the other, and transformations th… | Process explainer, Transformation story, Mathematics and design education |
 | Paint-on-Glass | काँच पर पेंटिंग | `paint-on-glass` | Slow-drying oil paint pushed around on a lit glass sheet under the camera, repainted for every frame: light glows through thin paint, motion is paint dragged… | Literary adaptation, Music video, Dream and memory sequences |
 | Pinscreen | पिनस्क्रीन | `pinscreen` | A white board pierced by a dense grid of pins, lit from one low side: pins pushed out cast long shadows (black), pins flush cast none (white), and everything… | Poetry film, Folk tale, Nocturne and memory |
@@ -217,12 +221,15 @@ Rebuild this file with `python3 studio/build_style_menu.py --lemo <lemo-opuscar 
 | Frutiger Aero | फ़्रूटिगर एरो | `frutiger-aero` | Glossy, sunlit tech optimism: sky-blue skies, lush green hills and clear aqua water, translucent gel shapes with a crisp white shine, bubbles and droplets th… | Clean-tech and wellness brands, Science for kids, App onboarding |
 | Kaleidoscope | कैलिडोस्कोप | `kaleidoscope` | A view down a mirrored tube: loose pieces of coloured glass in a backlit cell are multiplied by mirrors into a perfectly symmetric pattern that re-forms ever… | Music videos, Memory & family, Festive brand films |
 | Liquid Glass UI | लिक्विड ग्लास UI | `liquid-glass` | A fictional interface made of floating glass: panes and lenses refract the colourful content beneath them, bend it strongly at their rounded edges, catch a m… | App and product launches, UI/UX explainers, Brand idents |
+| Minimal Ink Essay | मिनिमल इंक निबंध | `minimal-ink-essay` | A spoken essay drawn in very few lines: sparse white ink figures and symbols appear on black (or off-white) paper, one stroke per idea, with large calm serif… | Self-improvement essays, Philosophy & mindset, Founder & creator talks |
 | Oscilloscope Art | ऑसिलोस्कोप आर्ट | `oscilloscope` | One green beam of light on the dark glass of an oscilloscope in XY mode, drawing every image as a single continuous path many times a second; brightness is w… | Music visualisers, Physics and audio explainers, Tech brand idents |
+| PS2-era 3D | PS2 दौर का 3D | `ps2-era-3d` | A story told as an early-2000s console game: low-polygon characters with painted textures, vertex-lit rooms in fog, a soft bloom on every bright light, a sli… | Nostalgia & gaming culture, Comedy & memes, Story shorts |
 | Synthwave | सिंथवेव | `synthwave` | A neon night drive into a retro-future: a glowing grid floor races toward a low horizon and a huge striped sun, wireframe mountains glow against a violet sky… | Music videos, Game and tech launches, Event trailers |
 | Thermal Vision | थर्मल विज़न | `thermal-vision` | A long-wave infrared camera's view: the picture is a map of surface temperature shown through a false-colour palette, with a scale bar, a spot meter and the … | Science explainers, Nature & wildlife, Energy & buildings |
 | Vaporwave | वेपरवेव | `vaporwave` | A slowed-down, pastel collage of consumer nostalgia: marble busts, columns and palms float in a pink-and-teal void over an endless checkerboard, framed by in… | Music videos, Nostalgia and internet-culture explainers, Fashion and lifestyle promos |
 | Vector Arcade | वेक्टर आर्केड | `vector-arcade` | Glowing lines on pure black from an early-1980s vector arcade monitor: ships, rocks, tanks and tunnels drawn as bright wireframe outlines by a beam that jump… | Game-culture explainers, Tech and esports promos, Retro brand idents |
 | Voxel World | वॉक्सल संसार | `voxel` | A world made only of equal cubes on one grid: terrain, houses, trees, water and people are stacks of blocks, and everything that happens is a block placed, a… | Kids & education, Games & tech, History & urban growth |
+| What-if 3D Explainer | व्हाट-इफ़ 3D एक्सप्लेनर | `what-if-3d-explainer` | A short body or science fact shown in close, slightly gross, realistic-cartoon 3D: the camera dives into skin, blood or a machine, numbered steps walk throug… | Body & health facts, What-if science, Viral shorts |
 | X-ray | एक्स-रे | `x-ray` | Projection radiography: rays from a point source pass through things and darken a film, so bone and metal glow white, air goes black, and every grey is how m… | How things work, Product & engineering, Museum & conservation |
 | Y2K Chrome | Y2K क्रोम | `y2k-chrome` | Millennium futurism in liquid metal: mercury blobs that merge and split, inflated bubble lettering, iridescent and candy-translucent plastics, sparkle glints… | Fashion and beauty, Music and club promos, Tech product teasers |
 

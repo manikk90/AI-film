@@ -15,3 +15,8 @@ mann = "aifilm.editor.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["aifilm*"]
+
+[tool.pytest.ini_options]
+# Bare `pytest` (as CI runs it) puts tests/ on sys.path, not the repo root; add the root so `aifilm` imports.
+pythonpath = ["."]
+testpaths = ["tests"]

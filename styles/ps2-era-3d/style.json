@@ -1,0 +1,27 @@
+{
+ "slug": "ps2-era-3d",
+ "num": "69",
+ "en": "PS2-era 3D",
+ "hi": "PS2 दौर का 3D",
+ "cn": "PS2 时代 3D",
+ "category_en": "Internet & Digital",
+ "category_hi": "इंटरनेट और डिजिटल",
+ "category_cn": "网络与数字",
+ "status": "draft",
+ "film": null,
+ "line": "Proposed demo: a delivery rider's last run of the night told as a 2002 console cutscene, with a menu screen, a loading bar and a save prompt at the end.",
+ "line_hi": "प्रस्तावित डेमो: एक डिलीवरी राइडर की रात की आख़िरी राइड, 2002 के कंसोल कटसीन की तरह: मेन्यू स्क्रीन, लोडिंग बार और अंत में सेव प्रॉम्प्ट।",
+ "line_cn": "拟议演示：外卖骑手当晚的最后一单，被讲成一段 2002 年的主机过场动画，有菜单画面、读取条和结尾的存档提示。",
+ "uses": [
+  "Nostalgia & gaming culture",
+  "Comedy & memes",
+  "Story shorts"
+ ],
+ "nearest": [
+  "pixel-rpg",
+  "lowpoly-island",
+  "hd-2d"
+ ],
+ "frame_sec": null,
+ "dur": 0
+}

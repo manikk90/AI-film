@@ -352,6 +352,38 @@
   "status": "draft"
  },
  {
+  "slug": "glow-sketch",
+  "num": "68",
+  "en": "Glow Sketch",
+  "hi": "ग्लो स्केच",
+  "category_en": "Animation Techniques",
+  "status": "draft"
+ },
+ {
+  "slug": "flat-vector-explainer",
+  "num": "70",
+  "en": "Flat Vector Explainer",
+  "hi": "फ़्लैट वेक्टर एक्सप्लेनर",
+  "category_en": "Animation Techniques",
+  "status": "draft"
+ },
+ {
+  "slug": "cgi-motion",
+  "num": "72",
+  "en": "CGI Motion",
+  "hi": "CGI मोशन",
+  "category_en": "Animation Techniques",
+  "status": "draft"
+ },
+ {
+  "slug": "miniature-diorama",
+  "num": "74",
+  "en": "Miniature Diorama",
+  "hi": "मिनिएचर डायोरामा",
+  "category_en": "Animation Techniques",
+  "status": "draft"
+ },
+ {
   "slug": "pointillism",
   "num": "45",
   "en": "Pointillism",
@@ -516,6 +548,30 @@
   "num": "65",
   "en": "Kaleidoscope",
   "hi": "कैलिडोस्कोप",
+  "category_en": "Internet & Digital",
+  "status": "draft"
+ },
+ {
+  "slug": "ps2-era-3d",
+  "num": "69",
+  "en": "PS2-era 3D",
+  "hi": "PS2 दौर का 3D",
+  "category_en": "Internet & Digital",
+  "status": "draft"
+ },
+ {
+  "slug": "minimal-ink-essay",
+  "num": "71",
+  "en": "Minimal Ink Essay",
+  "hi": "मिनिमल इंक निबंध",
+  "category_en": "Internet & Digital",
+  "status": "draft"
+ },
+ {
+  "slug": "what-if-3d-explainer",
+  "num": "73",
+  "en": "What-if 3D Explainer",
+  "hi": "व्हाट-इफ़ 3D एक्सप्लेनर",
   "category_en": "Internet & Digital",
   "status": "draft"
  },
