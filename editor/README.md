@@ -29,6 +29,8 @@ Mann is the studio's editor agent (`.claude/agents/mann.md`). Give it raw footag
 
 `bash editor/install.sh` installs all of them; `python3 -m aifilm.editor doctor` reports what is present.
 
+Canvas and motion-template rendering also need Node, the `playwright` module and a Chromium browser. By default Playwright uses its downloaded browser. In an environment with Chromium already installed, select it explicitly, for example `export AIFILM_CHROMIUM_EXECUTABLE=/usr/bin/chromium`. Both renderers use that executable, without downloading a browser or changing their page/approval contracts. Use an absolute executable path; compatibility still needs a real render check on that host.
+
 ## Commands (`python3 -m aifilm.editor …`, or `mann …` after `pip install -e .`)
 
 | Command | What it does |

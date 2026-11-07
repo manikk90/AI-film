@@ -666,10 +666,14 @@ def still_frames(root, edl, indices, out):
         from .render import cached_clips
         cache, _ = cached_clips(root, edl, probes)
         inputs, graph, v, a, total = build_graph(root, edl, probes, textfiles, cache=cache)
-        select = "+".join("eq(n\\,{})".format(i) for i in sorted(set(indices)))
+        unique = sorted(set(indices))
+        select = "+".join("eq(n\\,{})".format(i) for i in unique)
         graph += ";[{}]select='{}'[sb];[{}]anullsink".format(v, select, a)
+        # Stop once every requested frame is written. Continuing a cached concat
+        # graph into its audio sink after an early selection can abort FFmpeg 7's
+        # scheduler. The exact-count check below still rejects missing frames.
         media.run(["ffmpeg", "-hide_banner", "-y"] + inputs + ["-filter_complex", graph, "-map", "[sb]", "-fps_mode", "passthrough",
-                   "-q:v", "3", "-t", "{:.3f}".format(total), str(out / ".all-%04d.jpg")])
+                   "-q:v", "3", "-t", "{:.3f}".format(total), "-frames:v", str(len(unique)), str(out / ".all-%04d.jpg")])
     finally:
         for f in textfiles:
             Path(f).unlink(missing_ok=True)
