@@ -1,0 +1,27 @@
+{
+ "slug": "what-if-3d-explainer",
+ "num": "73",
+ "en": "What-if 3D Explainer",
+ "hi": "व्हाट-इफ़ 3D एक्सप्लेनर",
+ "cn": "假如 3D 科普",
+ "category_en": "Internet & Digital",
+ "category_hi": "इंटरनेट और डिजिटल",
+ "category_cn": "网络与数字",
+ "status": "draft",
+ "film": null,
+ "line": "Proposed demo: what happens inside your skin in the ten minutes after a splinter goes in, step by step in close 3D with a step counter and bold captions.",
+ "line_hi": "प्रस्तावित डेमो: त्वचा में फाँस चुभने के बाद दस मिनट में अंदर क्या होता है, क़दम-दर-क़दम क़रीबी 3D में, स्टेप काउंटर और बोल्ड कैप्शन के साथ।",
+ "line_cn": "拟议演示：一根刺扎进皮肤后十分钟里皮肤内部发生了什么，用近距离 3D 一步步展示，配步骤计数和醒目字幕。",
+ "uses": [
+  "Body & health facts",
+  "What-if science",
+  "Viral shorts"
+ ],
+ "nearest": [
+  "microscope",
+  "x-ray",
+  "teardown"
+ ],
+ "frame_sec": null,
+ "dur": 0
+}

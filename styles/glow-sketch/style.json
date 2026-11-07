@@ -1,0 +1,27 @@
+{
+ "slug": "glow-sketch",
+ "num": "68",
+ "en": "Glow Sketch",
+ "hi": "ग्लो स्केच",
+ "cn": "光绘草图",
+ "category_en": "Animation Techniques",
+ "category_hi": "एनिमेशन तकनीक",
+ "category_cn": "动画技法",
+ "status": "draft",
+ "film": null,
+ "line": "Proposed demo: a single glowing pen draws how a city's power grid wakes up at dusk, every line lighting the next until the whole skyline hums.",
+ "line_hi": "प्रस्तावित डेमो: एक चमकती क़लम दिखाती है कि शाम को शहर का बिजली ग्रिड कैसे जागता है; हर रेखा अगली रेखा जलाती है और पूरी स्काईलाइन गूंज उठती है।",
+ "line_cn": "拟议演示：一支发光的笔画出城市电网在黄昏如何苏醒，每一笔点亮下一笔，直到整片天际线嗡嗡作响。",
+ "uses": [
+  "Explainers & how-it-works",
+  "Science & tech stories",
+  "Motivational shorts"
+ ],
+ "nearest": [
+  "one-line",
+  "chalkboard",
+  "vector-arcade"
+ ],
+ "frame_sec": null,
+ "dur": 0
+}

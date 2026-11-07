@@ -11,6 +11,8 @@ Style prompts for films rendered entirely in code (Canvas 2D, WebGL, three.js, s
 
 None of these duplicates the 66 Lemo-Opuscar library styles or the 98 OPUSCAR 98 style prompts (checked 2026-11-01).
 
+Making a film in one of the "Claude animation styles" (pixel art, PS2, glow sketch, ZackD-type 3D explainers and more): see [CLAUDE-ANIMATION-WORKFLOW.md](CLAUDE-ANIMATION-WORKFLOW.md) for where each style lives, the build steps and a starting prompt per style.
+
 ## Use one
 
 - **With the Lemo-Opuscar library:** copy a folder to `~/lemo-my-styles/<slug>/` (its "my styles" location) and ask for a film in it by name. The agent reads `STYLE.md` the way it reads a library style; there is no demo engine yet, so §10 lists what to build first.
@@ -25,7 +27,7 @@ Edit `style.json` / `STYLE.md`, then run `python3 styles/build_index.py` to rebu
 ## Index
 
 <!-- index:start -->
-67 styles.
+74 styles.
 
 ### Indian Traditions · भारतीय परंपरा (16)
 
@@ -66,7 +68,7 @@ Edit `style.json` / `STYLE.md`, then run `python3 styles/build_index.py` to rebu
 | 28 | [Tenango Embroidery](tenango-embroidery/STYLE.md) | टेनांगो कढ़ाई | `tenango-embroidery` | draft | a forest waking at dawn, stitched creature by creature on white cotton, each animal arriving in its own thread colour until no gap is left. |
 | 29 | [Cross-stitch](cross-stitch/STYLE.md) | क्रॉस-स्टिच | `cross-stitch` | draft | a family recipe stitched as a sampler, the dish forming cell by cell, while the back of the cloth shows the tangled work behind each step. |
 
-### Animation Techniques · एनिमेशन तकनीक (15)
+### Animation Techniques · एनिमेशन तकनीक (19)
 
 | # | Style | हिंदी | Slug | Status | Proposed demo |
 |---|---|---|---|---|---|
@@ -85,6 +87,10 @@ Edit `style.json` / `STYLE.md`, then run `python3 styles/build_index.py` to rebu
 | 42 | [Kinetic Typography](kinetic-type/STYLE.md) | काइनेटिक टाइपोग्राफी | `kinetic-type` | draft | The shy word “hello” tries to join a loud, crowded sentence and only finds its place when the beat drops out. |
 | 43 | [Cel-shaded 3D](cel-shaded-3d/STYLE.md) | सेल-शेडेड 3D | `cel-shaded-3d` | draft | A small delivery robot crosses a rainy rooftop city on its first day, drawn in flat tone bands with ink outlines that hold as the camera circles it. |
 | 44 | [Wooden Toy](wooden-toy/STYLE.md) | लकड़ी के खिलौने | `wooden-toy` | draft | A turned wooden ring is sliced like bread, and every slice is a different animal that rolls off to join a pull-along parade across the table. |
+| 68 | [Glow Sketch](glow-sketch/STYLE.md) | ग्लो स्केच | `glow-sketch` | draft | a single glowing pen draws how a city's power grid wakes up at dusk, every line lighting the next until the whole skyline hums. |
+| 70 | [Flat Vector Explainer](flat-vector-explainer/STYLE.md) | फ़्लैट वेक्टर एक्सप्लेनर | `flat-vector-explainer` | draft | why a mosquito bite itches, from the bite to the histamine to the scratch, in rounded flat shapes that morph from one scale to the next. |
+| 72 | [CGI Motion](cgi-motion/STYLE.md) | CGI मोशन | `cgi-motion` | draft | a soft glossy ball rolls through a pastel studio of ramps and cloth, each satisfying interaction landing on a beat of the music. |
+| 74 | [Miniature Diorama](miniature-diorama/STYLE.md) | मिनिएचर डायोरामा | `miniature-diorama` | draft | a tiny hand-made village on a kitchen table wakes up for a festival morning while a real cup of chai steams at the edge of frame. |
 
 ### Art Movements · कला आंदोलन (8)
 
@@ -99,7 +105,7 @@ Edit `style.json` / `STYLE.md`, then run `python3 styles/build_index.py` to rebu
 | 51 | [Surreal Dreamscape](surreal-dream/STYLE.md) | अतियथार्थ स्वप्नलोक | `surreal-dream` | draft | on an endless evening plain, the objects of one ordinary morning (a kettle, a chair, a stack of letters) stand at impossible sizes, and their long shadows show what they will become. |
 | 52 | [Fauvism](fauvism/STYLE.md) | फ़ॉविज़्म | `fauvism` | draft | one fishing harbour is painted three times in a single day, its colours re-chosen stroke by stroke as the painter's mood moves from calm to joy to heat. |
 
-### Internet & Digital · इंटरनेट और डिजिटल (13)
+### Internet & Digital · इंटरनेट और डिजिटल (16)
 
 | # | Style | हिंदी | Slug | Status | Proposed demo |
 |---|---|---|---|---|---|
@@ -116,6 +122,9 @@ Edit `style.json` / `STYLE.md`, then run `python3 styles/build_index.py` to rebu
 | 63 | [Flow-field Generative](flow-field/STYLE.md) | जनरेटिव फ़्लो फ़ील्ड | `flow-field` | draft | thousands of lines tracing a day of wind over a coastal city slowly gather into the shape of the monsoon's first cloud, then release it as rain. |
 | 64 | [Voxel World](voxel/STYLE.md) | वॉक्सल संसार | `voxel` | draft | one small island grows block by block from a single shoreline stone into a village, loses half of it to a flood, and is rebuilt on higher ground. |
 | 65 | [Kaleidoscope](kaleidoscope/STYLE.md) | कैलिडोस्कोप | `kaleidoscope` | draft | a grandmother's buttons, bangle shards and spice seeds drop one by one into a kaleidoscope cell, each turn re-forming the pattern, until the camera pulls out to the toy in a child's hands. |
+| 69 | [PS2-era 3D](ps2-era-3d/STYLE.md) | PS2 दौर का 3D | `ps2-era-3d` | draft | a delivery rider's last run of the night told as a 2002 console cutscene, with a menu screen, a loading bar and a save prompt at the end. |
+| 71 | [Minimal Ink Essay](minimal-ink-essay/STYLE.md) | मिनिमल इंक निबंध | `minimal-ink-essay` | draft | a two-minute essay on why focus beats talent, drawn as sparse white ink figures on black paper that appear one stroke per idea. |
+| 73 | [What-if 3D Explainer](what-if-3d-explainer/STYLE.md) | व्हाट-इफ़ 3D एक्सप्लेनर | `what-if-3d-explainer` | draft | what happens inside your skin in the ten minutes after a splinter goes in, step by step in close 3D with a step counter and bold captions. |
 
 ### Cinema Eras · सिनेमा के दौर (2)
 

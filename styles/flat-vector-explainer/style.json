@@ -1,0 +1,27 @@
+{
+ "slug": "flat-vector-explainer",
+ "num": "70",
+ "en": "Flat Vector Explainer",
+ "hi": "फ़्लैट वेक्टर एक्सप्लेनर",
+ "cn": "扁平矢量科普",
+ "category_en": "Animation Techniques",
+ "category_hi": "एनिमेशन तकनीक",
+ "category_cn": "动画技法",
+ "status": "draft",
+ "film": null,
+ "line": "Proposed demo: why a mosquito bite itches, from the bite to the histamine to the scratch, in rounded flat shapes that morph from one scale to the next.",
+ "line_hi": "प्रस्तावित डेमो: मच्छर का काटा क्यों खुजलाता है, काटने से हिस्टामिन से खुजली तक, गोल फ़्लैट आकारों में जो एक स्केल से अगले में बदलते हैं।",
+ "line_cn": "拟议演示：被蚊子叮为什么会痒，从叮咬到组胺再到抓挠，用圆润的扁平图形在不同尺度之间变形讲完。",
+ "uses": [
+  "Science explainers",
+  "Health & body",
+  "Education"
+ ],
+ "nearest": [
+  "isometric-picture-book",
+  "iso-infographic",
+  "game-show"
+ ],
+ "frame_sec": null,
+ "dur": 0
+}
