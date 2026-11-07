@@ -2,6 +2,7 @@
 sine tones, pink noise), never real footage. They prove the pipeline's mechanics, not edit quality."""
 
 import io
+import os
 import json
 import shutil
 import subprocess
@@ -671,3 +672,175 @@ class ClipCacheCase(unittest.TestCase):
         self.assertEqual(len(list((self.edit / "renders" / "cache").glob("*.mkv"))), 3)
         with self.assertRaisesRegex(ProductionError, "quality"):
             R.render(self.edit, quality="ultra")
+
+
+class MotionStaticTest(unittest.TestCase):
+    def test_templates_and_theme_roles(self):
+        from aifilm.editor import craft as C, motion as MO
+        names = [t["name"] for t in MO.templates()]
+        self.assertEqual(len(names), 10)
+        self.assertEqual(len(set(names)), 10)
+        for t in MO.templates():
+            self.assertTrue(t["description"] and t["vars"] and t["duration"] > 0, t["name"])
+        for theme in C.data()["colour_themes"]:
+            r = MO.roles(theme["colours"])
+            rgb = lambda h: tuple(int(h.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))  # noqa: E731
+            with self.subTest(theme=theme["id"]):
+                self.assertGreaterEqual(C.contrast(rgb(r["accent"]), rgb(r["bg"])), 3.0)
+                self.assertGreaterEqual(C.contrast(rgb(r["ink"]), rgb(r["bg"])), 4.5)
+
+
+@unittest.skipUnless(HAS_FFMPEG, "FFmpeg is required for media tests")
+class MotionRenderCase(unittest.TestCase):
+    """Renders every template small and short (synthetic text values)."""
+
+    def setUp(self):
+        from aifilm.editor import motion as MO
+        if not MO.available():
+            self.skipTest("Node + Playwright are required for motion templates")
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.base = Path(self.temp.name)
+
+    def test_every_template_renders_transparent_stills(self):
+        from aifilm.editor import motion as MO
+        for t in MO.templates():
+            with self.subTest(template=t["name"]):
+                extra = {"dim": 0} if t["name"] == "highlight-box" else {}  # its outside dim is intentional
+                png = MO.render(t["name"], self.base / t["name"], (180, 320), 1.5, extra, theme="neon-mumbai", stills=[0.9])[0]
+                raw = subprocess.run(["ffmpeg", "-v", "error", "-i", png, "-f", "rawvideo", "-pix_fmt", "rgba", "-"], capture_output=True).stdout
+                alphas = raw[3::4]
+                self.assertEqual(len(alphas), 180 * 320)
+                self.assertGreater(sum(1 for a in alphas if a > 200), 50, "nothing drawn")
+                self.assertGreater(sum(1 for a in alphas if a == 0), len(alphas) // 3, "background is not transparent")
+
+    def test_mov_has_alpha_and_add_places_it(self):
+        from aifilm.editor import motion as MO
+        out = MO.render("lower-third", self.base / "lt.mov", (180, 320), 0.5, {"name": "परीक्षण"}, fps=10)
+        self.assertEqual(out["frames"], 5)
+        pix = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=pix_fmt", "-of", "csv=p=0",
+                              str(self.base / "lt.mov")], capture_output=True, text=True).stdout.strip()
+        self.assertTrue(pix.startswith("yuva"), pix)
+        ff("-f", "lavfi", "-i", "testsrc2=s=320x180:r=30:d=2", "-c:v", "libx264", "-pix_fmt", "yuv420p", self.base / "a.mp4")
+        edit = self.base / "edit"
+        T.ingest(edit, [self.base / "a.mp4"])
+        (edit / "caps.srt").write_text("1\n00:00:00,000 --> 00:00:01,500\nsynthetic caption\n", encoding="utf-8")
+        write_json(edit / "edl.json", {"version": 1, "format": {"width": 180, "height": 320, "fps": 10}, "sources": {"A": "raw/a.mp4"},
+                                       "clips": [{"id": "C01", "source": "A", "in": 0, "out": 1.5}], "subtitles": {"file": "caps.srt"},
+                                       "typography": {"theme": "clean-tech"}})
+        placed = MO.placement(edit, read_json(edit / "edl.json"), 0.2, 1.0)
+        self.assertLess(placed["bottom_limit"], 0.75)
+        entry = MO.add(edit, "callout", 0.2, 1.0, {"x": 0.3, "y": 0.4, "label": "यहाँ"})
+        edl = E.load(edit)
+        self.assertEqual(edl["overlays"][0]["file"], entry["file"])
+        self.assertTrue((edit / entry["file"]).exists())
+        with self.assertRaisesRegex(ProductionError, "Unknown motion template"):
+            MO.template("nope")
+
+
+class FootageRightsTest(unittest.TestCase):
+    def test_classify_licences(self):
+        from aifilm.editor import footage as FT
+        cases = {"http://creativecommons.org/publicdomain/mark/1.0/": "public-domain", "CC0": "public-domain",
+                 "Public domain": "public-domain", "CC BY 4.0": "cc-by", "https://creativecommons.org/licenses/by/3.0/": "cc-by",
+                 "CC BY-SA 4.0": "cc-by-sa", "http://creativecommons.org/licenses/by-nc/3.0/": "cc-by-nc",
+                 "CC BY-NC-SA 4.0": "cc-by-nc", "http://creativecommons.org/licenses/by-nc-nd/3.0/": "nd", "CC BY-ND 2.0": "nd",
+                 "": "unknown", "All rights reserved": "unknown"}
+        for text, want in cases.items():
+            with self.subTest(text=text):
+                self.assertEqual(FT.classify(text), want)
+
+    def test_adapters_parse_documented_responses(self):
+        """Canned responses in each service's documented shape (no network)."""
+        from aifilm.editor import footage as FT
+        canned = {
+            "archive.org/advancedsearch": {"response": {"docs": [{"identifier": "train1", "title": "Steam Train", "year": "1940",
+                                                                  "creator": "Prelinger", "licenseurl": "http://creativecommons.org/publicdomain/mark/1.0/"}]}},
+            "commons.wikimedia.org": {"query": {"pages": {"1": {"index": 1, "title": "File:Train.webm", "imageinfo": [{
+                "url": "https://upload.wikimedia.org/x/Train.webm", "descriptionurl": "https://commons.wikimedia.org/wiki/File:Train.webm",
+                "extmetadata": {"LicenseShortName": {"value": "CC BY-SA 4.0"}, "LicenseUrl": {"value": "https://creativecommons.org/licenses/by-sa/4.0"},
+                                "Artist": {"value": "<a href='x'>Asha</a>"}}}]}}}},
+            "images-api.nasa.gov": {"collection": {"items": [{"href": "https://images-assets.nasa.gov/video/A/collection.json",
+                                                             "data": [{"nasa_id": "A", "title": "Launch", "center": "KSC"}]}]}},
+        }
+        original = FT.http_json
+
+        def fake(url, headers=None, timeout=30):
+            for key, value in canned.items():
+                if key in url:
+                    return value
+            raise FT.ProductionError("unreachable in test")
+        FT.http_json = fake
+        self.addCleanup(setattr, FT, "http_json", original)
+        out = FT.search("train", ["internet-archive", "wikimedia-commons", "nasa"], 3)
+        by = {r["source"]: r for r in out["results"]}
+        self.assertEqual(by["internet-archive"]["rights"], "public-domain")
+        self.assertIn("Prelinger (1940)", by["internet-archive"]["credit"])
+        self.assertEqual(by["wikimedia-commons"]["rights"], "cc-by-sa")
+        self.assertIn("Asha", by["wikimedia-commons"]["credit"])
+        self.assertEqual(by["nasa"]["rights"], "free-license")
+        self.assertTrue(all(r["usable"] for r in out["results"]))
+        with self.assertRaisesRegex(FT.ProductionError, "PEXELS_API_KEY"):
+            saved = os.environ.pop("PEXELS_API_KEY", None)
+            try:
+                FT.search_pexels("x", 1)
+            finally:
+                if saved:
+                    os.environ["PEXELS_API_KEY"] = saved
+
+
+@unittest.skipUnless(HAS_FFMPEG, "FFmpeg is required for media tests")
+class FootageCase(unittest.TestCase):
+    """SYNTHETIC clips stand in for archive footage."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.base = Path(self.temp.name)
+        ff("-f", "lavfi", "-i", "testsrc2=s=320x180:r=30:d=2", "-c:v", "libx264", "-pix_fmt", "yuv420p", self.base / "own.mp4")
+        ff("-f", "lavfi", "-i", "smptebars=s=320x180:r=30:d=2", "-c:v", "libx264", "-pix_fmt", "yuv420p", self.base / "archive clip.mp4")
+        self.edit = self.base / "edit"
+        T.ingest(self.edit, [self.base / "own.mp4"])
+
+    def edl(self, src):
+        write_json(self.edit / "edl.json", {"version": 1, "format": {"width": 180, "height": 320, "fps": 30},
+                                            "sources": {"A": "raw/own.mp4", "B": src},
+                                            "clips": [{"id": "C01", "source": "A", "in": 0, "out": 1}, {"id": "C02", "source": "B", "in": 0, "out": 1}]})
+        return read_json(self.edit / "edl.json")
+
+    def test_rights_policy_and_credits(self):
+        from aifilm.editor import footage as FT
+        clip = self.base / "archive clip.mp4"
+        with self.assertRaisesRegex(ProductionError, "No-derivatives"):
+            FT.add(self.edit, clip, "https://example.org/x", "CC BY-ND 4.0", "Someone")
+        with self.assertRaisesRegex(ProductionError, "Non-commercial"):
+            FT.add(self.edit, clip, "https://example.org/x", "CC BY-NC 4.0", "Someone")
+        with self.assertRaisesRegex(ProductionError, "Rights unknown"):
+            FT.add(self.edit, clip, "https://example.org/x", "All rights reserved", "Someone")
+        with self.assertRaisesRegex(ProductionError, "licence reference"):
+            FT.add(self.edit, clip, "https://www.movingimagearchive.com/clip/1", "Moving Image Archive licence", "Moving Image Archive",
+                   rights="owner-licensed")
+        rec = FT.add(self.edit, clip, "https://www.movingimagearchive.com/clip/1", "Moving Image Archive licence",
+                     "Moving Image Archive", rights="owner-licensed", licence_ref="INV-0001 (synthetic)")
+        self.assertEqual(rec["file"], "raw/archive/archive_clip.mp4")
+        edl = self.edl(rec["file"])
+        out = FT.credits(self.edit, edl, self.base / "CREDITS.md")
+        text = Path(out).read_text(encoding="utf-8")
+        self.assertIn("Moving Image Archive", text)
+        self.assertIn("INV-0001", text)
+        self.assertEqual(len(FT.gate(self.edit, edl)), 1)
+
+    def test_unrecorded_archive_file_blocks_storyboard(self):
+        (self.edit / "raw" / "archive").mkdir(parents=True)
+        shutil.copyfile(self.base / "archive clip.mp4", self.edit / "raw" / "archive" / "stray.mp4")
+        self.edl("raw/archive/stray.mp4")
+        with self.assertRaisesRegex(ProductionError, "without a provenance record"):
+            E.storyboard(self.edit)
+
+    def test_fetch_direct_link(self):
+        from aifilm.editor import footage as FT
+        url = (self.base / "archive clip.mp4").resolve().as_uri()
+        rec = FT.fetch(self.edit, url=url, license_text="CC BY 4.0", credit="Synthetic Maker, via example archive")
+        self.assertEqual(rec["rights"], "cc-by")
+        self.assertTrue((self.edit / rec["file"]).exists())
+        self.assertFalse((self.edit / ".footage-download").exists())

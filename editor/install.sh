@@ -28,6 +28,10 @@ else
   echo "Node.js >= 22 is required for Hyperframes (https://nodejs.org). Motion graphics stay unavailable until then."
 fi
 
+say "Playwright Chromium (motion templates and canvas renders)"
+if node -e "require('playwright')" 2>/dev/null; then echo "playwright present"
+else npm install -g playwright && npx playwright install chromium; fi
+
 say "Fonts (open-licensed, Latin + Devanagari merged)"
 python3 -m aifilm.editor fonts-install --pairing poppins-hind || echo "Font install failed; captions fall back to system fonts"
 

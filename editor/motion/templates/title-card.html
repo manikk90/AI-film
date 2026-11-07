@@ -1,0 +1,33 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>title-card</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas></canvas>
+<script type="application/json" id="meta">{"description": "Big centred title revealed by a mask, accent underline, subtitle fade", "duration": 3, "vars": {"title": "Asli Kahani", "subtitle": "Part 1"}, "name": "title-card"}</script>
+<script>
+/* Mann motion template `title-card` (see editor/motion/lib.js for the contract). */
+const MOTION = {
+defaults: JSON.parse(document.getElementById('meta').textContent).vars,
+render(ctx, t, v, W, H) {
+  const s = M.safe(W, H, v), base = Math.min(W, H), e = M.env(t, v.duration, 0.6, 0.4);
+  const size = M.fit(ctx, v.title, s.w * 0.92, base * 0.13, v, 'display');
+  const cx = (s.x0 + s.x1) / 2, cy = M.cy(s, H, v, 0.42), reveal = M.outCubic(M.prog(t, 0, 0.6));
+  ctx.save(); ctx.globalAlpha = e; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.beginPath(); ctx.rect(0, cy - size * 0.8, W, size * 1.6 * reveal); ctx.clip();
+  M.shadow(ctx, true); ctx.fillStyle = v.ink; ctx.font = M.font(v, 'display', size);
+  ctx.fillText(v.title, cx, cy + (1 - reveal) * size * 0.4);
+  ctx.restore();
+  ctx.save(); ctx.globalAlpha = e;
+  ctx.font = M.font(v, 'display', size); const tw = Math.min(ctx.measureText(v.title).width, s.w);
+  const u = M.outCubic(M.prog(t, 0.35, 0.8));
+  ctx.fillStyle = v.accent; M.rrect(ctx, cx - tw / 2 * u, cy + size * 0.68, tw * u, base * 0.012, base * 0.006); ctx.fill();
+  if (v.subtitle) {
+    const ss = M.fit(ctx, v.subtitle, s.w * 0.8, base * 0.045, v, 'text');
+    ctx.globalAlpha = e * M.prog(t, 0.55, 0.9); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillStyle = v.muted; ctx.font = M.font(v, 'text', ss); ctx.fillText(v.subtitle, cx, cy + size * 0.9);
+  }
+  ctx.restore();
+}
+};
+</script>
+<script src="../lib.js"></script>
+</body></html>
