@@ -26,6 +26,7 @@ Format: `- YYYY-MM-DD · kind · rule. Why: … Source: "<owner's words>" (proje
   - Not yet measured on human recordings or sung vocals.
   - Unknown speech still needs the Whisper or MMS_FA hosts allowed. (studio)
 - 2026-11-07 · owner · Keep token use to the minimum on every film and video: follow caveman mode in `studio/CAVEMAN.md` (terse internal files inside size budgets, section reads, edits instead of rewrites, capped tool output, `effort` set per agent, one session per film). Why: one session (2026-11-01 to 11-07) sent 150.9M context tokens in 447 requests, all at max effort; the main session alone sent 118.2M, with its context peaking at 900k. Source: "koi bhi movie bnate time ya video m ye kaafi token use krta h caveman techniques use kro or token usages optimize kro minimum usages tk" (studio)
+- 2026-11-07 · observed · A new cloud session is a new container with a fresh clone, so the git-ignored `projects/<slug>/` of a film in progress does not carry over. Finish a film in the session that started it, and shrink its context with `/compact` instead of switching sessions. (studio)
 
 ## Social
 - 2026-11-01 · owner · Every night (a scheduled task, about 10:40 PM IST) find 10 topics with viral potential, suggest the best style for each from `studio/STYLE_MENU.md` (plus one experiment), and send them to the owner, following `studio/NIGHTLY.md`. Source: "roj raat 11 bje automatically 10 topics dundne or mujhe suggest krne h or unpr konsa style acha rhega vo bhi. virality match krte hue" (studio)
