@@ -54,6 +54,10 @@ Mann is the studio's editor agent (`.claude/agents/mann.md`). Give it raw footag
 | `motion still <template> <out-prefix> [--theme id] [--pairing id] [--vars json] [--times 0.5,1.5]` | PNG stills of a template, to look at |
 | `motion render <template> <out.mov\|out.mp4> [--size 1080x1920] [--duration s] [--theme] [--pairing] [--vars json]` | Standalone clip: `.mov` = ProRes 4444 with alpha, `.mp4` = on the theme background |
 | `motion add <template> <edit> --at s [--duration s] [--vars json]` | Render sized to the edit with its theme and fonts, keep it above the captions and off the tracked face, and add it to `edl.json` as an overlay |
+| `footage search "<query>" [--source internet-archive\|wikimedia-commons\|nasa\|pexels]` | Free archive/stock clips with their licence and a rights category (`usable` true/false) |
+| `footage fetch <edit> <n\|url> [--license … --credit …]` | Download search result *n* (or a direct/page link with an owner-stated licence) into `raw/archive/` with provenance |
+| `footage add <edit> <file> --source-url … --license … --credit … [--rights owner-licensed --licence-ref …]` | A clip the owner downloaded or bought (e.g. from movingimagearchive.com) |
+| `footage credits <edit>` / `footage list <edit>` | `renders/CREDITS.md` for the clips the cut uses / the provenance records |
 | `validate <edit>` | Check `edl.json`, print the timeline and pace |
 | `render <edit> --quality draft\|standard\|best` | Encoder speed vs size; clips come from the per-clip cache (`renders/cache/`) and only changed clips are re-processed |
 | `storyboard <edit> [--two] [--changed] [--only C04]` | Numbered frames from the full edit graph + `STORYBOARD.md` (pace, sound plan, changes); `--changed` makes a part storyboard when only some clips changed |
@@ -68,6 +72,10 @@ Mann is the studio's editor agent (`.claude/agents/mann.md`). Give it raw footag
 ## Motion templates (`editor/motion/`)
 
 `lower-third`, `title-card`, `counter` (Indian digit grouping), `callout`, `progress-bar`, `cta`, `kinetic-words`, `map-pin`, `stat-card`, `highlight-box`. Each is a canvas page drawn as a pure function of time (`templates/*.html`, shared `lib.js`), rendered by `render_motion.cjs` with Playwright Chromium and FFmpeg: the same command runs in the cloud session and on a laptop, with no `npx` and no network fetch. Colours come from a craft colour theme (roles chosen by measured contrast and saturation), fonts from a font pairing (Devanagari shaped by Chromium). Use them on their own (`motion render`) or inside an edit (`motion add`). Hyperframes (`mg-new`/`mg-render`) stays available for custom compositions where `npx`/the CLI is allowed.
+
+## Archive footage (`footage`)
+
+When a cut needs real shots the owner did not film, Mann searches free sources first (Internet Archive films with a licence URL, Wikimedia Commons, NASA, Pexels with `PEXELS_API_KEY`), then any site the owner names, such as movingimagearchive.com, through `footage add` (the owner's downloaded or licensed file) or `footage fetch` with a direct link. Every clip gets a record in `<edit>/footage.json` (source URL, licence, rights category, credit, licence reference, hash). Storyboard and render refuse: no-derivatives licences (editing is a derivative), non-commercial licences unless the owner confirms the video is non-commercial (`--noncommercial-ok`), unknown rights, owner-licensed clips without a licence reference, and any file in `raw/archive/` without a record or changed after it. `render` writes `renders/CREDITS.md` with every attribution and condition. In this cloud session the footage hosts are blocked; search runs on the laptop or after the owner allows the hosts.
 
 ## Edit folder (`projects/<slug>/edit/`, git-ignored)
 

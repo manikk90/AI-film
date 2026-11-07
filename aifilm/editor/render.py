@@ -249,9 +249,12 @@ def render(root, preview=True, quality="standard"):
             media.run(["ffmpeg", "-hide_banner", "-y", "-i", str(master), "-vf", "scale='if(gt(iw,ih),-2,720)':'if(gt(iw,ih),720,-2)'",
                        "-c:v", "libx264", "-crf", "26", "-preset", "veryfast", "-c:a", "aac", "-b:a", "128k", str(out / "preview_720p.mp4")])
         prune_cache(root, cache.values())
+        from . import footage
+        credits_file = footage.credits(root, edl)
         write_json(out / "render.json", {"edl_fingerprint": E.edit_fingerprint(root, edl), "rendered": now(),
                                          "expected_seconds": total, "file": "renders/master.mp4", "clips": stats})
-        return {"master": str(master), "expected_seconds": total, "clips_reused": stats["cached"], "clips_rendered": stats["rendered"]}
+        return {"master": str(master), "expected_seconds": total, "clips_reused": stats["cached"], "clips_rendered": stats["rendered"],
+                "credits": credits_file}
 
 
 def preview_part(root, ids, context=1):

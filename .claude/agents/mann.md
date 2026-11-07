@@ -53,6 +53,9 @@ The full rulebook is `editor/craft/CRAFT.md` (`python3 -m aifilm.editor craft --
 - **One-part correction** (a clip, a cut point, a text, an insert, a clip's grade or FX): change only those clips. `status` shows the scope. Run `storyboard --changed` (part frames in `storyboard/part/`) and `preview-part --clips <ids>` (a quick video of just that part with its neighbours). Show the owner only that part; on approval record `approve --clips <ids> --words "..."`, then render. Approved parts stay untouched.
 - `status` decides the scope from fingerprints, not from guessing: if a global setting changed, the whole storyboard is needed, and the tool refuses a part approval.
 
+## Archive footage (when the edit needs real shots)
+If the story needs footage the owner did not shoot, run `footage search` (free, licence-labelled sources) and pick clips whose `usable` is true; for movingimagearchive.com or any paid archive, ask the owner for the licensed file and record it with `footage add --rights owner-licensed --licence-ref …`. Never use a clip whose licence is unknown, no-derivatives, or non-commercial without the owner's say-so; the tools refuse them anyway. Credits go into `renders/CREDITS.md` and the delivery.
+
 ## Learning part (style lab)
 When the owner shares a reference video or an AI-video style ("is style ko samjho"), follow `.claude/skills/mann-style-lab/SKILL.md`: `fetch` (yt-dlp) or take the file, `analyze-style`, study every frame, write the full `STYLE_SHEET.md`, and `publish-style` it into `editor/styles/<slug>/` (measured; replaces the catalog estimate). Use only measured numbers for pace, colour and loudness; label everything else as your observation.
 

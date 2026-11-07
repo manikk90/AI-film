@@ -1,0 +1,9 @@
+{
+ "query": "steam train",
+ "results": [],
+ "errors": {
+  "internet-archive": "Could not reach archive.org (<urlopen error Tunnel connection failed: 403 Forbidden>). In the cloud session this host may need to be allowed in the network settings; on the laptop check the connection.",
+  "wikimedia-commons": "Could not reach commons.wikimedia.org (<urlopen error Tunnel connection failed: 403 Forbidden>). In the cloud session this host may need to be allowed in the network settings; on the laptop check the connection.",
+  "nasa": "Could not reach images-api.nasa.gov (<urlopen error Tunnel connection failed: 403 Forbidden>). In the cloud session this host may need to be allowed in the network settings; on the laptop check the connection."
+ }
+}

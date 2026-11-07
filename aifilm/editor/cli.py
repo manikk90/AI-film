@@ -78,6 +78,18 @@ def parser():
     p.add_argument("--pairing")
     p.add_argument("--at", type=float, default=0.0, help="add: overlay start time in the edit (seconds)")
     p.add_argument("--times", default="0.5,1.5", help="still: comma-separated timecodes")
+    p = c.add_parser("footage", help="Archive/stock footage with licences: search, fetch, add (any site incl. movingimagearchive.com), credits")
+    p.add_argument("action", choices=["search", "fetch", "add", "credits", "list"])
+    p.add_argument("arg1", nargs="?", help="search: query; fetch/add/credits/list: the edit folder")
+    p.add_argument("arg2", nargs="?", help="fetch: result number from the last search or a URL; add: the file")
+    p.add_argument("--source", action="append", help="search: internet-archive, wikimedia-commons, nasa, pexels (repeatable)")
+    p.add_argument("--limit", type=int, default=8)
+    p.add_argument("--source-url", help="add: where the clip came from")
+    p.add_argument("--license", help="licence name or URL (e.g. 'CC BY 4.0', 'Public domain', 'movingimagearchive.com licence')")
+    p.add_argument("--credit", help="attribution line")
+    p.add_argument("--rights", help="override the rights category: " + ", ".join(sorted(["public-domain", "cc-by", "cc-by-sa", "cc-by-nc", "free-license", "owner-licensed"])))
+    p.add_argument("--licence-ref", help="owner-licensed: order / invoice / licence id")
+    p.add_argument("--noncommercial-ok", action="store_true", help="the owner confirmed this video is non-commercial")
     p = c.add_parser("approve-style", help="Owner decision 1: record the finalised style")
     p.add_argument("edit")
     p.add_argument("slug")
@@ -194,6 +206,34 @@ def main(argv=None):
                     size = tuple(int(x) for x in args.size.split("x"))
                     stills = [float(x) for x in args.times.split(",")] if args.action == "still" else None
                     result = MO.render(args.template, args.target, size, args.duration, variables, args.theme, args.pairing, stills=stills)
+        elif cmd == "footage":
+            from . import footage as FT
+            last = Path.home() / ".cache" / "mann" / "last-footage-search.json"
+            last.parent.mkdir(parents=True, exist_ok=True)
+            if args.action == "search":
+                require_q = args.arg1 or ""
+                if not require_q:
+                    raise ProductionError("footage search needs a query")
+                result = FT.search(require_q, args.source, args.limit)
+                last.write_text(json.dumps(result, ensure_ascii=False, indent=1), encoding="utf-8")
+                result = {"results": [dict(n=i + 1, **{k: r.get(k) for k in ("source", "title", "rights", "license", "credit", "page", "usable")})
+                                      for i, r in enumerate(result["results"])], "errors": result["errors"]}
+            elif args.action == "fetch":
+                if args.arg2 and args.arg2.isdigit():
+                    if not last.exists():
+                        raise ProductionError("Run `footage search` first, or pass a URL")
+                    picked = json.loads(last.read_text(encoding="utf-8"))["results"][int(args.arg2) - 1]
+                    result = FT.fetch(args.arg1, picked, rights=args.rights, licence_ref=args.licence_ref, noncommercial_ok=args.noncommercial_ok)
+                else:
+                    result = FT.fetch(args.arg1, url=args.arg2, license_text=args.license, credit=args.credit, rights=args.rights,
+                                      licence_ref=args.licence_ref, noncommercial_ok=args.noncommercial_ok)
+            elif args.action == "add":
+                result = FT.add(args.arg1, args.arg2, args.source_url, args.license, args.credit, args.rights, args.licence_ref, args.noncommercial_ok)
+            elif args.action == "list":
+                path = Path(args.arg1) / "footage.json"
+                result = json.loads(path.read_text(encoding="utf-8"))["clips"] if path.exists() else {}
+            else:
+                result = {"credits": FT.credits(args.arg1, E.load(args.arg1))}
         elif cmd == "approve-style":
             G.style(args.slug)
             result = E.approve_style(args.edit, args.slug, args.words)

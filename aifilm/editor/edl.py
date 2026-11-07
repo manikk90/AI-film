@@ -570,7 +570,10 @@ def require_approval(root, edl):
 
 
 def require_decisions(root, edl):
-    """The owner's other two decisions: the style is final and the script is locked."""
+    """The owner's other two decisions: the style is final and the script is locked.
+    Also refuses archive footage whose licence is missing or not usable."""
+    from . import footage
+    footage.gate(root, edl)
     if edl.get("style"):
         require(any(a["kind"] == "style" and a.get("slug") == edl["style"] for a in approvals(root)),
                 "Style `{}` is not finalised by the owner. Show the suggestions and record their pick with `approve-style`.".format(edl["style"]))
