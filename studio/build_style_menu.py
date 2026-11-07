@@ -38,11 +38,14 @@ def main():
         draft.append((d["category_en"], d["en"], d["slug"], look(p.parent / "STYLE.md"), ", ".join(d.get("uses", [])[:3]), d["hi"]))
     reg = REPO / "studio" / "IMPORTED_SKILLS.json"
     fmt = json.loads(reg.read_text(encoding="utf-8")) if reg.exists() else []
+    fp = REPO / "studio" / "formats" / "claude-video-formats.json"
+    prompts = json.loads(fp.read_text(encoding="utf-8"))["formats"] if fp.exists() else []
     out = ["# Style menu", "",
            "Every style the studio can pick from, in one place, for the social agent's style suggestions and the director's format brief.", "",
            f"- **Library styles ({len(lib)})**, from [Lemo-Opuscar](https://github.com/lemomo-ai/lemo-opuscar) `styles/<slug>/`. Each has a demo film and engine code, so these are the reliable, faster picks.",
            f"- **Draft styles ({len(draft)})**, from this repo's [`styles/`](../styles/README.md). Each has a written `STYLE.md` but no engine yet, so it needs more build time and an owner-approved preview.",
-           f"- **Ready formats ({len(fmt)})**, imported skills from the owner's Ai-Animation repo (`studio/IMPORTED_SKILLS.json`). Each is a whole recipe, run as `/<name>` or picked as the format in a studio run, inside `studio/SKILL_HARNESS.md`. They have not been rendered in this repo yet.", "",
+           f"- **Ready formats ({len(fmt)})**, imported skills from the owner's Ai-Animation repo (`studio/IMPORTED_SKILLS.json`). Each is a whole recipe, run as `/<name>` or picked as the format in a studio run, inside `studio/SKILL_HARNESS.md`. They have not been rendered in this repo yet.",
+           f"- **Format prompts ({len(prompts)})**, from the \"12 Claude Video Formats\" guide (`studio/formats/`). Each is a one-line prompt (`Format: <name>.`) for `studio/templates/format-prompt.md`. They have a first-try result in the guide, not in this repo.", "",
            "Rebuild this file with `python3 studio/build_style_menu.py --lemo <lemo-opuscar clone>` when either library changes.", "",
            f"## Library styles ({len(lib)}, each with a demo film)", ""]
     cat = None
@@ -66,8 +69,15 @@ def main():
             grp = e["group"]
             out += ["", f"### {grp}", "", "| Format | Skill | Owner gives | Kind | Checks |", "|---|---|---|---|---|"]
         out.append(f"| {cell(e['title'])} | `/{e['name']}` | {cell(e['input'])} | {e['kind']} | {', '.join(e['flags']) or '-'} |")
+    out += ["", f"## Format prompts ({len(prompts)}, from the 12 Claude Video Formats guide)", "",
+            "Put `Format: <typed>.` as the last line of `studio/templates/format-prompt.md`. Prefer the nearest library style for a full film.", "",
+            "| Format | हिंदी | Slug | Typed | Look | Good for | Nearest |", "|---|---|---|---|---|---|---|"]
+    for e in prompts:
+        name = e["name"] + ("" if e["in_reel"] else " (not in the guide's reel)")
+        out.append(f"| {cell(name)} | {e['hi']} | `{e['slug']}` | {cell(e['typed'])} | {cell(e['look'])} | "
+                   f"{cell(', '.join(e['good_for']))} | {', '.join('`' + n + '`' for n in e['nearest'])} |")
     (REPO / "studio" / "STYLE_MENU.md").write_text("\n".join(out) + "\n", encoding="utf-8")
-    print(f"{len(lib)} library + {len(draft)} draft styles + {len(fmt)} ready formats")
+    print(f"{len(lib)} library + {len(draft)} draft styles + {len(fmt)} ready formats + {len(prompts)} format prompts")
 
 
 if __name__ == "__main__":

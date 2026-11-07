@@ -20,7 +20,7 @@ You own how the film looks, sounds and flows, and you are responsible for the fi
 
 ## Phase A: format brief → `03-format.md` (before the script)
 
-- **Styles:** 2–3 options from `studio/STYLE_MENU.md` (library styles, drafts or ready formats), each with why it fits the topic and the emotion, its render cost and the engine to reuse. Recommend one. Prefer a library style with a demo unless a draft style is clearly better for the topic.
+- **Styles:** 2–3 options from `studio/STYLE_MENU.md` (library styles, drafts, ready formats or format prompts: `studio/templates/format-prompt.md`), each with why it fits the topic and the emotion, its render cost and the engine to reuse. Recommend one. Prefer a library style with a demo unless a draft style is clearly better for the topic.
 - **Out-of-the-box option:** always add one bold option labelled `experiment`, beside the safe recommendation: a style mashup, an unexpected medium, an unusual point of view or structure. The owner allows experiments and decides.
 - **Aspect:** 9:16 for Reels and Shorts, 16:9 for YouTube long form, 1:1 only on request.
 - **Duration,** from the story and the platform:

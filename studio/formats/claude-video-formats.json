@@ -1,0 +1,150 @@
+{
+ "about": "The 12 format prompts from the '12 Claude Video Formats' guide (PDF, signed Simon), shared by the owner on 2026-11-07. The guide ran one prompt 12 times, changing only its last line ('Format: <name>.'): each run was a fresh Claude agent making a 7-second, 540x960 film for an invented coffee roaster as one self-contained HTML file, drawn in code. The 'guide_film' notes describe what those first-try films did, in our words; the guide's images are not copied here. None of these has been made in this repo yet. See studio/formats/README.md and studio/templates/format-prompt.md.",
+ "source": "12 Claude Video Formats guide (PDF), shared by the owner on 2026-11-07",
+ "formats": [
+  {
+   "slug": "kinetic-typography",
+   "typed": "Kinetic typography",
+   "name": "Kinetic typography",
+   "hi": "काइनेटिक टाइपोग्राफ़ी",
+   "in_reel": true,
+   "look": "The film is built from the words themselves: huge condensed letters fill the frame, stack behind objects and become parts of the set.",
+   "guide_film": "ROASTED filled the frame; the letters of TUESDAY stacked behind the bag; DOOR ran down the panels of a red door; it ended on a logo card with the bag and a steaming cup.",
+   "good_for": ["Quotes and one-line hooks", "Announcements and lists", "Punchy explainers"],
+   "nearest": ["kinetic-type", "swiss-motion", "/kinetic-lyrics"],
+   "notes": ""
+  },
+  {
+   "slug": "pixel-art-game",
+   "typed": "Pixel art game",
+   "name": "Pixel art game",
+   "hi": "पिक्सेल आर्ट गेम",
+   "in_reel": true,
+   "look": "The story becomes a game level: chunky pixels, a HUD with progress and a counter, and dialogue-box text.",
+   "guide_film": "The delivery was played as a level, from the roaster past a harbour to a front door. A bar along the top ran from TUE to FRI, a bean counter climbed from x00 to x20, and it ended on a title screen.",
+   "good_for": ["Journeys and processes as levels", "Nostalgia", "Kids and gaming audiences"],
+   "nearest": ["pixel-rpg"],
+   "notes": ""
+  },
+  {
+   "slug": "claymation-stop-motion",
+   "typed": "Claymation stop motion",
+   "name": "Claymation",
+   "hi": "क्लेमेशन स्टॉप मोशन",
+   "in_reel": true,
+   "look": "Everything looks modelled in clay, with swirled fingerprint marks pressed into every surface and objects that come alive.",
+   "guide_film": "The bag got eyes and travelled by boat from the fire to a door marked FRI. Every surface carried swirled marks, like fingerprints in clay.",
+   "good_for": ["Warm family stories", "Food and drink", "Kids"],
+   "nearest": ["claymation", "felt-stopmotion"],
+   "notes": "Typed as 'Claymation stop motion'. The guide's first try had a moment of plain water at about 2 s."
+  },
+  {
+   "slug": "anime-opening",
+   "typed": "Anime opening",
+   "name": "Anime opening",
+   "hi": "एनीमे ओपनिंग",
+   "in_reel": true,
+   "look": "An anime title sequence: dramatic skies, speed lines, diagonal split frames, a giant symbol filling the screen and a title card.",
+   "guide_film": "Green beans turned brown in a fire, a diagonal split crossed the frame, a huge character for fire filled the third beat, and the end had the name in katakana under the logo.",
+   "good_for": ["Hype intros and series openers", "Mythic action", "Youth audiences"],
+   "nearest": ["cel-anime-80s", "/anime-reel"],
+   "notes": ""
+  },
+  {
+   "slug": "whiteboard-sketch",
+   "typed": "Whiteboard sketch",
+   "name": "Whiteboard sketch",
+   "hi": "व्हाइटबोर्ड स्केच",
+   "in_reel": true,
+   "look": "A drawn hand and marker build the page stroke by stroke on a whiteboard, with one coloured line tying the story together.",
+   "guide_film": "The page filled up stroke by stroke, a blue line ran from Tuesday through the days to the cup, and Friday ended up circled in red.",
+   "good_for": ["Explainers and how-it-works", "Timelines", "Education"],
+   "nearest": ["whiteboard", "chalkboard"],
+   "notes": ""
+  },
+  {
+   "slug": "80s-vhs-commercial",
+   "typed": "80s VHS commercial",
+   "name": "80s VHS commercial",
+   "hi": "80 के दशक का VHS विज्ञापन",
+   "in_reel": true,
+   "look": "An 80s tape ad: the tape machine is part of the story, with PLAY and FF overlays, a tape counter, static and a retro sunset.",
+   "guide_film": "It opened on a cassette with a 12:00 clock, then PLAY and a tape counter, then static under FF as WED came up: the days passed on fast-forward.",
+   "good_for": ["Retro ads and satire", "Comedy", "Nostalgia (the VCR and Doordarshan era)"],
+   "nearest": ["vaporwave", "ascii-crt", "synthwave"],
+   "notes": "The guide notes static at about 1 s, on purpose."
+  },
+  {
+   "slug": "rubber-hose-cartoon",
+   "typed": "Rubber hose cartoon",
+   "name": "Rubber hose cartoon",
+   "hi": "रबर होज़ कार्टून",
+   "in_reel": true,
+   "look": "A 1930s cartoon: everything gets eyes and white gloves, bodies bend like hoses, sunbursts behind, film grain on every frame.",
+   "guide_film": "The roaster, the bag, the cup and even the boat got eyes, and the cup did a somersault beside the bag. White gloves, big round eyes and film grain over every frame.",
+   "good_for": ["Comedy", "Food and drink", "Retro ads"],
+   "nearest": ["rubber-hose"],
+   "notes": "The library style rubber-hose already has a demo and an engine (used for Azaadi 1947); use it for a full film."
+  },
+  {
+   "slug": "isometric-3d",
+   "typed": "Isometric 3D",
+   "name": "Isometric 3D",
+   "hi": "आइसोमेट्रिक 3D",
+   "in_reel": true,
+   "look": "One connected isometric world seen from a fixed angle, with the subject moving through it like a model railway.",
+   "guide_film": "The camera angle held as the bag went from conveyor belt to boat to van to a doorway, ending on a small room with the name standing along the tops of its walls.",
+   "good_for": ["Processes and supply chains", "Village and city worlds", "Infographics"],
+   "nearest": ["isometric-picture-book", "iso-infographic"],
+   "notes": "The slowest of the guide's runs (about 18 minutes)."
+  },
+  {
+   "slug": "paper-cut-out",
+   "typed": "Paper cut-out",
+   "name": "Paper cut-out",
+   "hi": "पेपर कट-आउट",
+   "in_reel": true,
+   "look": "Layers of cut card with soft shadows under each piece: flames, waves and skies stacked as paper, words on paper strips.",
+   "guide_film": "Flames, waves and a night sky were stacked as paper layers, THU sat on a paper sun, and the words sat on paper strips.",
+   "good_for": ["Folk tales", "Festivals", "Gentle stories"],
+   "nearest": ["collage-cutout", "papercut-red", "paper-popup"],
+   "notes": ""
+  },
+  {
+   "slug": "comic-book",
+   "typed": "Comic book",
+   "name": "Comic book",
+   "hi": "कॉमिक बुक",
+   "in_reel": true,
+   "look": "Comic panels, halftone dots, starbursts, speech bubbles and onomatopoeia that the film invents itself.",
+   "guide_film": "The journey split into three panels for WED, THU and FRI, with its own sound effects (CRACK!, WHUMP!), which the prompt never asked for.",
+   "good_for": ["Action", "Comedy and case-file humour", "Story beats in panels"],
+   "nearest": ["halftone-dossier", "/comic-halftone", "/comic-reel"],
+   "notes": "The guide's appendix prompt shows this format as its example."
+  },
+  {
+   "slug": "neon-synthwave",
+   "typed": "Neon synthwave",
+   "name": "Neon synthwave",
+   "hi": "नियॉन सिंथवेव",
+   "in_reel": false,
+   "look": "A neon road into a striped sunset with a glowing grid on both sides; the road is the timeline.",
+   "guide_film": "The bag came towards the viewer down the road past signs for WED and FRI, and the scene turned from pink to teal.",
+   "good_for": ["Tech and AI", "Music and nightlife", "Retro-futurism"],
+   "nearest": ["synthwave", "vaporwave"],
+   "notes": "Not in the guide's final reel. Its first try had a white flash at about 5 s. The fastest run (about 10 minutes)."
+  },
+  {
+   "slug": "liquid-motion",
+   "typed": "Liquid motion",
+   "name": "Liquid motion",
+   "hi": "लिक्विड मोशन",
+   "in_reel": false,
+   "look": "Liquid is the transition: swirls of it fill the frame and carry the viewer into the next scene.",
+   "guide_film": "The name sat inside a falling drop, a coffee swirl filled the frame between scenes, and by the end the bag was pouring straight into the cup.",
+   "good_for": ["Chai, coffee and food", "Product reveals", "Smooth transitions"],
+   "nearest": ["liquid-glass", "ebru-marbling"],
+   "notes": "Not in the guide's final reel."
+  }
+ ]
+}
