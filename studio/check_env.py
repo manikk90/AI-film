@@ -29,6 +29,9 @@ HOSTS = {
     "api.elevenlabs.io": "https://api.elevenlabs.io/v1/models",
     "registry.npmjs.org": "https://registry.npmjs.org/hyperframes",
     "pypi.org": "https://pypi.org/simple/pip/",
+    "storage.googleapis.com": "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/"
+                              "float32/latest/selfie_multiclass_256x256.tflite",
+    "download.blender.org": "https://download.blender.org/release/",
 }
 # capability, the tools it needs, the hosts it needs (all of them), alternative hosts (any one), env vars, who uses it
 CAPABILITIES = [
@@ -37,9 +40,9 @@ CAPABILITIES = [
     ("Editor package and 2-file delivery", ["ffmpeg", "ffprobe"], [], [], [], "every finished film"),
     ("Word timing for known words, offline (studio/word_timing.py)", ["ffmpeg", "kokoro"], [], [], [],
      "captions from a script, lyrics or the locked dialogue"),
-    ("Word timing: torchaudio MMS_FA forced alignment", ["python3"], ["dl.fbaipublicfiles.com", "pypi.org"], [], [],
+    ("Word timing: torchaudio MMS_FA forced alignment", ["py:torchaudio", "py:uroman"], ["dl.fbaipublicfiles.com", "pypi.org"], [], [],
      "the imported skills' own alignment step"),
-    ("Transcription: Whisper", ["python3"], ["pypi.org"], ["openaipublic.azureedge.net", "huggingface.co"], [],
+    ("Transcription: Whisper", ["py:whisper"], ["pypi.org"], ["openaipublic.azureedge.net", "huggingface.co"], [],
      "skills that start from a recording with no script (talking-head edits, katha, podcasts)"),
     ("Beats, kicks and hits (studio/beats.py, librosa)", ["py:librosa", "ffmpeg"], [], [], [],
      "every music skill: cuts, punches and pops on the beat"),
@@ -47,7 +50,7 @@ CAPABILITIES = [
      "every skill with a talking or singing cartoon"),
     ("Vocal separation (studio/separate_vocals.py, demucs)", ["py:demucs"], ["dl.fbaipublicfiles.com"], [], [],
      "lyric and rap skills: align on the vocal stem, mute a word over the instrumental"),
-    ("Person matte (studio/person_matte.py, MediaPipe)", ["py:mediapipe"], [], [], [],
+    ("Person matte (studio/person_matte.py, MediaPipe)", ["py:mediapipe"], ["storage.googleapis.com"], [], [],
      "skills that put graphics behind the owner or trace their outline"),
     ("Blender headless (EEVEE)", ["blender"], [], [], [], "3d-explainer"),
     ("WhatsApp copy and render QC (studio/whatsapp_copy.py, studio/frame_check.py)", ["ffmpeg", "ffprobe"], [], [],
