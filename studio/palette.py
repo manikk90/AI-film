@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """60-30-10 colour check (studio/COLOR.md): how much of a frame each colour role takes.
 
-  python3 studio/palette.py IMAGE_OR_VIDEO [--at 1,18.5,27.5] [--every 2]
+  python3 studio/palette.py IMAGE_OR_VIDEO [--at 1,18.5,27.5] [--every 2] [--declared MAIN,SECOND,ACCENT]
 
 Each frame is scaled to 72 px wide and split into 6 colour groups (k-means). The largest group and the groups
 close to it are the main colour; loud groups (saturated and bright, well above the main) are the accent; the
 rest is the second colour. Target: main 50-70 %, second 20-40 %, accent 3-15 %.
+Without --declared the roles are inferred from group size, so a frame where the second colour took over the
+world still reads as a clean split. With --declared (the brief's three hex values) every pixel goes to the
+nearest declared colour, and pixels near none of them (skin, stray colours) count as "other".
 These are measurements of a downscaled frame, so treat a near miss as a judgement call, not a failure.
 """
 from __future__ import annotations
@@ -74,6 +77,27 @@ def roles(pixels, k=6):
     return out
 
 
+def hexrgb(h):
+    h = h.strip().lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def declared(pixels, main, second, accent, far=90):
+    """Roles measured against the brief's own colours: {'main'|'second'|'accent'|'other': (rgb, share %, loudness)}.
+
+    Each pixel joins the nearest declared colour; a pixel farther than `far` from all three counts as other."""
+    named = {"main": main, "second": second, "accent": accent}
+    counts = dict.fromkeys(list(named) + ["other"], 0)
+    for p in pixels:
+        name, d = min(((k, sum((a - b) ** 2 for a, b in zip(p, c)) ** 0.5) for k, c in named.items()),
+                      key=lambda x: x[1])
+        counts[name if d <= far else "other"] += 1
+    n = len(pixels)
+    out = {k: (c, round(counts[k] / n * 100, 1), round(loud(c), 2)) for k, c in named.items()}
+    out["other"] = ((0, 0, 0), round(counts["other"] / n * 100, 1), 0.0)
+    return out
+
+
 def verdict(r):
     """'PASS' or the list of misses for one frame's roles."""
     misses = [f"{k} {r[k][1]:g}% (want {lo}-{hi})" for k, (lo, hi) in BANDS.items() if not lo <= r[k][1] <= hi]
@@ -98,17 +122,29 @@ def frame_pixels(path, t=None):
     cmd += ["-i", path, "-frames:v", "1", "-vf", f"scale={WIDTH}:-2", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
     raw = subprocess.run(cmd, capture_output=True, check=True).stdout
     if not raw:
-        raise SystemExit(f"no frame from {path} at {t}")
+        return None
     return [tuple(raw[i:i + 3]) for i in range(0, len(raw) - 2, 3)]
 
 
 def duration(path):
-    out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
-                         capture_output=True, text=True).stdout.strip()
-    try:
-        return float(out)
-    except ValueError:
-        return 0.0
+    """The video stream's duration, else the container's (0.0 when neither is known)."""
+    for entry in (["-select_streams", "v:0", "-show_entries", "stream=duration"], ["-show_entries", "format=duration"]):
+        out = subprocess.run(["ffprobe", "-v", "error", *entry, "-of", "csv=p=0", path],
+                             capture_output=True, text=True).stdout.strip().splitlines()
+        try:
+            return float(out[0])
+        except (IndexError, ValueError):
+            continue
+    return 0.0
+
+
+def sample_times(d, every):
+    """Every `every` seconds from 0, strictly before the end: a seek to the duration itself is EOF."""
+    times, i = [], 0
+    while i * every < d:
+        times.append(round(i * every, 2))
+        i += 1
+    return times
 
 
 def main(argv=None):
@@ -116,22 +152,33 @@ def main(argv=None):
     ap.add_argument("file")
     ap.add_argument("--at", help="comma-separated seconds")
     ap.add_argument("--every", type=float, help="sample every N seconds of a video")
+    ap.add_argument("--declared", help="the brief's colours as MAIN,SECOND,ACCENT hex, e.g. f0e4cd,6e2832,e1281e")
     a = ap.parse_args(argv)
     if a.at:
         times = [float(x) for x in a.at.split(",")]
     elif a.every:
         d = duration(a.file)
-        times = [round(i * a.every, 2) for i in range(int(d // a.every) + 1)] if d else [None]
+        times = sample_times(d, a.every) or [None]
     else:
         times = [None]
-    passed = 0
+    colours = [hexrgb(h) for h in a.declared.split(",")] if a.declared else None
+    if colours and len(colours) != 3:
+        ap.error("--declared takes exactly 3 hex colours: MAIN,SECOND,ACCENT")
+    passed = checked = 0
     for t in times:
-        r = roles(frame_pixels(a.file, t))
+        px = frame_pixels(a.file, t)
+        if px is None:
+            print(f"{'-' if t is None else t:>6} no frame (skipped)")
+            continue
+        r = declared(px, *colours) if colours else roles(px)
         v = verdict(r)
+        checked += 1
         passed += v == "PASS"
         parts = " · ".join(f"{k} {r[k][1]:g}% {describe(r[k][0])}" for k in ("main", "second", "accent"))
+        if colours:
+            parts += f" · other {r['other'][1]:g}%"
         print(f"{'-' if t is None else t:>6} {parts} | {v}")
-    print(f"{passed}/{len(times)} frames inside 60-30-10")
+    print(f"{passed}/{checked} frames inside 60-30-10" + (" (declared colours)" if colours else " (inferred roles)"))
     return 0
 
 

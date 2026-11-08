@@ -18,6 +18,8 @@ Owner: "60 main 30 second or 10 loud ... ye logic ko samjho or hrr jgah apply kr
 ## Check it
 `python3 studio/palette.py frame.png` or `python3 studio/palette.py film.mp4 --every 2` splits each frame into 6 colour groups, sorts them into main, second and accent (loud = saturated and bright), and prints the shares. The target bands are: main 50–70 %, second 20–40 %, accent 3–15 %, and at least one loud accent. It measures a 72 px wide frame, so a near miss is a judgement call; a frame with no accent at all, or an accent over 25 %, needs a fix or a reason.
 
+Without options it infers the roles from group size, so it cannot tell when the second colour has taken over the world: the names just swap. Once the brief has its three hex values, check against them: `--declared f0e4cd,6e2832,e1281e` (main, second, accent). Each pixel then goes to the nearest declared colour, and pixels near none of them (skin, stray colours) are reported as "other".
+
 - **Director:** in the format brief, and in QC on the Gate 3 frames and the contact sheets.
 - **Mann:** in the grade and the storyboard check.
 - **Social:** on the cover and the thumbnail.
