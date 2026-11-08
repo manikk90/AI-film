@@ -13,6 +13,7 @@
 - Keep portable mode useful without credentials. Tool-specific limits require current official documentation or a dated direct verification.
 - Execute routine planning and reversible implementation within user scope. Escalate material creative contradictions with a concrete recommendation, not routine choices.
 - The CLI is single-writer per project. Preserve atomic state writes and the project lock in new mutations.
+- Daksh and Marich (owner rule, 2026-11-08): copy and replicate requests go through `/daksh` (`.claude/skills/daksh/SKILL.md`), with Marich (`.claude/agents/marich.md`) doing the reverse engineering under it. REA's guide and licence are vendored in `third_party/rea/`. Copy the method, never the protected assets.
 - Caveman mode (owner rule, 2026-11-07): every film and video runs on the token diet in `studio/CAVEMAN.md`: terse internal files inside size budgets (`python3 studio/caveman.py check`), section reads, edits instead of rewrites, capped tool output, and `effort` set per agent. Keep the caveman block identical in every agent file.
 - Run `python3 -m unittest discover -s tests` and `python3 -m compileall -q aifilm` for core changes. Media tests need FFmpeg.
 - Keep production projects/exports out of commits. Use synthetic fixtures for tests and clearly label them.
