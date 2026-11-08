@@ -41,6 +41,17 @@ CAPABILITIES = [
      "the imported skills' own alignment step"),
     ("Transcription: Whisper", ["python3"], ["pypi.org"], ["openaipublic.azureedge.net", "huggingface.co"], [],
      "skills that start from a recording with no script (talking-head edits, katha, podcasts)"),
+    ("Beats, kicks and hits (studio/beats.py, librosa)", ["py:librosa", "ffmpeg"], [], [], [],
+     "every music skill: cuts, punches and pops on the beat"),
+    ("Mouth curve for lip-sync (studio/mouth_curve.py)", ["py:numpy", "ffmpeg"], [], [], [],
+     "every skill with a talking or singing cartoon"),
+    ("Vocal separation (studio/separate_vocals.py, demucs)", ["py:demucs"], ["dl.fbaipublicfiles.com"], [], [],
+     "lyric and rap skills: align on the vocal stem, mute a word over the instrumental"),
+    ("Person matte (studio/person_matte.py, MediaPipe)", ["py:mediapipe"], [], [], [],
+     "skills that put graphics behind the owner or trace their outline"),
+    ("Blender headless (EEVEE)", ["blender"], [], [], [], "3d-explainer"),
+    ("WhatsApp copy and render QC (studio/whatsapp_copy.py, studio/frame_check.py)", ["ffmpeg", "ffprobe"], [], [],
+     [], "every finished video"),
     ("ElevenLabs voice and SFX", [], ["api.elevenlabs.io"], [], ["ELEVENLABS_API_KEY"], "the director's voice and SFX"),
     ("HyperFrames render (npm)", ["node"], ["registry.npmjs.org"], [], [],
      "daksh-ai's own renderer; also needs the owner's permission to run npx packages"),
@@ -48,6 +59,9 @@ CAPABILITIES = [
 
 
 def probe_tool(name: str) -> bool:
+    if name.startswith("py:"):  # a Python module, found without importing it
+        import importlib.util
+        return importlib.util.find_spec(name[3:]) is not None
     if name == "chromium":
         return CHROMIUM.is_dir() and any(CHROMIUM.glob("chromium*"))
     if name == "kokoro":  # the offline voice model, with a Python that can run it (the Lemo-Opuscar venv)
@@ -86,7 +100,8 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="Report what works in this environment for the studio.")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
-    tools = {t: probe_tool(t) for t in ("node", "ffmpeg", "ffprobe", "python3", "chromium", "kokoro")}
+    names = {t for c in CAPABILITIES for t in c[1]} | {"node", "ffmpeg", "ffprobe", "python3", "chromium", "kokoro"}
+    tools = {t: probe_tool(t) for t in sorted(names)}
     with ThreadPoolExecutor(len(HOSTS)) as pool:
         hosts = dict(zip(HOSTS, pool.map(probe_host, HOSTS.values())))
     env = {"ELEVENLABS_API_KEY": bool(os.environ.get("ELEVENLABS_API_KEY"))}

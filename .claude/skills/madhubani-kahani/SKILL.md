@@ -35,5 +35,16 @@ A Panchatantra-style story told as a living Madhubani painting: double black out
 - Show me a contact sheet of stills before the full render, and ask before overwriting files.
 - Render the MP4 with the original audio, plus a 720p copy under 20 MB for WhatsApp.
 
+## Render settings (studio)
+
+- **Outputs:** `16:9 1920×1080`, 30 fps, H.264 High, yuv420p, CRF 18, `-movflags +faststart`.
+- **Audio:** the original recording, AAC 192k 48 kHz, never re-timed; short fades only where the skill asks.
+- **Engine:** canvas page → `node studio/render_canvas.cjs page.html out.mp4 --size WxH --fps N --audio a.mp3`.
+- **WhatsApp copy:** `python3 studio/whatsapp_copy.py final.mp4 final_whatsapp.mp4` (720p, under 20 MB).
+- **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size, audio present and in sync.
+- **Studio tools for these steps:**
+  - word timing: `python3 studio/mms_align.py` (MMS_FA, `--windows` for squeezed lines) when check_env says it is ready, else `studio/word_timing.py` for known words; Whisper (large-v3) only for unknown words
+  - `python3 studio/person_matte.py clip.mp4 mattes/`: the person matte per frame
+
 ---
 From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Animated videos

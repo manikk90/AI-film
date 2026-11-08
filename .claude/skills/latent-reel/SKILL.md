@@ -12,6 +12,7 @@ argument-hint: "[a show clip (MP3) with the guest and host talking]"
 > - **Before you start:** run `python3 studio/check_env.py`. It shows what works in this session: rendering, word timing, Whisper and ElevenLabs.
 > - **Preview (Gate 3):** before the full render, send 3 numbered frames at 3 timecodes (the hook, the middle, the end), plus a 20–30 s music sketch when the skill adds music, and wait for the owner's OK. This replaces any contact sheet, stills or snapshot step below. For a canvas page, `node studio/render_canvas.cjs <page> <prefix> --stills 1,6,11` makes the frames, and the same script renders the video locally.
 > - **Brands:** no real logos, mastheads, app or channel branding; build a generic look that only evokes the style. A news look must never present opinion, satire or fiction as real news.
+> - **Real people:** a caricature, comic portrait or particle portrait of a real person is drawn in code from photos the owner supplied, labelled as an illustration, and never shows them endorsing anything.
 > - **Word timing:** never guess. For known words (a script, lyrics, the locked dialogue), `studio/word_timing.py` aligns them offline. For unknown words, the doctor shows whether Whisper or alignment can run; if not, ask the owner for a transcript. Say which route you used.
 > - **Deliver:** to `projects/<slug>/final/`, then send exactly 2 files with `studio/deliver.py`: the final video, and one zip with everything else. Keep any WhatsApp copy in `final/` unless the owner asks for it.
 
@@ -35,6 +36,17 @@ A roast-show clip turned into a cartoon, like Samay Raina's India's Got Latent: 
 - Time every word with forced alignment (torchaudio MMS_FA). Never guess timings.
 - Show me a contact sheet of stills before the full render, and ask before overwriting files.
 - Render the MP4 with the original audio, plus a 720p copy under 20 MB for WhatsApp.
+
+## Render settings (studio)
+
+- **Outputs:** `16:9 1920×1080`; `9:16 1080×1920`, 30 fps, H.264 High, yuv420p, CRF 18, `-movflags +faststart`.
+- **Audio:** the original recording, AAC 192k 48 kHz, never re-timed; short fades only where the skill asks.
+- **Engine:** canvas page → `node studio/render_canvas.cjs page.html out.mp4 --size WxH --fps N --audio a.mp3`.
+- **WhatsApp copy:** `python3 studio/whatsapp_copy.py final.mp4 final_whatsapp.mp4` (720p, under 20 MB).
+- **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size, audio present and in sync.
+- **Studio tools for these steps:**
+  - word timing: `python3 studio/mms_align.py` (MMS_FA, `--windows` for squeezed lines) when check_env says it is ready, else `studio/word_timing.py` for known words; Whisper (large-v3) only for unknown words
+  - `python3 studio/mouth_curve.py voice.wav mouth.json --js mouth.js --words words.json`: the mouth-open curve per frame (one run per speaker)
 
 ---
 From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Animated videos

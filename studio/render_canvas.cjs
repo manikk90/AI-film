@@ -4,7 +4,7 @@
  * pages whose picture is a pure function of time. It needs nothing from the network.
  *
  *   node studio/render_canvas.cjs <page.html> <out.mp4> [--fps 30] [--size 1920x1080] [--audio voice.mp3]
- *                                 [--from 0] [--to <seconds>] [--crf 18]
+ *                                 [--from 0] [--to <seconds>] [--crf 18] [--abitrate 192k]
  *   node studio/render_canvas.cjs <page.html> <out-prefix> --stills 1,6.5,11
  *       → <out-prefix>_1.png ... : the owner's Gate 3 preview frames at those timecodes (seconds)
  *
@@ -23,7 +23,7 @@ const path = require('path');
 const fs = require('fs');
 
 function args(argv) {
-  const pos = [], opt = { fps: 30, size: '1920x1080', crf: 18 };
+  const pos = [], opt = { fps: 30, size: '1920x1080', crf: 18, abitrate: '192k' };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i].startsWith('--')) opt[argv[i].slice(2)] = argv[++i];
     else pos.push(argv[i]);
@@ -35,7 +35,7 @@ function args(argv) {
   const [w, h] = String(opt.size).split('x').map(Number);
   const stills = opt.stills ? String(opt.stills).split(',').map(Number) : null;
   if (stills && stills.some(t => !(t >= 0))) { console.error('--stills takes timecodes in seconds, like 1,6.5,11'); process.exit(2); }
-  return { page: path.resolve(pos[0]), out: path.resolve(pos[1]), fps: +opt.fps, w, h, audio: opt.audio, from: +(opt.from || 0), to: opt.to, crf: +opt.crf, stills };
+  return { page: path.resolve(pos[0]), out: path.resolve(pos[1]), fps: +opt.fps, w, h, audio: opt.audio, from: +(opt.from || 0), to: opt.to, crf: +opt.crf, abitrate: String(opt.abitrate), stills };
 }
 
 (async () => {
@@ -76,7 +76,7 @@ function args(argv) {
   const ff = ['-v', 'error', '-y', '-f', 'image2pipe', '-framerate', String(a.fps), '-i', '-'];
   if (a.audio) ff.push('-ss', String(a.from), '-i', path.resolve(a.audio));
   ff.push('-map', '0:v:0');
-  if (a.audio) ff.push('-map', '1:a:0', '-c:a', 'aac', '-b:a', '192k', '-shortest');
+  if (a.audio) ff.push('-map', '1:a:0', '-c:a', 'aac', '-b:a', a.abitrate, '-ar', '48000', '-shortest');
   ff.push('-c:v', 'libx264', '-preset', 'slow', '-crf', String(a.crf), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', tmp);
   const enc = spawn('ffmpeg', ff, { stdio: ['pipe', 'inherit', 'inherit'] });
   const done = new Promise((res, rej) => enc.on('close', c => (c === 0 ? res() : rej(new Error(`ffmpeg exited ${c}`)))));

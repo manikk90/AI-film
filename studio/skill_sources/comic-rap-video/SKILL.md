@@ -1,0 +1,31 @@
+---
+name: comic-rap-video
+description: "A loud desi rap video drawn as a moving comic book, like the Maruti video: bold cartoon rappers, a new scene for every line that shows the lyric literally, comic panels slamming in, POW and KRAAK bursts, and Hindi lyrics popping word by word in a cream comic caption box. Use when the user asks for a comic-book rap video or types /comic-rap-video with a rap song MP3 (a 30–60 s verse works), its lyrics, the song title and artist, and 1–2 photos of each rapper's look."
+---
+
+# Comic rap video
+
+A loud desi rap video drawn as a moving comic book, like the Maruti video: bold cartoon rappers, a new scene for every line that shows the lyric literally, comic panels slamming in, POW and KRAAK bursts, and Hindi lyrics popping word by word in a cream comic caption box.
+
+**Input:** a rap song MP3 (a 30–60 s verse works), its lyrics, the song title and artist, and 1–2 photos of each rapper's look.
+**Run it:** `/comic-rap-video` and attach or name the files.
+
+## Steps
+
+1. Separate the vocals (demucs) and force-align every word of my lyrics on the vocal track, exactly as I wrote them, keeping the ad-libs in brackets apart from the main line. Find the beats and kicks with librosa. Read every line and pick one literal, funny picture for it (for example: "road pad denge" = the road cracks open behind the car, "gobhi khod denge" = cauliflowers fly out of the field), then show me the line-by-line scene list.
+2. Draw the cast as your own bold cartoon caricatures from my photos, in thick black outlines and flat colours: the main rapper plus 1–2 crew members, each with their own hair, shades, beard and outfit, and 4–5 poses (hands out, pointing, mic, punch, holding a prop). Draw the props the same way: a boxy red hatchback with the song name on the door, plus anything the lyrics mention, such as cash, a tyre or a lathi.
+3. Give every line its own scene that changes the moment the line starts: sugarcane field at sunset, desert with a buggy, night plaza with a red car, purple speed-line wall, red halftone wall. On some lines, split the frame into comic panels on a dark page that slam in one by one, each on the word it shows.
+4. Keep the current line in a cream comic narration box at the bottom, slightly tilted with a thick black border, in Yatra One. Each word pops in exactly when it is sung, the word being sung is red and a little bigger, and the words already sung stay black. Put the ad-libs in small white speech bubbles beside the box, after the line.
+5. Add a comic sound burst on the biggest words: a white spiky star with the word in Bangers or Yatra One, like KRAAK!, POW!, SKRRT! or the Hindi word itself, popping in and fading out in under a second. Use the song's own words whenever they work.
+6. Make it hit like the track: camera shake on every kick, a small punch-in and a white flash at the start of each line, RGB split on the hits, and a green digital glitch over the frame on the lines that name the car. Cover everything in light halftone, grain and a vignette, with a thick black page border.
+7. Open with a yellow title tag at top left (song name and artist) that leaves after a few seconds. Near the end, line the whole crew up on a sunburst background, then finish on the main rapper slamming a prop into the ground with one last big burst and the song name in Bangers on a red burst, then fade to black. Render 1920×1080 at 30 fps with the song.
+
+## Every time it runs
+
+- Draw everything in code (an HTML canvas rendered frame by frame in headless Chrome, encoded with ffmpeg). No stock footage or image generators, so the look is the same every time.
+- Time every word with forced alignment (torchaudio MMS_FA). Never guess timings.
+- Show me a contact sheet of stills before the full render, and ask before overwriting files.
+- Render the MP4 with the original audio, plus a 720p copy under 20 MB for WhatsApp.
+
+---
+From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Animated videos

@@ -1,0 +1,32 @@
+---
+name: breakup-chat-lyrics
+description: "A 16:9 heartbreak lyric video like the Choo Lo (The Local Train) video: during the instrumental intro, a red glass music card plays out a breakup chat (your message, “Read”, typing dots, her reply), then turns into a karaoke lyrics card over a wall of giant red words, shatters into full-screen clips with the lyrics in the empty sky, burns the song title in fire inside giant cut-out letters, and ends in pink neon with rain and a falling star. Use when the user asks for a breakup chat lyric video or types /breakup-chat-lyrics with a song MP3 (or a 40–60 s cut), its lyrics, the cover art, 3–6 clips or photos for the mood, and the 2–4 chat lines you want in the intro."
+---
+
+# Breakup chat lyrics
+
+A 16:9 heartbreak lyric video like the Choo Lo (The Local Train) video: during the instrumental intro, a red glass music card plays out a breakup chat (your message, “Read”, typing dots, her reply), then turns into a karaoke lyrics card over a wall of giant red words, shatters into full-screen clips with the lyrics in the empty sky, burns the song title in fire inside giant cut-out letters, and ends in pink neon with rain and a falling star.
+
+**Input:** a song MP3 (or a 40–60 s cut), its lyrics, the cover art, 3–6 clips or photos for the mood, and the 2–4 chat lines you want in the intro.
+**Run it:** `/breakup-chat-lyrics` and attach or name the files.
+
+## Steps
+
+1. Separate the vocals (demucs) and force-align every word of my lyrics on the vocal track, exactly as I wrote them. Find the beats (librosa) and the length of the instrumental intro. Read the lyrics and split the song into parts: chat intro, glass card, clips, fire title, neon ending. Tell me which clip goes with which lines and use every clip only once.
+2. Chat intro (during the instrumental, before the first word): a dark red frosted-glass card with the cover art, song title and artist like a music app, tilted slightly in 3D. Inside it, play a chat like a real phone: my red bubble pops in with a soft bounce, a small “Read” appears under it, then three typing dots, then her grey reply slides in. Space the messages across the intro so the last one lands a beat before the vocals, then blur the chat away.
+3. Glass card: the same card becomes the lyrics screen. Each word fills from dim to bright exactly when it is sung, the next line waits blurred below, and a soft shine sweeps across on every line change. Behind it, a slow scrolling wall of the lyric words in giant deep-red caps.
+4. Crack the card with thin light lines, then shatter it into glass shards flying toward the camera with a red bloom into the clips.
+5. Clips: each one full-screen in its natural colours with a slow push-in. Place the lyrics in the empty space (the sky above a person, the ground below a horizon, never over a face): a small tracked caps row, one big Inter 800 caps row and one word in pink script that writes itself on, all word by word on the voice. Make still photos alive: twinkling stars, a shooting star, drifting clouds or light.
+6. Fire title: during the instrumental break, cut the song title out of black as giant Inter 900 letters with the band name above in small tracked caps, so a fire clip burns only inside the letters. Then let the letters grow until the fire fills the screen.
+7. Pink neon ending: every clip in a pink duotone, darker at the bottom. Lyric words drop in one by one, flicker on like a neon sign and land with a splash ripple on a wet floor that mirrors them. Add light rain, one falling star near the end, and finish on the song title in glowing neon script, then fade out.
+8. Grain and a soft vignette on everything, white flashes or red burns between parts, a short fade in and out of the audio, 1920×1080 at 30 fps with the song.
+
+## Every time it runs
+
+- Draw everything in code (an HTML canvas rendered frame by frame in headless Chrome, encoded with ffmpeg). No stock footage or image generators, so the look is the same every time.
+- Time every word with forced alignment (torchaudio MMS_FA). Never guess timings.
+- Show me a contact sheet of stills before the full render, and ask before overwriting files.
+- Render the MP4 with the original audio, plus a 720p copy under 20 MB for WhatsApp.
+
+---
+From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Lyric videos

@@ -22,7 +22,9 @@ import import_skills as IS  # noqa: E402
 class ImportedSkillsTest(unittest.TestCase):
     def test_registry_matches_the_skill_folders(self):
         names = [e["name"] for e in REGISTRY]
-        self.assertEqual(len(names), 47)
+        local = list((REPO / "studio" / "skill_sources").glob("*/SKILL.md"))
+        self.assertEqual(len(local), 44)
+        self.assertEqual(len(names), 47 + len(local))
         self.assertEqual(len(set(names)), len(names))
         on_disk = {p.name for p in SKILLS.iterdir() if (p / "SKILL.md").exists()}
         self.assertTrue(set(names) <= on_disk, set(names) - on_disk)
@@ -55,6 +57,28 @@ class ImportedSkillsTest(unittest.TestCase):
                 self.assertIn("From [aanshai.vercel.app/skills]", text, e["name"])  # the original text is kept
             self.assertFalse(SECRET.search(text), e["name"])
 
+    def test_every_copy_has_render_settings_and_working_tool_paths(self):
+        for e in REGISTRY:
+            if e["name"] == IS.ENGINE:
+                continue
+            text = (SKILLS / e["name"] / "SKILL.md").read_text(encoding="utf-8")
+            self.assertEqual(text.count("## Render settings (studio)"), 1, e["name"])
+            self.assertLess(text.index("## Render settings (studio)"), text.index("From [aanshai.vercel.app/skills]"))
+            for tool in set(re.findall(r"studio/[a-z_]+\.(?:py|cjs)", text)):
+                self.assertTrue((REPO / tool).exists(), (e["name"], tool))
+            for script in re.findall(r"scripts/[A-Za-z0-9_]+\.py", text):
+                self.assertTrue((SKILLS / e["name"] / script).exists(), (e["name"], script))
+
+    def test_local_specs_match_their_copies(self):
+        for src in (REPO / "studio" / "skill_sources").glob("*/SKILL.md"):
+            name = src.parent.name
+            body = IS.parse(src.read_text(encoding="utf-8"), src)[1]
+            steps = body.split("## Steps", 1)[1].split("\n---\nFrom [", 1)[0].split("## Helper scripts")[0].strip()
+            self.assertIn(steps, (SKILLS / name / "SKILL.md").read_text(encoding="utf-8"), name)
+            for f in (src.parent / "scripts").glob("*") if (src.parent / "scripts").is_dir() else []:
+                if f.is_file():
+                    self.assertEqual(f.read_bytes(), (SKILLS / name / "scripts" / f.name).read_bytes(), (name, f.name))
+
     def test_risky_skills_carry_their_checks(self):
         by = {e["name"]: e for e in REGISTRY}
         self.assertEqual(by["news-report"]["kind"], "written")
@@ -63,6 +87,13 @@ class ImportedSkillsTest(unittest.TestCase):
         self.assertIn("original-characters", by["titan-anime"]["flags"])
         self.assertIn("brands", by["breaking-news"]["flags"])
         self.assertIn("own-footage-only", by["youtube-clips"]["flags"])
+        for name in ["maut-ke-bare-mai-sochte-ho", "baba-pusho", "woof-woof", "latent-comic", "podcast-comic"]:
+            self.assertEqual(by[name]["kind"], "third-party-audio", name)
+            self.assertIn("real-people", by[name]["flags"], name)
+        for name in ["anime-fight", "podcast-cartoon", "kids-story"]:
+            self.assertIn("original-characters", by[name]["flags"], name)
+        self.assertIn("generated-media", by["miniature-painting-lyrics"]["flags"])
+        self.assertEqual(by["phone-chat-lyrics"]["kind"], "song")
 
     def test_generator_keeps_the_original_text(self):
         md = ('---\nname: demo-skill\ndescription: "Synthetic fixture skill. Use when testing."\n---\n\n# Demo\n\n'

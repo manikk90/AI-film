@@ -1,0 +1,35 @@
+---
+name: phone-chat-lyrics
+description: "An emotional 16:9 lyric video like the Barsaat (Banjaare) Spider-Man video: the singer's lyrics arrive as chat messages on the hero's phone while he reads them and never replies. Day sinks into night on the right line, the hero acts on a key line (mask on, then the jump), an eye on pure black sheds a tear that becomes the first raindrop, two lonely people are cross-cut at sunset, the title sits behind his head, he types I love you and deletes it, and it ends on the fall and the last embrace. Soft blur-in lyrics in a classic serif-like font, gold on the key word. Use when the user asks for a phone chat lyric video or types /phone-chat-lyrics with a song MP3 (a 40–60 s cut works), its lyrics, the song title, and 5–8 clips with the time range you want from each (one must show someone looking at a phone)."
+---
+
+# Phone chat lyrics
+
+An emotional 16:9 lyric video like the Barsaat (Banjaare) Spider-Man video: the singer's lyrics arrive as chat messages on the hero's phone while he reads them and never replies. Day sinks into night on the right line, the hero acts on a key line (mask on, then the jump), an eye on pure black sheds a tear that becomes the first raindrop, two lonely people are cross-cut at sunset, the title sits behind his head, he types I love you and deletes it, and it ends on the fall and the last embrace. Soft blur-in lyrics in a classic serif-like font, gold on the key word.
+
+**Input:** a song MP3 (a 40–60 s cut works), its lyrics, the song title, and 5–8 clips with the time range you want from each (one must show someone looking at a phone).
+**Run it:** `/phone-chat-lyrics` and attach or name the files.
+
+## Steps
+
+1. Separate the vocals (demucs) and force-align every word of my lyrics on the vocal track, exactly as I wrote them. Find the bar length (librosa) and cut on the bars. First work out whose voice the song is in and who it is sung to, then tell me the story in one line and write a shot table: lyric line, clip, time range, what the moment means. Use my time ranges exactly, and tell me before you use anything else from a clip.
+2. Prepare the clips first and look at them. Many vertical clips are really widescreen footage stored sideways: rotate them. Crop every clip to fill 1920×1080 with no black bars, no pillarboxing, and crop out any watermark. Flip a shot horizontally if that makes the person face the phone. Find the real cut points so no stray frame gets in. Slow shots down so they feel soft; use motion interpolation where a clip would stutter, and if something ugly crosses the lens, dissolve across it on a bar.
+3. Phone: a realistic dark phone on the right side of the frame, only in the shots where the person is looking down at it, and full-screen shots everywhere else. It eases in with blur, sits slightly tilted and breathes a little, with a soft light glow behind it. Top bar with the time, a small round photo, her name and online; a Message box at the bottom. Add one detail from the character's world (for Spider-Man, a thin spider-web crack in the glass).
+4. Lyrics in the phone: every line is a grey received bubble. Typing dots (and typing… in the top bar) appear about a second before, the bubble blurs in just before the first word, and each word brightens from dim to white exactly when it is sung. Old messages stay in the chat and scroll up, so the unanswered pile keeps growing all video.
+5. Full-screen lyrics in the empty side of the shot, never over a face: one font only, Optima or something equally classic, never a typical AI-looking font. Two or three rows: lead-in words in small tracked caps or italic, the one word that carries the feeling huge in a warm gold gradient. Every word eases in from a soft blur word by word on the voice and blurs out the same way, with no pops or bounces. Add a soft dark gradient behind the text only where it needs it.
+6. Story beats: make the footage act out the words. When a line says night is coming, slowly sink the whole picture from day into deep blue while keeping the reds. When a line is the turning point, time the action to it (he pulls his mask on at the key word and tips off the building as the line ends), and put the leaving line on the leap or a lonely swing. Put a line about being irreplaceable on the shot of their photo.
+7. Eye shot: put the close-up of the eye on pure black with the lyric in the black space, and fade everything else to black. A tear swells at the corner, falls, and lands as the first raindrop, and its ripple opens into the next scene. A round shape like the moon can dissolve into the eye.
+8. From there the rain grows: thin angled streaks plus refracting drops on the lens, but no rain in warm flashback shots. Cross-cut the two people alone at sunset, one shot per bar, then a warm memory shot.
+9. Title on the instrumental break: on a shot of him from behind, the song title in big gold letters behind his head (cut a mask of the head so it passes in front), with a gap between the letters so his head hides none of them and the subtitle on clear sky. Add old-film dust and one thin vertical scratch.
+10. The unsent message: he finally answers. The camera pushes into the phone, he types I love you letter by letter in the Message box, the cursor waits, he deletes it letter by letter, then the top bar changes to last seen and the screen goes dark. Keep raindrops off the phone here so it reads.
+11. Ending: the fall and the catch on the last lyric, the last thing we see is them holding each other, then a slow fade to black. Grain and a soft vignette on everything, a short fade in and out of the audio, 1920×1080 at 30 fps with the song.
+
+## Every time it runs
+
+- Draw everything in code (an HTML canvas rendered frame by frame in headless Chrome, encoded with ffmpeg). No stock footage or image generators, so the look is the same every time.
+- Time every word with forced alignment (torchaudio MMS_FA). Never guess timings.
+- Show me a contact sheet of stills before the full render, and ask before overwriting files.
+- Render the MP4 with the original audio, plus a 720p copy under 20 MB for WhatsApp.
+
+---
+From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Lyric videos

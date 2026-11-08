@@ -90,6 +90,19 @@ Run `python3 studio/check_env.py` at the start of every production, and put its 
 
   Then the doctor shows these capabilities as ready.
 
+## Shared skill tools (added 2026-11-08)
+Every copy ends with a generated `## Render settings (studio)` section: outputs, fps, audio, engine and the tools for its steps.
+- `studio/beats.py`: tempo, beats, downbeats, kicks, hits (librosa).
+- `studio/mouth_curve.py`: mouth-open curve per frame from voice loudness, shut outside words.
+- `studio/mms_align.py`: torchaudio MMS_FA with uroman, `SPEAKER|text` lines, ad-libs, `--windows` for squeezed lines. Needs `dl.fbaipublicfiles.com`.
+- `studio/separate_vocals.py`: demucs two stems. Needs demucs and `dl.fbaipublicfiles.com`.
+- `studio/person_matte.py`: MediaPipe person matte per frame.
+- `studio/ref_analyze.py`: reference reel at 2 fps, cuts, shot lengths, levels.
+- `studio/whatsapp_copy.py`: 720p two-pass copy under 20 MB, never overwrites without `--force`.
+- `studio/frame_check.py`: black/frozen frames, size, fps, audio sync before delivery.
+- `node studio/render_canvas.cjs ... --abitrate 256k` for songs.
+`check_env.py` reports each of them. Tests: `tests/test_skill_tools.py` (synthetic fixtures).
+
 ## Delivery
 - Output to `projects/<slug>/final/`, with a `06-qc.md` that says what was checked and what could not be checked.
 - Send exactly 2 files with `studio/deliver.py`: the final video, and one zip with everything else. This is the owner's rule from 2026-11-02, and each file must be at most 400 MiB.
@@ -97,4 +110,4 @@ Run `python3 studio/check_env.py` at the start of every production, and put its 
 - Never publish, schedule or post anywhere.
 
 ## Updating
-Re-run `python3 studio/import_skills.py <Ai-Animation clone>` after an upstream change. To change how a skill runs here, change this file or the generator's tables; never edit the imported copies by hand.
+Re-run `python3 studio/import_skills.py <Ai-Animation clone>` after an upstream change, or `python3 studio/import_skills.py` alone after editing `studio/skill_sources/`. To change how a skill runs here, change this file or the generator's tables; never edit the imported copies by hand.
