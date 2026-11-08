@@ -88,6 +88,32 @@ The 12 looks from the "12 Claude Video Formats" guide are saved in `studio/forma
 
 Each is one prompt line (`Format: <name>.`) for `studio/templates/format-prompt.md`, which writes a page that `studio/render_canvas.cjs` renders frame by frame. They have a first-try result in the guide, not in this repo.
 
+## Auto mode (skip waiting at gates)
+
+By default every gate above is **mandatory**: the pipeline stops, shows the packet, and waits for an explicit "approved". Silence or a vague reply is not approval.
+
+**Trigger:** the owner says "auto", "auto mode", "auto chalao" or "end to end auto kr do" — at the start of a request, or mid-film.
+**Scope:** that one film or job only. Say "hamesha auto" to make it the standing default across films; say "manual" or "gate pe pucho" any time to turn it off again (for one run or for good).
+**Covers:** `/viral-studio`'s Gate 1–4 and `/daksh`'s Gate R1–R2 — the gates the orchestrator itself holds by choosing to stop and wait. **Not Mann.** Mann's `approve`, `approve-style` and `lock-script` commands are enforced in code (`aifilm/editor/edl.py`) and refuse to run without the owner's own quoted words; auto mode cannot and does not fabricate those, so a Mann edit always waits for the owner's three decisions regardless of auto mode.
+
+While auto mode is on, the orchestrator does not stop and wait at Gate 1–4 or R1–R2. In auto mode, the orchestrator's own recorded choice **is** the gate's approval — it satisfies "only after the owner approves" wherever that appears in `viral-studio/SKILL.md`, `writer.md` or `director.md`, so production goes ahead on that choice, never on silence. At each gate:
+- **Gate 1 (pick):** take the top-ranked pitch, as already happens when the owner says "khud chuno".
+- **Gate 2 (script + format):** take the script once the critique round passed with no unresolved fixes; if a fix is still open, revise once more before treating it as approved.
+- **Gate 3 (look + music):** take the director's own recommended frames and sketch over the `experiment` option.
+- **Gate 4 (final cut):** take the delivered cut as approved only if `06-qc.md` shows no open QC issue; an open issue is not auto-approved, and the film goes back to the director's fix list instead.
+- **Gate R1 (replica spec):** take Marich's spec as approved only if it names no blocking risk or rights gap.
+- **Gate R2 (replica report):** take `REPLICA_REPORT.md` as approved only if every acceptance check reads pass (or a not-measurable one is explained and accepted by a passing majority); a report with a real fail is never auto-approved — route it back to rebuild per the spec's fixes (Daksh's existing 2-iteration cap still applies), and if it still fails, stop and tell the owner instead of calling it done.
+
+At each gate it then, instead of waiting:
+- records to `STATUS.md` a single line — `auto-approved: <gate> · <what was chosen> · <one-line reason>` — never the full packet (the packet stays in its own file, which already has its own budget; copying it into `STATUS.md` blows that file's 8 KB caveman budget)
+- gives the owner one line in chat about what it decided and moved on to
+
+Auto mode never skips:
+- the rules under "Rules that never bend" below (rights, real logos, sourced facts, copying someone else's assets, posting or publishing)
+- stopping for a message the owner actually sends mid-run — that is new direction, not noise, even while auto is on
+- a risk or rights gap Marich or the director flags as blocking (Daksh's and Marich's own limits still apply)
+- Mann's gate (see "Covers" above) — it is never in scope for auto mode
+
 ## Rules that never bend
 - No production before the owner approves the script (Gate 2), and none before the owner approves 3 timecode frames and the music sketch (Gate 3).
 - Music gets special attention at every stage.
