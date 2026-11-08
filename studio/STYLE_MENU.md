@@ -4,7 +4,7 @@ Every style the studio can pick from, in one place, for the social agent's style
 
 - **Library styles (66)**, from [Lemo-Opuscar](https://github.com/lemomo-ai/lemo-opuscar) `styles/<slug>/`. Each has a demo film and engine code, so these are the reliable, faster picks.
 - **Draft styles (74)**, from this repo's [`styles/`](../styles/README.md). Each has a written `STYLE.md` but no engine yet, so it needs more build time and an owner-approved preview.
-- **Ready formats (47)**, imported skills from the owner's Ai-Animation repo (`studio/IMPORTED_SKILLS.json`). Each is a whole recipe, run as `/<name>` or picked as the format in a studio run, inside `studio/SKILL_HARNESS.md`. They have not been rendered in this repo yet.
+- **Ready formats (91)**, the aansh.ai format skills: imported from the owner's Ai-Animation repo, plus the owner's 2026-11-08 specs in `studio/skill_sources/` (all in `studio/IMPORTED_SKILLS.json`). Each is a whole recipe, run as `/<name>` or picked as the format in a studio run, inside `studio/SKILL_HARNESS.md`. They have not been rendered in this repo yet.
 - **Format prompts (12)**, from the "12 Claude Video Formats" guide (`studio/formats/`). Each is a one-line prompt (`Format: <name>.`) for `studio/templates/format-prompt.md`. They have a first-try result in the guide, not in this repo.
 
 Rebuild this file with `python3 studio/build_style_menu.py --lemo <lemo-opuscar clone>` when either library changes.
@@ -240,7 +240,7 @@ Rebuild this file with `python3 studio/build_style_menu.py --lemo <lemo-opuscar 
 | 70s Grindhouse | 70s ग्राइंडहाउस | `grindhouse-70s` | A worn 1970s colour release print run through a tired projector at a double-feature house: faded, scratched and spliced, cut with crash zooms, split screens … | Comedy & parody, Retro ads, Event promos |
 | Film Noir | फ़िल्म नोयर | `film-noir` | Black-and-white crime-film lighting built in code: one hard light per shot, shadows sharper and larger than the people who cast them, wet streets that mirror… | Mystery & drama, Brand storytelling, Music videos |
 
-## Ready formats (47, imported skills)
+## Ready formats (91, imported skills)
 
 Kind says where the words come from and which gate applies (see `studio/SKILL_HARNESS.md`).
 
@@ -255,24 +255,78 @@ Kind says where the words come from and which gate applies (see `studio/SKILL_HA
 
 | Format | Skill | Owner gives | Kind | Checks |
 |---|---|---|---|---|
+| 3D explainer | `/3d-explainer` | your voiceover MP3 and the topic (2–3 article links) | voice | facts |
+| Aarti video | `/aarti-video` | the aarti MP3 and its lines in Devanagari | song | - |
+| Anime fight | `/anime-fight` | your voiceover MP3 and the joke you want on the second punch | voice | original-characters |
 | Anime reel | `/anime-reel` | a script and the voice MP3s for each line | script | original-characters |
+| Baba Pusho | `/baba-pusho` | a Puneet Superstar audio clip (MP3) | third-party-audio | real-people |
 | Blueprint explainer | `/blueprint-explainer` | a long voiceover MP3 (3–10 minutes) and the facts or numbers it covers | voice | facts |
 | Comic book reel | `/comic-reel` | the scene's dialogue audio (MP3) | third-party-audio | - |
+| Comic rap video | `/comic-rap-video` | a rap song MP3 (a 30–60 s verse works), its lyrics, the song title and artist, and 1–2 photos of each rapper's look | song | real-people |
 | Crayon lyric video | `/lyric-video` | a song MP3 and its lyrics, one sung line per row | song | - |
 | Hindi lyric video | `/hindi-lyric-video` | a Hindi song MP3 and its lyrics in Devanagari, one line per row | song | - |
 | Katha video | `/katha-video` | a 60–90 second pravachan MP3 | third-party-audio | - |
+| Kids story | `/kids-story` | the story voiceover MP3 (ElevenLabs, Hindi) and the script | voice | original-characters |
 | Kinetic lyrics | `/kinetic-lyrics` | a song MP3 and its lyrics | song | - |
-| Latent-style roast reel | `/latent-reel` | a show clip (MP3) with the guest and host talking | third-party-audio | brands |
+| Latent comic | `/latent-comic` | the show clip (MP4, plus the MP3 if you have it) and the transcript, if you have one | third-party-audio | third-party-footage, real-people |
+| Latent-style roast reel | `/latent-reel` | a show clip (MP3) with the guest and host talking | third-party-audio | brands, real-people |
 | Madhubani kahani | `/madhubani-kahani` | a Hindi story voiceover MP3 | voice | - |
+| Madira peekar soo gaye | `/madira-peekar-soo-gaye` | the dialogue audio (MP3) and the words of each line | third-party-audio | real-people |
+| Maut ke bare mai sochte ho | `/maut-ke-bare-mai-sochte-ho` | the podcast clip audio (MP3) and who says what | third-party-audio | real-people |
+| Mirzapur video | `/mirzapur-video` | the dialogue audio (MP3) and a POV line for the caption | third-party-audio | real-people |
 | Personal explainer | `/personal-explainer` | your voiceover MP3, the topic, and any source links | voice | facts, third-party-footage |
+| Podcast cartoon | `/podcast-cartoon` | the podcast clip (MP4), your voiceover MP3, and 3–4 photos of you reacting (smile, think, shock, laugh) with transparent backgrounds | third-party-audio | third-party-footage, original-characters |
+| Podcast comic | `/podcast-comic` | the podcast clip (MP3 or MP4), the transcript in Devanagari, and 1–2 screenshots of the guest and studio | third-party-audio | real-people |
 | Podcast explainer | `/podcast-explainer` | a 45–90 second podcast clip (MP3) | third-party-audio | facts |
-| Pusho reel | `/pusho-reel` | a Puneet Superstar audio clip (MP3) | third-party-audio | - |
+| Pusho reel | `/pusho-reel` | a Puneet Superstar audio clip (MP3) | third-party-audio | real-people |
+| Rap video | `/rap-video` | a rap song MP3, its lyrics, and 1–2 photos of the rapper's look | song | real-people |
+| Shadow puppet | `/shadow-puppet` | the story voiceover MP3 and the script | voice | - |
 | Sketch music video | `/sketch-music-video` | a song MP3 and its lyrics, one sung line per row | song | - |
 | Sketch to motion graphic | `/sketch-to-motion` | 8–10 photos of your sketches, plus your product photos and stock clips | assets | - |
+| Street interview | `/street-interview` | the interview audio (MP3) with both voices | third-party-audio | original-characters |
 | Talking-head edit | `/talking-head-edit` | a 9:16 talking-head clip | clip | - |
 | Tech news report | `/news-report` | a news topic or 2–3 article links | written | facts, brands, third-party-footage |
 | Titan anime episode | `/titan-anime` | a script and the voice MP3s for each line | script | original-characters |
 | Watercolor map journey | `/watercolor-map` | two places, like “Bengaluru → California” | visual | - |
+| Woof woof | `/woof-woof` | the clip audio (MP3), or just tell me when each bark happens | third-party-audio | original-characters, real-people |
+
+### Lyric videos
+
+| Format | Skill | Owner gives | Kind | Checks |
+|---|---|---|---|---|
+| Anime doodle lyrics | `/anime-doodle-lyrics` | a song MP3 (or a clip of it), its lyrics and 3–6 horizontal anime clips (with the start time for each) | song | third-party-footage |
+| Bairan style | `/bairan-style` | a song MP3 and its lyrics (Hindi or Haryanvi, one sung line per row) | song | - |
+| Breakup chat lyrics | `/breakup-chat-lyrics` | a song MP3 (or a 40–60 s cut), its lyrics, the cover art, 3–6 clips or photos for the mood, and the 2–4 chat lines you want in the intro | song | third-party-footage |
+| Glass to neon lyrics | `/glass-to-neon-lyrics` | a song MP3 (or a clip of it), its lyrics, the cover art, and 4–6 clips or photos with the mood you want for each part | song | third-party-footage |
+| Glow lyrics | `/glow-lyrics` | a song MP3 and its lyrics (one sung line per row) | song | - |
+| Ink line lyrics | `/ink-line-lyrics` | a song MP3 and its lyrics, one sung line per row | song | - |
+| Miniature painting lyrics | `/miniature-painting-lyrics` | a song MP3 (a 60–75 s cut works), its lyrics in Devanagari, the song title and the artist name | song | generated-media |
+| Minimal love lyrics | `/minimal-love-lyrics` | a song MP3 (or a clip of it), its lyrics and the song title + artist | song | - |
+| Minimal lyrics | `/minimal-lyrics` | a song MP3 and its lyrics (one sung line per row) | song | - |
+| Neon lyrics | `/neon-lyrics` | a song MP3, its lyrics, and photos of the rapper's look | song | real-people |
+| Night city lyrics | `/night-city-lyrics` | a song MP3 (or a clip of it), its lyrics and the song title + artist | song | - |
+| Night glow lyrics | `/night-glow-lyrics` | a song MP3 (or a clip of it), its lyrics, 2–4 emotional video clips (glowing / dreamy couple clips work best) and the song title + artists | song | third-party-footage |
+| One-take forest lyrics | `/one-take-forest-lyrics` | the song MP3, the lyrics and your Flow clips | song | generated-media |
+| Paper cutout | `/paper-cutout` | a song MP3 and its lyrics | song | - |
+| Party lyrics | `/party-lyrics` | a song MP3 and its lyrics | song | real-people |
+| Phone chat lyrics | `/phone-chat-lyrics` | a song MP3 (a 40–60 s cut works), its lyrics, the song title, and 5–8 clips with the time range you want from each (one must show someone looking at a phone) | song | third-party-footage |
+| Pink Spotify clip lyrics | `/pink-spotify-clip-lyrics` | a song MP3 (or a clip of it), its lyrics, 1–3 emotional video clips (with the start time for each), a cover image and the Spotify logo PNG | song | third-party-footage |
+| Red rap lyrics | `/red-rap-lyrics` | a rap song MP3 (or a clip of it), its lyrics (Hindi in Devanagari works), one photo of the rapper and your reference reels for each section | song | real-people |
+| Red silhouette lyrics | `/red-silhouette-lyrics` | a song MP3 (a 40–60 s cut works), its lyrics with / marks where you want each phrase to split, and the song title | song | - |
+| Red sun lyrics | `/red-sun-lyrics` | a song MP3 (a 30–60 s cut works), its lyrics, the song title and the artist name | song | - |
+| Spotify particle lyrics | `/spotify-particle-lyrics` | a song MP3 (or a clip of it), its lyrics, 1–2 photos (the artists, and a second photo to morph into), the Spotify logo PNG and a reference reel for the motion-graphic part | song | real-people |
+| Watercolor lyrics | `/watercolor-lyrics` | a song MP3, its lyrics, and 10–14 watercolour images of the same couple (I can write the image prompts for you) | song | generated-media |
+
+### Trend edits
+
+| Format | Skill | Owner gives | Kind | Checks |
+|---|---|---|---|---|
+| Beat transition edit | `/beat-transition-edit` | your model video, 3+ photos, the song MP3 and the reference reel | clip | - |
+| Crayon carousel | `/crayon-carousel` | 3–10 of your photos, and their crayon drawings from Gemini | visual | generated-media |
+| Flicker edit | `/flicker-edit` | a shot (or photo) of the model, the same frame without her, and the song MP3 | clip | - |
+| Painted beat edit | `/painted-beat-edit` | the song MP3 and the reference reel | song | - |
+| Scribble edit | `/scribble-edit` | a 9:16 clip of you moving (a plain wall behind you works best) and the song MP3 | clip | - |
+| Sketch doodle edit | `/sketch-doodle-edit` | one photo (people against an open sky works best), its pencil-sketch version from Gemini, and the song MP3 | clip | generated-media |
 
 ### Reel formats
 

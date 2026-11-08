@@ -14,7 +14,8 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "studio"))
 import check_env as C  # noqa: E402
 
-ALL_TOOLS = {"node": True, "ffmpeg": True, "ffprobe": True, "python3": True, "chromium": True, "kokoro": True}
+ALL_TOOLS = {t: True for c in C.CAPABILITIES for t in c[1]} | {"node": True, "ffmpeg": True, "ffprobe": True,
+                                                             "python3": True, "chromium": True, "kokoro": True}
 
 
 def has_playwright() -> bool:

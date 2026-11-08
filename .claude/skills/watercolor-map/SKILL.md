@@ -33,5 +33,13 @@ A painted watercolor world map: a pin drops on the start city, a plane flies the
 - Show me 5 stills across the video before the full render.
 - Render 1920×1080 at 30 fps, and a 1080×1920 version if I ask.
 
+## Render settings (studio)
+
+- **Outputs:** `16:9 1920×1080`, 30 fps, H.264 High, yuv420p, CRF 18, `-movflags +faststart`.
+- **Audio:** the original recording, AAC 192k 48 kHz, never re-timed; short fades only where the skill asks.
+- **Engine:** Remotion (`npx remotion render`).
+- **WhatsApp copy:** `python3 studio/whatsapp_copy.py final.mp4 final_whatsapp.mp4` (720p, under 20 MB).
+- **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size, audio present and in sync.
+
 ---
 From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Animated videos

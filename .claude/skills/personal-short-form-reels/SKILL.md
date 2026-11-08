@@ -33,5 +33,15 @@ A fast personal reel with my own B-roll and word-by-word captions.
 - Render a 1080×1920 MP4 at 30 fps with my original audio. Never re-grade or filter my face unless the skill says so.
 - Show me 3 snapshots before the final render, and ask before overwriting files.
 
+## Render settings (studio)
+
+- **Outputs:** `9:16 1080×1920`, 30 fps, H.264 High, yuv420p, CRF 18, `-movflags +faststart`.
+- **Audio:** the original recording, AAC 192k 48 kHz, never re-timed; short fades only where the skill asks.
+- **Engine:** FFmpeg / canvas compositor over the owner's footage.
+- **WhatsApp copy:** `python3 studio/whatsapp_copy.py final.mp4 final_whatsapp.mp4` (720p, under 20 MB).
+- **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size, audio present and in sync.
+- **Studio tools for these steps:**
+  - word timing: `python3 studio/mms_align.py` (MMS_FA, `--windows` for squeezed lines) when check_env says it is ready, else `studio/word_timing.py` for known words; Whisper (large-v3) only for unknown words
+
 ---
 From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Reel formats

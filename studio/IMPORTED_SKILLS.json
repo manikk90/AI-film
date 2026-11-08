@@ -1,5 +1,51 @@
 [
  {
+  "name": "3d-explainer",
+  "title": "3D explainer",
+  "group": "Animated videos",
+  "input": "your voiceover MP3 and the topic (2–3 article links)",
+  "kind": "voice",
+  "flags": [
+   "facts"
+  ],
+  "source": "studio/skill_sources/3d-explainer/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "aarti-video",
+  "title": "Aarti video",
+  "group": "Animated videos",
+  "input": "the aarti MP3 and its lines in Devanagari",
+  "kind": "song",
+  "flags": [],
+  "source": "studio/skill_sources/aarti-video/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "anime-doodle-lyrics",
+  "title": "Anime doodle lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (or a clip of it), its lyrics and 3–6 horizontal anime clips (with the start time for each)",
+  "kind": "song",
+  "flags": [
+   "third-party-footage"
+  ],
+  "source": "studio/skill_sources/anime-doodle-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "anime-fight",
+  "title": "Anime fight",
+  "group": "Animated videos",
+  "input": "your voiceover MP3 and the joke you want on the second punch",
+  "kind": "voice",
+  "flags": [
+   "original-characters"
+  ],
+  "source": "studio/skill_sources/anime-fight/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
   "name": "anime-reel",
   "title": "Anime reel",
   "group": "Animated videos",
@@ -10,6 +56,38 @@
   ],
   "source": "skills/anime-reel/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "baba-pusho",
+  "title": "Baba Pusho",
+  "group": "Animated videos",
+  "input": "a Puneet Superstar audio clip (MP3)",
+  "kind": "third-party-audio",
+  "flags": [
+   "real-people"
+  ],
+  "source": "studio/skill_sources/baba-pusho/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "bairan-style",
+  "title": "Bairan style",
+  "group": "Lyric videos",
+  "input": "a song MP3 and its lyrics (Hindi or Haryanvi, one sung line per row)",
+  "kind": "song",
+  "flags": [],
+  "source": "studio/skill_sources/bairan-style/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "beat-transition-edit",
+  "title": "Beat transition edit",
+  "group": "Trend edits",
+  "input": "your model video, 3+ photos, the song MP3 and the reference reel",
+  "kind": "clip",
+  "flags": [],
+  "source": "studio/skill_sources/beat-transition-edit/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "blueprint-explainer",
@@ -34,6 +112,18 @@
   ],
   "source": "skills/breaking-news/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "breakup-chat-lyrics",
+  "title": "Breakup chat lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (or a 40–60 s cut), its lyrics, the cover art, 3–6 clips or photos for the mood, and the 2–4 chat lines you want in the intro",
+  "kind": "song",
+  "flags": [
+   "third-party-footage"
+  ],
+  "source": "studio/skill_sources/breakup-chat-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "business-short-form-reels",
@@ -66,6 +156,18 @@
   "commit": "f02c89a"
  },
  {
+  "name": "comic-rap-video",
+  "title": "Comic rap video",
+  "group": "Animated videos",
+  "input": "a rap song MP3 (a 30–60 s verse works), its lyrics, the song title and artist, and 1–2 photos of each rapper's look",
+  "kind": "song",
+  "flags": [
+   "real-people"
+  ],
+  "source": "studio/skill_sources/comic-rap-video/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
   "name": "comic-reel",
   "title": "Comic book reel",
   "group": "Animated videos",
@@ -74,6 +176,18 @@
   "flags": [],
   "source": "skills/comic-reel/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "crayon-carousel",
+  "title": "Crayon carousel",
+  "group": "Trend edits",
+  "input": "3–10 of your photos, and their crayon drawings from Gemini",
+  "kind": "visual",
+  "flags": [
+   "generated-media"
+  ],
+  "source": "studio/skill_sources/crayon-carousel/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "daksh-ai",
@@ -118,6 +232,16 @@
   "commit": "f02c89a"
  },
  {
+  "name": "flicker-edit",
+  "title": "Flicker edit",
+  "group": "Trend edits",
+  "input": "a shot (or photo) of the model, the same frame without her, and the song MP3",
+  "kind": "clip",
+  "flags": [],
+  "source": "studio/skill_sources/flicker-edit/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
   "name": "glass-stat-card",
   "title": "Glass stat card",
   "group": "Motion effects",
@@ -128,6 +252,28 @@
   ],
   "source": "skills/glass-stat-card/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "glass-to-neon-lyrics",
+  "title": "Glass to neon lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (or a clip of it), its lyrics, the cover art, and 4–6 clips or photos with the mood you want for each part",
+  "kind": "song",
+  "flags": [
+   "third-party-footage"
+  ],
+  "source": "studio/skill_sources/glass-to-neon-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "glow-lyrics",
+  "title": "Glow lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 and its lyrics (one sung line per row)",
+  "kind": "song",
+  "flags": [],
+  "source": "studio/skill_sources/glow-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "hindi-lyric-video",
@@ -148,6 +294,16 @@
   "flags": [],
   "source": "skills/hindi-pastel-reel-edit/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "ink-line-lyrics",
+  "title": "Ink line lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 and its lyrics, one sung line per row",
+  "kind": "song",
+  "flags": [],
+  "source": "studio/skill_sources/ink-line-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "instagram-ui-hinglish",
@@ -184,6 +340,18 @@
   "commit": "f02c89a"
  },
  {
+  "name": "kids-story",
+  "title": "Kids story",
+  "group": "Animated videos",
+  "input": "the story voiceover MP3 (ElevenLabs, Hindi) and the script",
+  "kind": "voice",
+  "flags": [
+   "original-characters"
+  ],
+  "source": "studio/skill_sources/kids-story/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
   "name": "kinetic-lyrics",
   "title": "Kinetic lyrics",
   "group": "Animated videos",
@@ -204,13 +372,27 @@
   "commit": "f02c89a"
  },
  {
+  "name": "latent-comic",
+  "title": "Latent comic",
+  "group": "Animated videos",
+  "input": "the show clip (MP4, plus the MP3 if you have it) and the transcript, if you have one",
+  "kind": "third-party-audio",
+  "flags": [
+   "third-party-footage",
+   "real-people"
+  ],
+  "source": "studio/skill_sources/latent-comic/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
   "name": "latent-reel",
   "title": "Latent-style roast reel",
   "group": "Animated videos",
   "input": "a show clip (MP3) with the guest and host talking",
   "kind": "third-party-audio",
   "flags": [
-   "brands"
+   "brands",
+   "real-people"
   ],
   "source": "skills/latent-reel/SKILL.md",
   "commit": "f02c89a"
@@ -246,6 +428,18 @@
   "commit": "f02c89a"
  },
  {
+  "name": "madira-peekar-soo-gaye",
+  "title": "Madira peekar soo gaye",
+  "group": "Animated videos",
+  "input": "the dialogue audio (MP3) and the words of each line",
+  "kind": "third-party-audio",
+  "flags": [
+   "real-people"
+  ],
+  "source": "studio/skill_sources/madira-peekar-soo-gaye/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
   "name": "magazine-cover",
   "title": "Magazine cover",
   "group": "Looks",
@@ -266,6 +460,74 @@
   "flags": [],
   "source": "skills/match-cut/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "maut-ke-bare-mai-sochte-ho",
+  "title": "Maut ke bare mai sochte ho",
+  "group": "Animated videos",
+  "input": "the podcast clip audio (MP3) and who says what",
+  "kind": "third-party-audio",
+  "flags": [
+   "real-people"
+  ],
+  "source": "studio/skill_sources/maut-ke-bare-mai-sochte-ho/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "miniature-painting-lyrics",
+  "title": "Miniature painting lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (a 60–75 s cut works), its lyrics in Devanagari, the song title and the artist name",
+  "kind": "song",
+  "flags": [
+   "generated-media"
+  ],
+  "source": "studio/skill_sources/miniature-painting-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "minimal-love-lyrics",
+  "title": "Minimal love lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (or a clip of it), its lyrics and the song title + artist",
+  "kind": "song",
+  "flags": [],
+  "source": "studio/skill_sources/minimal-love-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "minimal-lyrics",
+  "title": "Minimal lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 and its lyrics (one sung line per row)",
+  "kind": "song",
+  "flags": [],
+  "source": "studio/skill_sources/minimal-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "mirzapur-video",
+  "title": "Mirzapur video",
+  "group": "Animated videos",
+  "input": "the dialogue audio (MP3) and a POV line for the caption",
+  "kind": "third-party-audio",
+  "flags": [
+   "real-people"
+  ],
+  "source": "studio/skill_sources/mirzapur-video/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "neon-lyrics",
+  "title": "Neon lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3, its lyrics, and photos of the rapper's look",
+  "kind": "song",
+  "flags": [
+   "real-people"
+  ],
+  "source": "studio/skill_sources/neon-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "neon-outline",
@@ -292,6 +554,60 @@
   "commit": "f02c89a"
  },
  {
+  "name": "night-city-lyrics",
+  "title": "Night city lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (or a clip of it), its lyrics and the song title + artist",
+  "kind": "song",
+  "flags": [],
+  "source": "studio/skill_sources/night-city-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "night-glow-lyrics",
+  "title": "Night glow lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (or a clip of it), its lyrics, 2–4 emotional video clips (glowing / dreamy couple clips work best) and the song title + artists",
+  "kind": "song",
+  "flags": [
+   "third-party-footage"
+  ],
+  "source": "studio/skill_sources/night-glow-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "one-take-forest-lyrics",
+  "title": "One-take forest lyrics",
+  "group": "Lyric videos",
+  "input": "the song MP3, the lyrics and your Flow clips",
+  "kind": "song",
+  "flags": [
+   "generated-media"
+  ],
+  "source": "studio/skill_sources/one-take-forest-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "painted-beat-edit",
+  "title": "Painted beat edit",
+  "group": "Trend edits",
+  "input": "the song MP3 and the reference reel",
+  "kind": "song",
+  "flags": [],
+  "source": "studio/skill_sources/painted-beat-edit/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "paper-cutout",
+  "title": "Paper cutout",
+  "group": "Lyric videos",
+  "input": "a song MP3 and its lyrics",
+  "kind": "song",
+  "flags": [],
+  "source": "studio/skill_sources/paper-cutout/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
   "name": "particle-chart",
   "title": "Particle chart",
   "group": "Motion effects",
@@ -312,6 +628,18 @@
   "flags": [],
   "source": "skills/particle-text/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "party-lyrics",
+  "title": "Party lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 and its lyrics",
+  "kind": "song",
+  "flags": [
+   "real-people"
+  ],
+  "source": "studio/skill_sources/party-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "personal-broll-library",
@@ -345,6 +673,55 @@
   "flags": [],
   "source": "skills/personal-short-form-reels/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "phone-chat-lyrics",
+  "title": "Phone chat lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (a 40–60 s cut works), its lyrics, the song title, and 5–8 clips with the time range you want from each (one must show someone looking at a phone)",
+  "kind": "song",
+  "flags": [
+   "third-party-footage"
+  ],
+  "source": "studio/skill_sources/phone-chat-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "pink-spotify-clip-lyrics",
+  "title": "Pink Spotify clip lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (or a clip of it), its lyrics, 1–3 emotional video clips (with the start time for each), a cover image and the Spotify logo PNG",
+  "kind": "song",
+  "flags": [
+   "third-party-footage"
+  ],
+  "source": "studio/skill_sources/pink-spotify-clip-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "podcast-cartoon",
+  "title": "Podcast cartoon",
+  "group": "Animated videos",
+  "input": "the podcast clip (MP4), your voiceover MP3, and 3–4 photos of you reacting (smile, think, shock, laugh) with transparent backgrounds",
+  "kind": "third-party-audio",
+  "flags": [
+   "third-party-footage",
+   "original-characters"
+  ],
+  "source": "studio/skill_sources/podcast-cartoon/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "podcast-comic",
+  "title": "Podcast comic",
+  "group": "Animated videos",
+  "input": "the podcast clip (MP3 or MP4), the transcript in Devanagari, and 1–2 screenshots of the guest and studio",
+  "kind": "third-party-audio",
+  "flags": [
+   "real-people"
+  ],
+  "source": "studio/skill_sources/podcast-comic/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "podcast-explainer",
@@ -386,7 +763,9 @@
   "group": "Animated videos",
   "input": "a Puneet Superstar audio clip (MP3)",
   "kind": "third-party-audio",
-  "flags": [],
+  "flags": [
+   "real-people"
+  ],
   "source": "skills/pusho-reel/SKILL.md",
   "commit": "f02c89a"
  },
@@ -401,6 +780,18 @@
   "commit": "f02c89a"
  },
  {
+  "name": "rap-video",
+  "title": "Rap video",
+  "group": "Animated videos",
+  "input": "a rap song MP3, its lyrics, and 1–2 photos of the rapper's look",
+  "kind": "song",
+  "flags": [
+   "real-people"
+  ],
+  "source": "studio/skill_sources/rap-video/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
   "name": "red-kinetic-collage-edit",
   "title": "Red kinetic collage",
   "group": "Edit styles",
@@ -409,6 +800,38 @@
   "flags": [],
   "source": "skills/red-kinetic-collage-edit/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "red-rap-lyrics",
+  "title": "Red rap lyrics",
+  "group": "Lyric videos",
+  "input": "a rap song MP3 (or a clip of it), its lyrics (Hindi in Devanagari works), one photo of the rapper and your reference reels for each section",
+  "kind": "song",
+  "flags": [
+   "real-people"
+  ],
+  "source": "studio/skill_sources/red-rap-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "red-silhouette-lyrics",
+  "title": "Red silhouette lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (a 40–60 s cut works), its lyrics with | marks where you want each phrase to split, and the song title",
+  "kind": "song",
+  "flags": [],
+  "source": "studio/skill_sources/red-silhouette-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "red-sun-lyrics",
+  "title": "Red sun lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (a 30–60 s cut works), its lyrics, the song title and the artist name",
+  "kind": "song",
+  "flags": [],
+  "source": "studio/skill_sources/red-sun-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "rgb-glitch-live",
@@ -423,6 +846,26 @@
   "commit": "f02c89a"
  },
  {
+  "name": "scribble-edit",
+  "title": "Scribble edit",
+  "group": "Trend edits",
+  "input": "a 9:16 clip of you moving (a plain wall behind you works best) and the song MP3",
+  "kind": "clip",
+  "flags": [],
+  "source": "studio/skill_sources/scribble-edit/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "shadow-puppet",
+  "title": "Shadow puppet",
+  "group": "Animated videos",
+  "input": "the story voiceover MP3 and the script",
+  "kind": "voice",
+  "flags": [],
+  "source": "studio/skill_sources/shadow-puppet/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
   "name": "shutter-stack",
   "title": "Shutter stack",
   "group": "Motion effects",
@@ -431,6 +874,18 @@
   "flags": [],
   "source": "skills/shutter-stack/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "sketch-doodle-edit",
+  "title": "Sketch doodle edit",
+  "group": "Trend edits",
+  "input": "one photo (people against an open sky works best), its pencil-sketch version from Gemini, and the song MP3",
+  "kind": "clip",
+  "flags": [
+   "generated-media"
+  ],
+  "source": "studio/skill_sources/sketch-doodle-edit/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "sketch-music-video",
@@ -451,6 +906,30 @@
   "flags": [],
   "source": "skills/sketch-to-motion/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "spotify-particle-lyrics",
+  "title": "Spotify particle lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3 (or a clip of it), its lyrics, 1–2 photos (the artists, and a second photo to morph into), the Spotify logo PNG and a reference reel for the motion-graphic part",
+  "kind": "song",
+  "flags": [
+   "real-people"
+  ],
+  "source": "studio/skill_sources/spotify-particle-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
+  "name": "street-interview",
+  "title": "Street interview",
+  "group": "Animated videos",
+  "input": "the interview audio (MP3) with both voices",
+  "kind": "third-party-audio",
+  "flags": [
+   "original-characters"
+  ],
+  "source": "studio/skill_sources/street-interview/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "talking-head-edit",
@@ -485,6 +964,18 @@
   "commit": "f02c89a"
  },
  {
+  "name": "watercolor-lyrics",
+  "title": "Watercolor lyrics",
+  "group": "Lyric videos",
+  "input": "a song MP3, its lyrics, and 10–14 watercolour images of the same couple (I can write the image prompts for you)",
+  "kind": "song",
+  "flags": [
+   "generated-media"
+  ],
+  "source": "studio/skill_sources/watercolor-lyrics/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
+ },
+ {
   "name": "watercolor-map",
   "title": "Watercolor map journey",
   "group": "Animated videos",
@@ -493,6 +984,19 @@
   "flags": [],
   "source": "skills/watercolor-map/SKILL.md",
   "commit": "f02c89a"
+ },
+ {
+  "name": "woof-woof",
+  "title": "Woof woof",
+  "group": "Animated videos",
+  "input": "the clip audio (MP3), or just tell me when each bark happens",
+  "kind": "third-party-audio",
+  "flags": [
+   "original-characters",
+   "real-people"
+  ],
+  "source": "studio/skill_sources/woof-woof/SKILL.md",
+  "commit": "owner-spec-2026-11-08"
  },
  {
   "name": "youtube-clips",

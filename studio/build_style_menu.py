@@ -10,7 +10,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 ORDER = ["Indian Traditions", "World Folk", "Animation Techniques", "Art Movements", "Internet & Digital", "Cinema Eras"]
-GROUPS = ["Animated videos (with engine)", "Animated videos", "Reel formats", "Edit styles", "Motion effects", "Looks"]
+GROUPS = ["Animated videos (with engine)", "Animated videos", "Lyric videos", "Trend edits", "Reel formats", "Edit styles", "Motion effects", "Looks"]
 
 
 def look(md):
@@ -44,7 +44,7 @@ def main():
            "Every style the studio can pick from, in one place, for the social agent's style suggestions and the director's format brief.", "",
            f"- **Library styles ({len(lib)})**, from [Lemo-Opuscar](https://github.com/lemomo-ai/lemo-opuscar) `styles/<slug>/`. Each has a demo film and engine code, so these are the reliable, faster picks.",
            f"- **Draft styles ({len(draft)})**, from this repo's [`styles/`](../styles/README.md). Each has a written `STYLE.md` but no engine yet, so it needs more build time and an owner-approved preview.",
-           f"- **Ready formats ({len(fmt)})**, imported skills from the owner's Ai-Animation repo (`studio/IMPORTED_SKILLS.json`). Each is a whole recipe, run as `/<name>` or picked as the format in a studio run, inside `studio/SKILL_HARNESS.md`. They have not been rendered in this repo yet.",
+           f"- **Ready formats ({len(fmt)})**, the aansh.ai format skills: imported from the owner's Ai-Animation repo, plus the owner's 2026-11-08 specs in `studio/skill_sources/` (all in `studio/IMPORTED_SKILLS.json`). Each is a whole recipe, run as `/<name>` or picked as the format in a studio run, inside `studio/SKILL_HARNESS.md`. They have not been rendered in this repo yet.",
            f"- **Format prompts ({len(prompts)})**, from the \"12 Claude Video Formats\" guide (`studio/formats/`). Each is a one-line prompt (`Format: <name>.`) for `studio/templates/format-prompt.md`. They have a first-try result in the guide, not in this repo.", "",
            "Rebuild this file with `python3 studio/build_style_menu.py --lemo <lemo-opuscar clone>` when either library changes.", "",
            f"## Library styles ({len(lib)}, each with a demo film)", ""]
