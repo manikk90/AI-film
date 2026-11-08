@@ -84,3 +84,5 @@ Format: `- YYYY-MM-DD · kind · rule. Why: … Source: "<owner's words>" (proje
 - 2026-11-01 · owner · Synthetic sound effects felt odd (noise-based crowd, synthesised bells, beeping crickets). Prefer recorded samples; avoid synthetic crowd, insects and beeps. Source: "isme sound effect thode odd h" (azaadi-1947)
 - 2026-11-01 · observed · A file sent to the owner from a cloud session can be at most 400 MiB. For a long editor package, build it with `--crf 18` (still visually lossless) or send the picture separately. Why: the 2-minute Ramayana package zipped to 433 MiB at CRF 16 and could not be sent; at CRF 18 it was 321 MiB. (ramayana)
 - 2026-11-01 · owner · Use ElevenLabs for voice and SFX when it is reachable. The key lives only in the environment variable `ELEVENLABS_API_KEY`, never in chat or files. Source: "isko use krke sound or voice over banaya kro" (all)
+
+- 2026-11-08 · owner · ElevenLabs covers music generation too, not only voice/SFX, when the account and the host are reachable (studio already prefers ElevenLabs for voice/SFX). Source: "voiceover or music elevenlabs se bnana" (Nani ki Aakhri Kahani)
