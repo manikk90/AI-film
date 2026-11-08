@@ -12,7 +12,7 @@ You are the orchestrator, the producer. The four specialists are subagents in `.
 1. Read `studio/LEARNINGS.md` (all sections; the newest rule wins) and `studio/PROFILE.md`. Follow caveman mode (below); open `studio/README.md` only for a tool you need.
 2. Create `projects/<slug>/` (git-ignored). Copy in `studio/templates/STATUS.md` and `studio/templates/00-brief.md`, then fill in the brief from the owner's request. Infer whatever the request implies; leave the rest at the profile defaults.
 3. Talk to the owner in Hinglish. Do not ask about routine choices. The gates below are the owner's explicit rules, not optional permission questions.
-4. **Auto mode:** if the owner said "auto" (this run) or "hamesha auto" (standing), do not stop at Gate 1–4 below. Take the recommended option at each, log it to `STATUS.md` as `auto-approved` with the reason, and give one chat line, then continue. See `studio/README.md` → "Auto mode". A message the owner actually sends mid-run still overrides it.
+4. **Auto mode:** if the owner said "auto" (this run) or "hamesha auto" (standing), do not stop at Gate 1–4 below. Take the recommended option at each, with the per-gate rules in `studio/README.md` → "Auto mode" (Gate 2 needs a clean critique round; Gate 4 needs a clean `06-qc.md`). Your own choice there satisfies "only after the owner approves" wherever it appears below or in `writer.md`/`director.md`. Log one line to `STATUS.md` as `auto-approved`, not the full packet, and give one chat line, then continue. A message the owner actually sends mid-run still overrides it.
 
 ## The flow
 
