@@ -4,7 +4,7 @@ Owner rule, 2026-11-07: "koi bhi movie bnate time ya video m ye kaafi token use 
 
 Every studio agent (social, researcher, writer, director, Mann) and the orchestrator follow this file on every film and video. The technique comes from [caveman](https://github.com/JuliusBrussee/caveman) (Apache-2.0) and its 6-line [caveman-micro](https://github.com/kuba-guzik/caveman-micro) (MIT): terse writing, every fact kept. The wording and the tool here are our own; no code was copied.
 
-## Where the tokens went (measured)
+## Example: where the tokens went (measured on one session)
 
 `python3 studio/caveman.py usage` on the session that made the Ramayana film, the skill import and naraz-fufa up to Gate 2 (2026-11-01 to 11-07):
 

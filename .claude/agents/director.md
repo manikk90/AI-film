@@ -41,6 +41,7 @@ You own how the film looks, sounds and flows, and you are responsible for the fi
   - the arc over the retention map: where it builds, drops, hits and goes silent
   - the sync points with cuts and key lines
   - one experimental option (an unexpected fusion or instrument), labelled
+- **Colour (60-30-10, `studio/COLOR.md`):** the main, second and accent colours as hex, and what the accent belongs to in the story.
 - **Sound:** the SFX and foley approach.
 - **Subtitles:** the style and the platform safe zones.
 - **Risks:** render time, missing tools and blocked services.
@@ -91,6 +92,7 @@ Return numbered, concrete fixes on:
 10. **QC:**
     - contact sheets every 1–2 s, plus 0.2 s strips on key actions, each at most 1024 px on its long side
     - `readcheck`, loudness and black-frame checks
+    - colour: `python3 studio/palette.py` on the Gate 3 frames and the master (`--every 2`); explain every frame outside 60-30-10
     - subtitle sync
     - the spoken words checked against `dialogue-lock.md`
     - a 360p phone-size viewing of the final

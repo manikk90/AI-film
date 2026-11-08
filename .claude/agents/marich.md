@@ -30,7 +30,7 @@ Follow `third_party/rea/DISCLAIMER.md`:
    - **Web page or app:** DOM and CSS, animation timings, network calls you are allowed to see, and the asset list.
    - **Binary or package:** REA when available. Otherwise file format, strings and headers only, as format-aware as you can.
 3. **Decompose.** Split the target into layers and write each as measurable facts:
-   - **Video:** structure and beats, hook, cut rhythm, camera, typography, colour and grade, motion and transitions, VFX, sound design, music, voice and captions.
+   - **Video:** structure and beats, hook, cut rhythm, camera, typography, colour and grade (measure the 60-30-10 split with `studio/palette.py`, as hex values), motion and transitions, VFX, sound design, music, voice and captions.
    - **Software:** architecture, data, state, protocols and UI flow.
 4. **Verify.** Mark every claim as **observed**, **inferred** or **unknown**, with its evidence file or timestamp and a confidence. Never present an inference as an observation. Test the important inferences with a small probe, such as rendering one transition or timing one cut, before you build on them.
 5. **Spec.** Write `re/REPLICA_SPEC.md` (at most 12 KB):
