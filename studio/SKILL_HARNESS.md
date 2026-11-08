@@ -90,6 +90,21 @@ Run `python3 studio/check_env.py` at the start of every production, and put its 
 
   Then the doctor shows these capabilities as ready.
 
+## Session setup verified 2026-11-08
+The owner opened `dl.fbaipublicfiles.com`, `openaipublic.azureedge.net`, `huggingface.co`, `download.blender.org` and `download.pytorch.org`. The notes above from 2026-11-02 are older; run `check_env.py` for the current state.
+- **Install** (a fresh container needs it again):
+  - `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu`
+  - `pip install demucs uroman openai-whisper mediapipe librosa`
+  - `apt-get install -y libegl1 libgles2 libgl1 espeak-ng`
+  - Blender 4.5 LTS from download.blender.org into `/opt`, linked as `/usr/local/bin/blender`
+- **Checked on synthetic espeak speech (2026-11-08):**
+  - MMS_FA aligns English and Devanagari, with speakers.
+  - On the demucs vocal stem of speech over a beat, word starts were within 20 ms of the clean alignment.
+  - Whisper large-v3 transcribes Hindi on CPU, in about 200 s including the model load.
+  - The MediaPipe Tasks matte, parts and landmarks run.
+  - The 3d-explainer template renders in EEVEE headless.
+- **Not checked yet:** human recordings and real footage.
+
 ## Shared skill tools (added 2026-11-08)
 Every copy ends with a generated `## Render settings (studio)` section: outputs, fps, audio, engine and the tools for its steps.
 - `studio/beats.py`: tempo, beats, downbeats, kicks, hits (librosa).
