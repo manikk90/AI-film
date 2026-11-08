@@ -88,6 +88,22 @@ The 12 looks from the "12 Claude Video Formats" guide are saved in `studio/forma
 
 Each is one prompt line (`Format: <name>.`) for `studio/templates/format-prompt.md`, which writes a page that `studio/render_canvas.cjs` renders frame by frame. They have a first-try result in the guide, not in this repo.
 
+## Auto mode (skip waiting at gates)
+
+By default every gate above is **mandatory**: the pipeline stops, shows the packet, and waits for an explicit "approved". Silence or a vague reply is not approval.
+
+**Trigger:** the owner says "auto", "auto mode", "auto chalao" or "end to end auto kr do" — at the start of a request, or mid-film.
+**Scope:** that one film or job only. Say "hamesha auto" to make it the standing default across films; say "manual" or "gate pe pucho" any time to turn it off again (for one run or for good).
+
+While auto mode is on, the orchestrator does not stop and wait at Gate 1–4 (or Daksh's Gate R1–R2, or Mann's storyboard/style/script-lock approvals). At each gate it takes the recommended option itself (the top pitch, the critique-passed script, the recommended look and music, the finished cut) and instead of waiting:
+- writes the gate packet to `STATUS.md` as usual, marked `auto-approved`, with the one-line reason for the choice
+- gives the owner one line in chat about what it decided and moved on to
+
+Auto mode never skips:
+- the rules under "Rules that never bend" below (rights, real logos, sourced facts, copying someone else's assets, posting or publishing)
+- stopping for a message the owner actually sends mid-run — that is new direction, not noise, even while auto is on
+- a risk or rights gap Marich or the director flags as blocking (Daksh's and Marich's own limits still apply)
+
 ## Rules that never bend
 - No production before the owner approves the script (Gate 2), and none before the owner approves 3 timecode frames and the music sketch (Gate 3).
 - Music gets special attention at every stage.
