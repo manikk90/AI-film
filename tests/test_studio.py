@@ -25,7 +25,7 @@ def frontmatter(path):
 class StudioTest(unittest.TestCase):
     def test_agents(self):
         names = sorted(p.stem for p in AGENTS.glob("*.md"))
-        self.assertEqual(names, ["director", "mann", "researcher", "social", "writer"])
+        self.assertEqual(names, ["director", "mann", "marich", "researcher", "social", "writer"])
         for p in AGENTS.glob("*.md"):
             with self.subTest(agent=p.stem):
                 fields, body = frontmatter(p)

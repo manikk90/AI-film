@@ -89,6 +89,7 @@ Set in each agent's frontmatter. The Agent tool's `effort` parameter overrides i
 | writer | high | 150000 |
 | director | high | 200000 |
 | mann | high | 200000 |
+| marich | high | 200000 |
 
 - `autoCompactWindow` needs Claude Code v2.1.296 or later; older versions ignore the field.
 - The `CLAUDE_CODE_EFFORT_LEVEL` environment variable overrides every agent's setting, so leave it unset.

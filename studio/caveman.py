@@ -32,6 +32,7 @@ ROLES = {
     "writer": ["Writer"],
     "director": ["Director", "Production"],
     "mann": ["Editor", "Production"],
+    "marich": ["Marich"],
 }
 # Budgets in KB of UTF-8 for a short (up to 60 s); long form uses --scale 4.
 # Devanagari takes 3 bytes a letter, so a byte budget also keeps Hindi to the exact words.
