@@ -5,7 +5,7 @@ The `.claude/skills/` folders listed in `studio/IMPORTED_SKILLS.json` come from 
 Each copy keeps its original text, and a short harness block under its title says how it runs here. This file is the full contract. Where a skill's own steps disagree with this file or with `studio/LEARNINGS.md`, this file and the ledger win, and the newest owner rule wins.
 
 ## Every run
-1. Read `studio/LEARNINGS.md` and `studio/PROFILE.md`, and follow caveman mode (`studio/CAVEMAN.md`): minimum tokens.
+1. Read `studio/LEARNINGS.md` and `studio/PROFILE.md`, and follow caveman mode (`studio/CAVEMAN.md`): minimum tokens. Every picture follows the 60-30-10 colour rule (`studio/COLOR.md`).
 2. Make the project folder `projects/<slug>/` (git-ignored), with `STATUS.md` from `studio/templates/`, and log each step there.
 3. Talk to the owner in Hinglish. Make routine choices yourself; the gates below are the owner's rules, not optional questions.
 4. A skill can run on its own (`/madhubani-kahani kahani.mp3`) or as the format the director picks in a `/viral-studio` run. Either way the gates below apply.

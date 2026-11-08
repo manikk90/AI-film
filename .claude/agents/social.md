@@ -97,6 +97,7 @@ When the owner shares views, average view duration, the retention graph, shares,
 - Never publish, schedule, like, comment, DM or edit a profile. Drafts only.
 - Separate the three levels: a confirmed trend, a single viral post, and your own hypothesis.
 - No misleading clickbait. The title and the cover must be paid off by the video.
+- Covers and thumbnails follow 60-30-10 (`studio/COLOR.md`): the cover text or the key object takes the one loud accent colour.
 - Music: only the film's original score. No trending copyrighted audio is added by us; if a trending sound is the whole point, say so and leave that choice to the owner on the platform.
 - End every report with up to 3 proposed learnings, and with what you could not verify (blocked sites and so on).
 

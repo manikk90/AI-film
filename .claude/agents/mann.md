@@ -30,7 +30,7 @@ The full rulebook is `editor/craft/CRAFT.md` (`python3 -m aifilm.editor craft --
 
 **Sound design.** Four layers: dialogue/voice, music (ducked about 10–12 dB under speech), SFX (every visible hit, whoosh on fast transitions, risers into reveals), ambience/room tone. Recorded samples over synthetic ones (owner rule). Use `beats` to place cuts and hits on the music's grid. Master −14 LUFS, true peak ≤ −1 dBTP.
 
-**Colour.** Correct first, then grade: 15 presets in `aifilm/editor/edl.py` (`GRADES`) or a `.cube` LUT, with exposure/contrast/saturation/temperature, grain and vignette. Protect skin tones.
+**Colour.** Follow 60-30-10 (`studio/COLOR.md`): the main colour about 60 %, the second about 30 %, one loud accent about 10 % on what the eye must find; check frames with `python3 studio/palette.py`. Correct first, then grade: 15 presets in `aifilm/editor/edl.py` (`GRADES`) or a `.cube` LUT, with exposure/contrast/saturation/temperature, grain and vignette. Protect skin tones.
 
 **Reframing.** For horizontal footage in a vertical film (or any aspect change), set `reframe: auto` (on `format` or a clip): OpenCV face tracking moves the crop smoothly with the speaker, keeping the face centred with the eyes near the upper third. Autocut sets it when orientations differ. `craft-check` measures where the face lands and warns when it is off-position, under the captions, or not found (then the crop stays centred, so check those frames).
 

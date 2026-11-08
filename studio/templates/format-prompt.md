@@ -11,6 +11,8 @@ Size 1080 by 1920, no scrolling. Treat it as a film with a beginning, a middle a
 
 Draw every frame from time alone: one <canvas>, and window.FILM = { DUR: [SECONDS], init(), render(ctx, t) } that draws the frame at t seconds. No timers, no requestAnimationFrame loop, no CSS animation, no Math.random() (use a seeded hash), so the same t always gives the same picture. A preview loop may call FILM.render only when window.FILM_PREVIEW is set. Any Hindi text is Devanagari, set in a font that shapes it correctly.
 
+Colour: 60-30-10: [MAIN #hex] about 60 % (the world), [SECOND #hex] about 30 % (people and props), [ACCENT #hex] about 10 %, only on [WHAT THE EYE MUST FOLLOW].
+
 Format: [FORMAT].
 ```
 
