@@ -26,6 +26,11 @@ def available():
         return False
 
 
+def usable():
+    """Faces can be tracked: OpenCV's Haar cascade is installed, or a detector was put in place of `detect`."""
+    return available() or detect.__module__ != __name__
+
+
 def detect(gray):
     """Faces in a grayscale numpy frame as [(x, y, w, h)]. Replaceable in tests."""
     global _CASCADES
@@ -55,7 +60,7 @@ def track(root, rel, rate=4.0, width=640):
     cache = root / "analysis" / "{}-faces-v{}.json".format(sha[:20], VERSION)
     if cache.exists():
         return read_json(cache)
-    require(available() or detect.__module__ != __name__,
+    require(usable(),
             "Face tracking needs OpenCV with Haar cascades: python3 -m pip install opencv-python-headless==4.10.0.84")
     import numpy as np
     info = media.probe(inside(root, rel))

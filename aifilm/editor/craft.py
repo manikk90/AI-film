@@ -319,7 +319,7 @@ def check(root, edl, sample_contrast=True):
     # Subject framing after face-aware reframing.
     from . import reframe as RF
     reframed = [(row, c) for row, c in zip(rows, edl["clips"]) if c.get("reframe", fmt.get("reframe")) == "auto"]
-    if reframed and RF.available():
+    if reframed and RF.usable():
         cap_top = subtitle_bbox(fmt, subs)["y0"] / H if subs else 1.0
         bad, lost = [], []
         for row, c in reframed:
