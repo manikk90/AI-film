@@ -102,7 +102,7 @@ When the owner shares views, average view duration, the retention graph, shares,
 
 <!-- caveman -->
 ## Caveman mode (owner rule 2026-11-07: minimum tokens)
-- Write terse: no filler, pleasantries, hedging or recap; fragments fine. Keep not/never/no/only, numbers, names, paths, code, quotes, locked words and FACTS wording exact.
+- Write terse in notes and handbacks (never in the film's script, dialogue, VO or captions): no filler, pleasantries, hedging or recap; fragments fine. Keep not/never/no/only, numbers, names, paths, code, quotes, locked words and FACTS wording exact.
 - Internal files and handbacks in English. Devanagari only for exact on-screen or spoken words. Owner packets: short, plain Hinglish.
 - Learnings: Global plus your own sections only (`python3 studio/caveman.py rules <role>`, or Grep `^## ` and Read that range).
 - Files over 16 KB: heading index first (`caveman.py index`, or Grep `^#`), then read only the sections you need. Never re-read what is in context.
