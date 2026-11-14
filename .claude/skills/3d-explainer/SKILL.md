@@ -55,6 +55,7 @@ Run from this skill's folder (`.claude/skills/3d-explainer/`).
 - **WhatsApp copy:** `python3 studio/whatsapp_copy.py final.mp4 final_whatsapp.mp4` (720p, under 20 MB).
 - **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size, audio present and in sync.
 - **Studio tools for these steps:**
+  - sound effects: `python3 studio/sfx.py place cues.json sfx.wav` (code-made whoosh, ding, pop, boom, impact, shutter, typing, bell, damru, riser), cue times from the alignment or beats
   - word timing: `python3 studio/mms_align.py` (MMS_FA, `--windows` for squeezed lines) when check_env says it is ready, else `studio/word_timing.py` for known words; Whisper (large-v3) only for unknown words
 
 ---

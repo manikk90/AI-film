@@ -76,6 +76,8 @@ FLAGS = {
                     "comic-rap-video", "neon-lyrics", "spotify-particle-lyrics", "red-rap-lyrics",
                     "maut-ke-bare-mai-sochte-ho", "madira-peekar-soo-gaye", "baba-pusho", "woof-woof", "pusho-reel",
                     "latent-reel"],
+    "app-ui": ["spotify-particle-lyrics", "pink-spotify-clip-lyrics", "glass-to-neon-lyrics", "breakup-chat-lyrics",
+               "night-glow-lyrics", "phone-chat-lyrics"],
     "generated-media": ["miniature-painting-lyrics", "one-take-forest-lyrics", "sketch-doodle-edit",
                         "crayon-carousel", "watercolor-lyrics"],
     "own-footage-only": ["youtube-clips"],
@@ -115,6 +117,9 @@ FLAG_LINES = {
     "real-people": "**Real people:** a caricature, comic portrait or particle portrait of a real person is drawn "
                    "in code from photos the owner supplied, labelled as an illustration, and never shows them "
                    "endorsing anything.",
+    "app-ui": "**App look:** the music-app card, chat or social-post screen is a generic look built in code. A real "
+              "app logo appears only as the PNG the owner supplies for this video; never imply that the app made, "
+              "hosts or endorses the video, and no app name or UI beyond what the owner asked for.",
     "generated-media": "**Generated images and clips:** only the ones the owner makes from the prompts and hands "
                        "over (Gemini, Flow). If one is missing, ask for it; never use a placeholder.",
     "third-party-footage": "**Footage:** real footage or screenshots only when licensed for this use or quoted "
@@ -152,6 +157,10 @@ RENDER = {
 }
 NO_VIDEO = {"crayon-carousel": "1080×1350 (4:5) PNG slides, numbered in photo order, plus one contact sheet. No video."}
 TOOLS = [  # (pattern in the skill text, tool line)
+    (r"HTML canvas|canvas", "canvas page: start from `studio/canvas_kit.js` (seeded rng, easing, layer cache, camera, "
+     "karaoke captions, safe zone, burst, grain) and link `studio/fonts/fonts.css`; every font the skills name is vendored there"),
+    (r"[Ss]ound effect|whoosh|ding|sting|shutter sound|cha-ching|SFX|bell|damru", "sound effects: `python3 studio/sfx.py place "
+     "cues.json sfx.wav` (code-made whoosh, ding, pop, boom, impact, shutter, typing, bell, damru, riser), cue times from the alignment or beats"),
     (r"demucs|[Ss]eparate the vocals", "`python3 studio/separate_vocals.py song.mp3 stems/`: vocals for alignment, "
      "instrumental for muting a word; the film keeps the original mix"),
     (r"[Ff]orce-align|MMS_FA|word-level timings|[Tt]ranscribe", "word timing: `python3 studio/mms_align.py` "

@@ -12,6 +12,7 @@ argument-hint: "[a song MP3 (or a clip of it), its lyrics, 2–4 emotional video
 > - **Before you start:** run `python3 studio/check_env.py`. It shows what works in this session: rendering, word timing, Whisper and ElevenLabs.
 > - **Preview (Gate 3):** before the full render, send 3 numbered frames at 3 timecodes (the hook, the middle, the end), plus a 20–30 s music sketch when the skill adds music, and wait for the owner's OK. This replaces any contact sheet, stills or snapshot step below. For a canvas page, `node studio/render_canvas.cjs <page> <prefix> --stills 1,6,11` makes the frames, and the same script renders the video locally.
 > - **Footage:** real footage or screenshots only when licensed for this use or quoted briefly with credit; credit each one on screen and in `CREDITS`.
+> - **App look:** the music-app card, chat or social-post screen is a generic look built in code. A real app logo appears only as the PNG the owner supplies for this video; never imply that the app made, hosts or endorses the video, and no app name or UI beyond what the owner asked for.
 > - **Word timing:** never guess. For known words (a script, lyrics, the locked dialogue), `studio/word_timing.py` aligns them offline. For unknown words, the doctor shows whether Whisper or alignment can run; if not, ask the owner for a transcript. Say which route you used.
 > - **Deliver:** to `projects/<slug>/final/`, then send exactly 2 files with `studio/deliver.py`: the final video, and one zip with everything else. Keep any WhatsApp copy in `final/` unless the owner asks for it.
 
@@ -45,6 +46,8 @@ A 16:9 lyric video that makes people feel the song, like the Dooron Dooron (Pare
 - **WhatsApp copy:** `python3 studio/whatsapp_copy.py final.mp4 final_whatsapp.mp4` (720p, under 20 MB).
 - **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size, audio present and in sync.
 - **Studio tools for these steps:**
+  - canvas page: start from `studio/canvas_kit.js` (seeded rng, easing, layer cache, camera, karaoke captions, safe zone, burst, grain) and link `studio/fonts/fonts.css`; every font the skills name is vendored there
+  - sound effects: `python3 studio/sfx.py place cues.json sfx.wav` (code-made whoosh, ding, pop, boom, impact, shutter, typing, bell, damru, riser), cue times from the alignment or beats
   - `python3 studio/separate_vocals.py song.mp3 stems/`: vocals for alignment, instrumental for muting a word; the film keeps the original mix
   - word timing: `python3 studio/mms_align.py` (MMS_FA, `--windows` for squeezed lines) when check_env says it is ready, else `studio/word_timing.py` for known words; Whisper (large-v3) only for unknown words
   - `python3 studio/beats.py song.mp3 beats.json`: tempo, beats, downbeats, kicks, hits

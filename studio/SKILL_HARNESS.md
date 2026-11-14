@@ -116,7 +116,12 @@ Every copy ends with a generated `## Render settings (studio)` section: outputs,
 - `studio/whatsapp_copy.py`: 720p two-pass copy under 20 MB, never overwrites without `--force`.
 - `studio/frame_check.py`: black/frozen frames, size, fps, audio sync before delivery.
 - `node studio/render_canvas.cjs ... --abitrate 256k` for songs.
-`check_env.py` reports each of them. Tests: `tests/test_skill_tools.py` (synthetic fixtures).
+- `studio/canvas_kit.js` + `studio/fonts/` (added 2026-11-14): the shared canvas helpers (seeded rng and noise, easing, keyframes, loop-safe waves, layer cache, camera and parallax, paper and film grain, halftone, comic burst, karaoke captions, safe zone) and every font the skills name (SIL OFL, vendored). A canvas page links `studio/fonts/fonts.css`, loads the kit, and the renderer waits until every font is in.
+- `studio/sfx.py` (added 2026-11-14): sound effects made in code (whoosh, swoosh_up, ding, bell, pop, boom, impact, shutter, typing, damru, riser) and `place` to lay cues on one bed. No samples and no licence questions.
+- `bash studio/setup_env.sh`: installs everything above in a fresh container (torch CPU, demucs, uroman, Whisper, MediaPipe, librosa, Blender, EGL libs, the OpenCV face cascades). Put it in the environment's setup script so sessions start ready.
+- Studio skills built on these: `/living-painting` (a painting in code brought to life as a seamless loop, with a measured loop QC) and `/thumbnail-cover` (frame pick + Reel cover and YouTube thumbnail in three layouts).
+- `render_canvas.cjs` launches Chromium with `--allow-file-access-from-files`, so a page can draw the project's own images and frames without tainting the canvas.
+`check_env.py` reports each of them. Tests: `tests/test_skill_tools.py`, `tests/test_canvas_kit.py`, `tests/test_studio_skills.py` (synthetic fixtures).
 
 ## Delivery
 - Output to `projects/<slug>/final/`, with a `06-qc.md` that says what was checked and what could not be checked.

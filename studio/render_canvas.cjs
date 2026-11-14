@@ -41,7 +41,10 @@ function args(argv) {
 (async () => {
   const a = args(process.argv.slice(2));
   if (!fs.existsSync(a.page)) { console.error(`page not found: ${a.page}`); process.exit(2); }
-  const browser = await chromium.launch(launchOptions());
+  // file:// pages count as their own origin, so a local image would taint the canvas and block export; this flag lets
+  // a page draw the project's own images and frames (it reads only files the page itself names).
+  const opts = launchOptions();
+  const browser = await chromium.launch({ ...opts, args: [...(opts.args || []), '--allow-file-access-from-files'] });
   const page = await browser.newPage({ viewport: { width: a.w, height: a.h } });
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));

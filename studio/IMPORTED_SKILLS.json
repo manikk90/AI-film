@@ -120,7 +120,8 @@
   "input": "a song MP3 (or a 40–60 s cut), its lyrics, the cover art, 3–6 clips or photos for the mood, and the 2–4 chat lines you want in the intro",
   "kind": "song",
   "flags": [
-   "third-party-footage"
+   "third-party-footage",
+   "app-ui"
   ],
   "source": "studio/skill_sources/breakup-chat-lyrics/SKILL.md",
   "commit": "owner-spec-2026-11-08"
@@ -260,7 +261,8 @@
   "input": "a song MP3 (or a clip of it), its lyrics, the cover art, and 4–6 clips or photos with the mood you want for each part",
   "kind": "song",
   "flags": [
-   "third-party-footage"
+   "third-party-footage",
+   "app-ui"
   ],
   "source": "studio/skill_sources/glass-to-neon-lyrics/SKILL.md",
   "commit": "owner-spec-2026-11-08"
@@ -570,7 +572,8 @@
   "input": "a song MP3 (or a clip of it), its lyrics, 2–4 emotional video clips (glowing / dreamy couple clips work best) and the song title + artists",
   "kind": "song",
   "flags": [
-   "third-party-footage"
+   "third-party-footage",
+   "app-ui"
   ],
   "source": "studio/skill_sources/night-glow-lyrics/SKILL.md",
   "commit": "owner-spec-2026-11-08"
@@ -681,7 +684,8 @@
   "input": "a song MP3 (a 40–60 s cut works), its lyrics, the song title, and 5–8 clips with the time range you want from each (one must show someone looking at a phone)",
   "kind": "song",
   "flags": [
-   "third-party-footage"
+   "third-party-footage",
+   "app-ui"
   ],
   "source": "studio/skill_sources/phone-chat-lyrics/SKILL.md",
   "commit": "owner-spec-2026-11-08"
@@ -693,7 +697,8 @@
   "input": "a song MP3 (or a clip of it), its lyrics, 1–3 emotional video clips (with the start time for each), a cover image and the Spotify logo PNG",
   "kind": "song",
   "flags": [
-   "third-party-footage"
+   "third-party-footage",
+   "app-ui"
   ],
   "source": "studio/skill_sources/pink-spotify-clip-lyrics/SKILL.md",
   "commit": "owner-spec-2026-11-08"
@@ -914,7 +919,8 @@
   "input": "a song MP3 (or a clip of it), its lyrics, 1–2 photos (the artists, and a second photo to morph into), the Spotify logo PNG and a reference reel for the motion-graphic part",
   "kind": "song",
   "flags": [
-   "real-people"
+   "real-people",
+   "app-ui"
   ],
   "source": "studio/skill_sources/spotify-particle-lyrics/SKILL.md",
   "commit": "owner-spec-2026-11-08"

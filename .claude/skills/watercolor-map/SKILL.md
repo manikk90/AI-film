@@ -40,6 +40,8 @@ A painted watercolor world map: a pin drops on the start city, a plane flies the
 - **Engine:** Remotion (`npx remotion render`).
 - **WhatsApp copy:** `python3 studio/whatsapp_copy.py final.mp4 final_whatsapp.mp4` (720p, under 20 MB).
 - **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size, audio present and in sync.
+- **Studio tools for these steps:**
+  - sound effects: `python3 studio/sfx.py place cues.json sfx.wav` (code-made whoosh, ding, pop, boom, impact, shutter, typing, bell, damru, riser), cue times from the alignment or beats
 
 ---
 From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Animated videos
