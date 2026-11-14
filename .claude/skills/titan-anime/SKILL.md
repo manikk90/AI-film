@@ -44,6 +44,7 @@ An anime episode set in an Attack on Titan-style world: giant walls, green capes
 - **WhatsApp copy:** `python3 studio/whatsapp_copy.py final.mp4 final_whatsapp.mp4` (720p, under 20 MB).
 - **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size, audio present and in sync.
 - **Studio tools for these steps:**
+  - canvas page: start from `studio/canvas_kit.js` (seeded rng, easing, layer cache, camera, karaoke captions, safe zone, burst, grain) and link `studio/fonts/fonts.css`; every font the skills name is vendored there
   - word timing: `python3 studio/mms_align.py` (MMS_FA, `--windows` for squeezed lines) when check_env says it is ready, else `studio/word_timing.py` for known words; Whisper (large-v3) only for unknown words
   - `python3 studio/beats.py song.mp3 beats.json`: tempo, beats, downbeats, kicks, hits
   - `python3 studio/mouth_curve.py voice.wav mouth.json --js mouth.js --words words.json`: the mouth-open curve per frame (one run per speaker)
