@@ -32,7 +32,7 @@ scenes, template and checks here are the studio's own; their prompt text is not 
 2. One function per element: the subject, every other creature or object, and every depth layer of the background,
    each painted once into its own offscreen layer (`K.layer`). Seeded randomness only (`K.rng`, `K.noise`).
 3. Keep the subject in the middle half of the frame with room to move. No text on screen.
-4. Show the owner one still (Gate 3, `node studio/render_canvas.cjs painting.html projects/<slug>/still --stills 0`).
+4. Show the owner one still (Gate 3, `node studio/render_canvas.cjs projects/<slug>/painting.html projects/<slug>/still --stills 0`).
    Change the painting from their notes before anything moves.
 
 ## Round 2: bring it to life
@@ -47,7 +47,7 @@ scenes, template and checks here are the studio's own; their prompt text is not 
 5. Seamless loop: every motion is a whole number of cycles of the loop length (`K.loopWave`), so the last frame flows
    into the first. A one-way slide only loops if that layer is painted tileable; otherwise sway it.
 6. Smooth: every position, angle and brightness on an eased curve; time comes from t only, never from the clock.
-7. Render: `node studio/render_canvas.cjs painting.html projects/<slug>/loop.mp4 --size 1080x1920 --fps 30`.
+7. Render: `node studio/render_canvas.cjs projects/<slug>/painting.html projects/<slug>/loop.mp4 --size 1080x1920 --fps 30`.
 
 ## Round 3: polish, measured
 Run `python3 .claude/skills/living-painting/scripts/loop_check.py projects/<slug>/loop.mp4`, then fix what fails,

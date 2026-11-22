@@ -114,7 +114,9 @@ def shutter(rng, length=0.35):
     x = np.zeros(n)
     for start, g in [(0.0, 1.0), (0.09, 0.7)]:
         s = int(start * SR)
-        m = int(0.05 * SR)
+        m = min(int(0.05 * SR), n - s)  # a short --len cuts the pulse instead of overflowing the buffer
+        if m <= 0:
+            continue
         click = _onepole_lp(_noise(m, rng), 6000) * _env(m, 0.0005, 0.012, 5)
         x[s:s + m] += g * click
     return x, None

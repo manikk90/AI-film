@@ -31,13 +31,23 @@ STUDIO = REPO / "studio"
 
 
 def _frames(video: str, step: float, w: int = 320):
+    """Yield sampled frames one at a time (float32 RGB), so a long video never sits in memory whole."""
     info = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height",
                            "-of", "csv=p=0", video], capture_output=True, text=True, check=True).stdout
     vw, vh = map(int, info.strip().split(",")[:2])
     h = int(round(vh * w / vw / 2) * 2)
-    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-vf", f"fps={1 / step},scale={w}:{h}", "-f", "rawvideo",
-                          "-pix_fmt", "rgb24", "-"], capture_output=True, check=True).stdout
-    return np.frombuffer(raw, np.uint8).reshape(-1, h, w, 3).astype(np.float32)
+    proc = subprocess.Popen(["ffmpeg", "-v", "error", "-i", video, "-vf", f"fps={1 / step},scale={w}:{h}", "-f",
+                             "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
+    size = w * h * 3
+    try:
+        while True:
+            buf = proc.stdout.read(size)
+            if len(buf) < size:
+                break
+            yield np.frombuffer(buf, np.uint8).reshape(h, w, 3).astype(np.float32)
+    finally:
+        proc.stdout.close()
+        proc.wait()
 
 
 def score(rgb: np.ndarray) -> float:
@@ -50,12 +60,21 @@ def score(rgb: np.ndarray) -> float:
     return np.log1p(sharp) * 10 + contrast * 0.6 + sat * 0.3 - dark
 
 
-def pick(video: str, out: Path, n: int = 6, skip: float = 0.5, step: float = 0.25) -> list[dict]:
-    f = _frames(video, step)
-    diffs = np.r_[0, np.abs(np.diff(f.mean(axis=3), axis=0)).mean(axis=(1, 2))]
+def pick(video: str, out: Path, n: int = 6, skip: float = 0.5, step: float = 0.25, force: bool = False) -> list[dict]:
+    old = sorted(out.glob("cand_*.png")) + [q for q in (out / "candidates.json", out / "sheet.png") if q.exists()]
+    if old and not force:
+        sys.exit(f"{out} already has candidates ({len(old)} files); ask the owner, then pass --force")
+    # one pass, keeping only a score and a mean-grey thumbnail per sample (bounded memory for long videos)
+    scores, greys = [], []
+    for fr in _frames(video, step):
+        scores.append(score(fr))
+        greys.append(fr.mean(axis=2)[::4, ::4].astype(np.float32))
+    if not scores:
+        sys.exit(f"no frames could be read from {video}")
+    diffs = np.r_[0, [float(np.abs(b - a).mean()) for a, b in zip(greys, greys[1:])]]
     cut = diffs > max(25.0, 6 * float(np.median(diffs) + 1e-6))
     near_cut = cut | np.r_[cut[1:], False] | np.r_[False, cut[:-1]]
-    scored = [(score(fr), i * step) for i, fr in enumerate(f) if i * step >= skip and not near_cut[i]]
+    scored = [(s, i * step) for i, s in enumerate(scores) if i * step >= skip and not near_cut[i]]
     scored.sort(reverse=True)
     chosen: list[tuple[float, float]] = []
     for s, t in scored:
@@ -64,6 +83,8 @@ def pick(video: str, out: Path, n: int = 6, skip: float = 0.5, step: float = 0.2
         if len(chosen) == n:
             break
     out.mkdir(parents=True, exist_ok=True)
+    for q in old:  # --force given: clear the previous set so no stale candidate survives
+        q.unlink()
     res = []
     for k, (s, t) in enumerate(sorted(chosen, key=lambda x: x[1]), 1):
         p = out / f"cand_{k:02d}.png"
@@ -159,7 +180,7 @@ def make(frame: str, title: str, out: Path, sub: str = "", accent: str = "#ffd40
     out.mkdir(parents=True, exist_ok=True)
     targets = [(f"cover_reel_{L}.png", 1080, 1920, L) for L in "ABC"] + [(f"thumb_yt_{L}.png", 1280, 720, L) for L in "ABC"]
     if not force:
-        clash = [n for n, *_ in targets if (out / n).exists()]
+        clash = [n for n, *_ in targets if (out / n).exists() or (out / n).with_suffix(".jpg").exists()]
         if clash:
             sys.exit(f"{', '.join(clash)} exist in {out}; ask the owner, then pass --force")
     written = []
@@ -175,9 +196,29 @@ def make(frame: str, title: str, out: Path, sub: str = "", accent: str = "#ffd40
                                 "--stills", "0"], capture_output=True, text=True, timeout=120)
             if r.returncode:
                 sys.exit(r.stderr or r.stdout)
-            os.replace(f"{prefix}_1.png", out / name)
-            written.append(out / name)
+            dest = out / name
+            os.replace(f"{prefix}_1.png", dest)
+            if name.startswith("thumb_yt") and dest.stat().st_size > YT_MAX:
+                dest = _fit_youtube(dest)  # YouTube refuses thumbnails over 2 MB
+            written.append(dest)
     return written
+
+
+YT_MAX = 2 * 1024 * 1024
+
+
+def _fit_youtube(png: Path) -> Path:
+    """Re-encode an over-size thumbnail as JPEG (YouTube accepts JPG/PNG up to 2 MB), stepping quality down."""
+    from PIL import Image
+    im = Image.open(png).convert("RGB")
+    jpg = png.with_suffix(".jpg")
+    for q in (92, 88, 84, 80, 75, 70):
+        im.save(jpg, "JPEG", quality=q, optimize=True, progressive=True)
+        if jpg.stat().st_size <= YT_MAX:
+            png.unlink()
+            return jpg
+    jpg.unlink()
+    sys.exit(f"{png.name} stays over 2 MB even as a JPEG at quality 70; pick a calmer frame")
 
 
 def main(argv=None) -> int:
@@ -188,6 +229,7 @@ def main(argv=None) -> int:
     p.add_argument("out")
     p.add_argument("--n", type=int, default=6)
     p.add_argument("--skip", type=float, default=0.5)
+    p.add_argument("--force", action="store_true")
     m = sub.add_parser("make")
     m.add_argument("frame")
     m.add_argument("title")
@@ -198,7 +240,7 @@ def main(argv=None) -> int:
     m.add_argument("--force", action="store_true")
     a = ap.parse_args(argv)
     if a.cmd == "pick":
-        res = pick(a.video, Path(a.out), a.n, a.skip)
+        res = pick(a.video, Path(a.out), a.n, a.skip, force=a.force)
         print(json.dumps(res, ensure_ascii=False))
     else:
         for f in make(a.frame, a.title, Path(a.out), a.sub, a.accent, a.font, a.force):

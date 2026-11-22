@@ -19,6 +19,11 @@ if command -v apt-get >/dev/null; then
   if ((${#missing[@]})); then apt-get update -qq && apt-get install -y -qq "${missing[@]}" >/dev/null; fi
 fi
 
+say "Playwright + Chromium (studio/render_canvas.cjs renders every canvas skill)"
+if node -e "require('playwright')" 2>/dev/null; then echo "playwright present"
+else npm install -g playwright && npx playwright install chromium; fi
+node -e "require('playwright')" || { echo "playwright is still missing: canvas renders will fail"; exit 1; }
+
 say "torch + torchaudio (CPU build)"
 have_py torchaudio || python3 -m pip install -q torch torchaudio --index-url https://download.pytorch.org/whl/cpu
 
@@ -31,7 +36,7 @@ done
 say "Blender (LTS) for 3d-explainer"
 if ! command -v blender >/dev/null; then
   ver=4.5
-  file=$(curl -s "https://download.blender.org/release/Blender${ver}/" | grep -o "blender-${ver}\.[0-9]*-linux-x64\.tar\.xz" | sort -V | tail -1)
+  file=$( { curl -s "https://download.blender.org/release/Blender${ver}/" || true; } | { grep -o "blender-${ver}\.[0-9]*-linux-x64\.tar\.xz" || true; } | sort -V | tail -1)
   if [ -n "$file" ]; then
     curl -sSL -o /tmp/blender.tar.xz "https://download.blender.org/release/Blender${ver}/${file}"
     tar -xf /tmp/blender.tar.xz -C /opt && rm -f /tmp/blender.tar.xz
@@ -55,4 +60,4 @@ print(base)
 PY
 
 say "done"
-python3 "$(dirname "$0")/check_env.py" || true
+python3 "$(dirname "$0")/check_env.py"   # the table says what is ready; read it before the first render

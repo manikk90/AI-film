@@ -25,8 +25,8 @@ def _cascade_dir():
     """Where the Haar cascades are: OpenCV's own data folder (4.x), else the studio cache (OpenCV 5 ships none)."""
     import cv2
     own = Path(getattr(getattr(cv2, "data", None), "haarcascades", "") or "/nonexistent")
-    for base in (own, CACHE_DIR):
-        if (base / "haarcascade_frontalface_default.xml").exists():
+    for base in (own, CACHE_DIR):  # detect() needs both: the profile cascade is its fallback
+        if all((base / n).exists() for n in ("haarcascade_frontalface_default.xml", "haarcascade_profileface.xml")):
             return base
     return None
 

@@ -49,7 +49,9 @@ function args(argv) {
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
   await page.goto('file://' + a.page);
-  await page.waitForFunction(() => (window.FILM || window.render) && document.fonts.status === 'loaded' && (window.READY === undefined || window.READY === true), null, { timeout: 60000 });
+  await page.waitForFunction(() => window.READY_ERROR || ((window.FILM || window.render) && document.fonts.status === 'loaded' && (window.READY === undefined || window.READY === true)), null, { timeout: 60000 });
+  const readyError = await page.evaluate(() => window.READY_ERROR || null);
+  if (readyError) { await browser.close(); console.error(`page failed to get ready: ${readyError}`); process.exit(1); }
   const kind = await page.evaluate(() => {
     if (window.FILM) { window.FILM.init && window.FILM.init(); window.__ctx = document.querySelector('canvas').getContext('2d'); return 'film'; }
     return 'render';

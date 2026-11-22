@@ -136,3 +136,103 @@ class ThumbnailCoverTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReviewFixesTest(unittest.TestCase):
+    """Regression tests for the PR #22 review findings. All inputs are SYNTHETIC FIXTURES."""
+
+    def test_new_painting_guards_the_brief_too(self):
+        np_ = load(LP / "scripts" / "new_painting.py", "new_painting")
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "demo"
+            d.mkdir()
+            (d / "brief.json").write_text('{"owner": "edited"}')
+            with self.assertRaises(SystemExit):
+                np_.main(["demo", "warli", "--root", tmp])
+            self.assertEqual((d / "brief.json").read_text(), '{"owner": "edited"}')
+
+    @unittest.skipUnless(FF and importlib.util.find_spec("PIL"), "needs FFmpeg and Pillow")
+    def test_pick_refuses_to_overwrite_and_force_clears_stale_candidates(self):
+        cv = load(TC / "scripts" / "covers.py", "covers")
+        with tempfile.TemporaryDirectory() as tmp:
+            v, out = Path(tmp) / "v.mp4", Path(tmp) / "out"
+            ff("-f", "lavfi", "-i", "testsrc2=s=320x180:r=30:d=6", "-pix_fmt", "yuv420p", str(v))
+            self.assertEqual(len(cv.pick(str(v), out, n=4)), 4)
+            with self.assertRaises(SystemExit):
+                cv.pick(str(v), out, n=2)
+            self.assertEqual(len(list(out.glob("cand_*.png"))), 4)  # nothing touched
+            self.assertEqual(len(cv.pick(str(v), out, n=2, force=True)), 2)
+            self.assertEqual(sorted(p.name for p in out.glob("cand_*.png")), ["cand_01.png", "cand_02.png"])
+
+    @unittest.skipUnless(importlib.util.find_spec("PIL") and importlib.util.find_spec("numpy"), "needs Pillow and numpy")
+    def test_oversize_youtube_thumbnail_becomes_a_jpeg_under_2_mb(self):
+        import numpy as np
+        from PIL import Image
+        cv = load(TC / "scripts" / "covers.py", "covers")
+        with tempfile.TemporaryDirectory() as tmp:
+            png = Path(tmp) / "thumb_yt_A.png"
+            Image.fromarray(np.random.default_rng(1).integers(0, 255, (720, 1280, 3), dtype=np.uint8)).save(png)
+            self.assertGreater(png.stat().st_size, cv.YT_MAX)  # pure noise PNG: ~2.7 MB
+            out = cv._fit_youtube(png)
+            self.assertEqual(out.suffix, ".jpg")
+            self.assertLessEqual(out.stat().st_size, cv.YT_MAX)
+            self.assertFalse(png.exists())
+
+    @unittest.skipUnless(has_playwright(), "needs Node and Playwright")
+    def test_renderer_fails_fast_with_the_page_error(self):
+        import time
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "p.html"
+            page.write_text(f'<!doctype html><canvas width=64 height=64></canvas><script src="{(REPO / "studio" / "canvas_kit.js").as_uri()}"></script>'
+                            '<script>STUDIO.FONTS=[];STUDIO.whenReady(async()=>{await STUDIO.loadImage("missing.png")});'
+                            'window.FILM={DUR:1,init(){},render(){}};</script>', encoding="utf-8")
+            t0 = time.time()
+            r = subprocess.run(["node", str(REPO / "studio" / "render_canvas.cjs"), str(page), str(Path(tmp) / "s"),
+                                "--size", "64x64", "--stills", "0"], capture_output=True, text=True, timeout=90)
+            self.assertNotEqual(r.returncode, 0)
+            self.assertIn("missing.png", r.stderr)
+            self.assertLess(time.time() - t0, 40)  # not the 60 s wait timeout
+
+
+@unittest.skipUnless(FF, "needs FFmpeg")
+class FrameCheckSilentTest(unittest.TestCase):
+    def test_silent_rejects_a_video_with_audio_and_cannot_take_audio(self):
+        sys.path.insert(0, str(REPO / "studio"))
+        import frame_check
+        with tempfile.TemporaryDirectory() as tmp:
+            quiet, loud = Path(tmp) / "q.mp4", Path(tmp) / "l.mp4"
+            ff("-f", "lavfi", "-i", "testsrc2=s=160x90:r=30:d=1", "-pix_fmt", "yuv420p", str(quiet))
+            ff("-f", "lavfi", "-i", "testsrc2=s=160x90:r=30:d=1", "-f", "lavfi", "-i", "sine=d=1", "-shortest",
+               "-pix_fmt", "yuv420p", str(loud))
+            self.assertEqual(frame_check.main([str(quiet), "--silent"]), 0)
+            self.assertEqual(frame_check.main([str(loud), "--silent"]), 1)
+            with self.assertRaises(SystemExit):
+                frame_check.main([str(quiet), "--silent", "--audio", str(loud)])
+
+
+class SmallFixesTest(unittest.TestCase):
+    @unittest.skipUnless(importlib.util.find_spec("numpy"), "needs numpy")
+    def test_short_shutter_fits_its_length(self):
+        sys.path.insert(0, str(REPO / "studio"))
+        import sfx
+        for length in (0.03, 0.1, 0.12):
+            x = sfx.make("shutter", length=length)
+            self.assertEqual(len(x), int(length * sfx.SR))
+
+    @unittest.skipUnless(importlib.util.find_spec("cv2"), "needs OpenCV")
+    def test_reframe_needs_both_face_cascades(self):
+        from aifilm.editor import reframe as R
+        import cv2
+        own = Path(getattr(getattr(cv2, "data", None), "haarcascades", "") or "/nonexistent")
+        if (own / "haarcascade_frontalface_default.xml").exists():
+            self.skipTest("this OpenCV ships its own cascades")
+        saved = R.CACHE_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            try:
+                R.CACHE_DIR = Path(tmp)
+                (Path(tmp) / "haarcascade_frontalface_default.xml").write_text("synthetic placeholder")
+                self.assertFalse(R.available())  # profile cascade missing
+                (Path(tmp) / "haarcascade_profileface.xml").write_text("synthetic placeholder")
+                self.assertTrue(R.available())
+            finally:
+                R.CACHE_DIR = saved

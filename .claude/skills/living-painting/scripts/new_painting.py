@@ -48,15 +48,16 @@ def main(argv=None) -> int:
     else:
         sys.exit(f"unknown preset {a.preset!r}; --list shows them")
     out = Path(a.root) / a.slug
-    page = out / "painting.html"
-    if page.exists() and not a.force:
-        sys.exit(f"{page} exists; ask the owner, then pass --force")
+    page, brief_path = out / "painting.html", out / "brief.json"
+    clash = [p for p in (page, brief_path) if p.exists()]
+    if clash and not a.force:
+        sys.exit(f"{', '.join(map(str, clash))} exists; ask the owner, then pass --force")
     out.mkdir(parents=True, exist_ok=True)
     studio = os.path.relpath(REPO / "studio", out).replace(os.sep, "/")
     html = (HERE / "template.html").read_text(encoding="utf-8").replace("__STUDIO__", studio)
     head = "<!--\n  BRIEF (" + brief["name"] + ")\n" + "".join(f"  {k}: {brief[k]}\n" for k in ("scene", "medium", "action", "motion")) + "-->\n"
     page.write_text(html.replace("<!doctype html>\n", "<!doctype html>\n" + head, 1), encoding="utf-8")
-    (out / "brief.json").write_text(json.dumps(brief, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    brief_path.write_text(json.dumps(brief, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(page)
     return 0
 

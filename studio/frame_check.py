@@ -42,6 +42,8 @@ def main(argv=None) -> int:
     ap.add_argument("--silent", action="store_true", help="no audio stream is expected")
     ap.add_argument("--allow-black-ends", action="store_true", help="ignore black within 1 s of the start or end (fades)")
     a = ap.parse_args(argv)
+    if a.silent and a.audio:
+        ap.error("--silent means no audio is expected; it cannot be combined with --audio")
     info = probe(a.video)
     v = next(s for s in info["streams"] if s["codec_type"] == "video")
     has_audio = any(s["codec_type"] == "audio" for s in info["streams"])
@@ -55,6 +57,8 @@ def main(argv=None) -> int:
         problems.append(f"fps {fps:.3f}, expected {a.fps}")
     if not has_audio and not a.silent:
         problems.append("no audio stream")
+    if has_audio and a.silent:
+        problems.append("an audio stream is present but --silent says the video has none")
     if a.audio:
         ad = float(probe(a.audio)["format"]["duration"])
         if abs(ad - dur) > 0.1:
