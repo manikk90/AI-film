@@ -59,7 +59,7 @@ Follow `third_party/rea/DISCLAIMER.md`:
 - Files over 16 KB: heading index first (`caveman.py index`, or Grep `^#`), then read only the sections you need. Never re-read what is in context.
 - Batch independent reads and searches in one turn: every request re-sends your whole context. Web: 8 searches per job (trend scan 15).
 - Revise in place: Edit only the changed lines. Never re-Write a whole file to change part of it.
-- Cap tool output (`| tail -n 20`, ffmpeg `-hide_banner -loglevel error -nostats`, tests without `-v`). Images: one contact sheet, 1024 px long side at most.
-- Stay inside your file's budget in `studio/CAVEMAN.md` (`python3 studio/caveman.py check projects/<slug>`).
+- Cap tool output (`| tail -n 20`, ffmpeg `-hide_banner -loglevel error -nostats`, tests without `-v`). Images for your own checks: one contact sheet, 1024 px long side at most (previews for the owner are individual numbered frames, never a sheet).
+- Stay inside your file's budget in `studio/CAVEMAN.md` (`python3 studio/caveman.py check projects/<slug>`, with `--scale 2` for a 2–3 min film and `--scale 4` for long form; without Bash, the orchestrator runs it).
 - Handback: 10 lines at most (paths, decisions, open questions). Details live in the files.
 <!-- /caveman -->

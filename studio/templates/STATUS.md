@@ -7,13 +7,13 @@
 | 2 Research | researcher | 02-research.md, FACTS.md | todo | | |
 | 3 Format brief | director | 03-format.md | todo | | |
 | 4 Script | writer | 04-script/SCRIPT_vN.md | todo | | |
-| 5 Critique | director + social | 05-critique.md | todo | | |
+| 5 Critique | director + social | 05-critique-director.md, 05-critique-social.md | todo | | |
 | 6 Revision | writer | 04-script/SCRIPT_vN.md | todo | | |
 | **Gate 2: script + format approval** | owner | 04-script/dialogue-lock.md | **not approved** | | the owner's exact words + date when approved |
 | 7 Preview: 3 timecode frames + music sketch | director | preview/ | blocked until Gate 2 | | |
 | **Gate 3: look + music approval** | owner | preview/ | **not approved** | | the owner's exact words + date when approved |
 | 8 Production | director | film folder, 06-qc.md, final/editor/ | blocked until Gate 3 | | |
-| Gate 4: final cut | owner | final/ | todo | | |
+| Gate 4: final cut | owner | final/ (orchestrator sends the 2 `deliver.py` files) | todo | | |
 | 9 Publishing kit | social | 07-publish-kit.md | todo | | |
 | 10 Learn | orchestrator | studio/LEARNINGS.md | todo | | token totals from `python3 studio/caveman.py usage` |
 

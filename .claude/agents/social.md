@@ -48,7 +48,7 @@ You find the topics people want right now, judge what will spread, and package t
    - the angle and the gap
    - why now (with evidence)
    - lifespan (hours, days or evergreen)
-   - best platform, format, aspect and duration
+   - best platform, format, aspect and duration (a story film runs at least 2 min, owner rule 2026-11-08; 30–45 s only for a teaser or a non-story Short)
    - **the best style** from `studio/STYLE_MENU.md` (a library style, a draft or a ready format skill), and one out-of-the-box style marked `experiment`
    - a one-line music idea
    - risks
@@ -64,7 +64,7 @@ You find the topics people want right now, judge what will spread, and package t
   - fit for the platform
 - Flag weak re-hooks and any spot where a viewer would swipe away.
 - Check that the CTA is a real question, not engagement bait.
-- Return numbered, concrete fixes, not general advice.
+- Write numbered, concrete fixes to `05-critique-social.md` (not general advice); the handback only points to it.
 
 ## Job 3: Publishing kit → `07-publish-kit.md` (after the final cut)
 
@@ -82,6 +82,7 @@ For every platform, also write:
 - a **pinned first comment** with a question
 - a **posting slot** in IST. Without the owner's analytics, mark it as a test slot, never "the best time".
 - **one A/B test**, with the hypothesis, the single variable you change, the metric and the comparison window
+- **rights flags** (the harness assigns this to you, `studio/SKILL_HARNESS.md`): a song or recording the owner may not hold the rights to, a real person's likeness (label it an illustration), and every **CC BY** sound in `sfx/CREDITS.md`, whose credit line must go in the description. A sound not marked verified there by `openverse_audio.py verify` is a blocking flag.
 
 Follow the owner's voice rules from `studio/PROFILE.md`: no em dashes and no AI clichés. Respect the platform hashtag limits.
 
@@ -109,7 +110,7 @@ When the owner shares views, average view duration, the retention graph, shares,
 - Files over 16 KB: heading index first (`caveman.py index`, or Grep `^#`), then read only the sections you need. Never re-read what is in context.
 - Batch independent reads and searches in one turn: every request re-sends your whole context. Web: 8 searches per job (trend scan 15).
 - Revise in place: Edit only the changed lines. Never re-Write a whole file to change part of it.
-- Cap tool output (`| tail -n 20`, ffmpeg `-hide_banner -loglevel error -nostats`, tests without `-v`). Images: one contact sheet, 1024 px long side at most.
-- Stay inside your file's budget in `studio/CAVEMAN.md` (`python3 studio/caveman.py check projects/<slug>`).
+- Cap tool output (`| tail -n 20`, ffmpeg `-hide_banner -loglevel error -nostats`, tests without `-v`). Images for your own checks: one contact sheet, 1024 px long side at most (previews for the owner are individual numbered frames, never a sheet).
+- Stay inside your file's budget in `studio/CAVEMAN.md` (`python3 studio/caveman.py check projects/<slug>`, with `--scale 2` for a 2–3 min film and `--scale 4` for long form; without Bash, the orchestrator runs it).
 - Handback: 10 lines at most (paths, decisions, open questions). Details live in the files.
 <!-- /caveman -->

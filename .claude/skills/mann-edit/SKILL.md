@@ -40,4 +40,4 @@ You (the main session) coordinate; the **mann** agent (`.claude/agents/mann.md`)
 - Then stop. Only the owner's explicit words open the next step; the tool enforces it.
 
 ## Deliver
-Tell the owner, in Hinglish: where the files are (`renders/`), what QC passed, what failed and what could not be checked, and the learnings recorded. Send the 720p preview with SendUserFile. Never upload or publish.
+Tell the owner, in Hinglish: where the files are (`renders/`), what QC passed, what failed and what could not be checked, and the learnings recorded. Send exactly 2 files with SendUserFile, the ones `python3 studio/deliver.py <edit>/renders --video <the final render>` prints: the final video, and one zip with everything else (owner rule, 2026-11-02). Never upload or publish.
