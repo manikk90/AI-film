@@ -198,6 +198,9 @@ def mg_render(edit_root, name, alpha=True):
     return str(out)
 
 
+NOT_MEDIA = (".txt", ".md", ".json", ".pdf", ".docx", ".csv")  # notes and documents: no ffprobe
+
+
 def ingest(edit_root, files, link=False):
     """Copy (or symlink) the owner's raw files into raw/ and record probe + sha256 in media.json."""
     from ..core import file_hash, project_lock, read_json
@@ -213,13 +216,17 @@ def ingest(edit_root, files, link=False):
             f = Path(f)
             require(f.is_file(), "Missing file " + str(f))
             target = root / "raw" / f.name
-            if not target.exists():
+            if target.exists() or target.is_symlink():
+                # Same name, different bytes: refuse rather than silently keep the old take.
+                require(target.exists() and file_hash(target) == file_hash(f),
+                        "raw/{} already holds a different file; rename the source and ingest again".format(f.name))
+            else:
                 if link:
                     target.symlink_to(f.resolve())
                 else:
                     shutil.copy2(f, target)
             rel = "raw/" + f.name
-            info = media.probe(target) if target.suffix.lower() not in (".srt", ".cube", ".txt", ".md") else {}
+            info = media.probe(target) if target.suffix.lower() not in (".srt", ".vtt", ".cube") + NOT_MEDIA else {}
             log["files"][rel] = {"sha256": file_hash(target), "probe": info, "ingested": now(), "original": str(f)}
             added.append({"file": rel, "duration": tc(info.get("duration", 0)) if info else "-",
                           "video": "{}x{}".format(info.get("width"), info.get("height")) if info.get("has_video") else "-",

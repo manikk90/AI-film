@@ -4,7 +4,7 @@
 import shutil
 from pathlib import Path
 
-from ..core import ProductionError, inside, now, project_lock, read_json, require, write_json
+from ..core import ProductionError, file_hash, inside, now, project_lock, read_json, require, write_json
 from . import edl as E
 from . import media
 
@@ -60,8 +60,7 @@ def render_clip(root, edl, clip, probes, target):
     src = inside(root, edl["sources"][clip["source"]])
     span = clip["out"] - clip["in"]
     dur = E.clip_duration(clip)
-    textfiles = []
-    vchain = E.clip_video_chain(root, edl, clip, textfiles)
+    vchain = E.clip_video_chain(root, edl, clip)
     achain = clip_audio_chain(edl, clip, probes)
     graph = "[0:v]{}[v];".format(vchain) + ("[0:a]{}[a]".format(achain) if achain else
                                            "anullsrc=r=48000:cl=stereo,atrim=0:{:.4f},aformat=sample_fmts=fltp[a]".format(dur))
@@ -83,11 +82,13 @@ def cached_clips(root, edl, probes, build=False, workers=None):
     missing = [(c, path) for cid, (c, path) in want.items() if cid not in have]
     stats = {"cached": len(have), "rendered": 0}
     if build and missing:
+        # The same shot used twice has the same cache file: render each target once, or two threads race on one tmp file.
+        unique = list({path: (c, path) for c, path in missing}.values())
         with ThreadPoolExecutor(max_workers=workers or min(4, os.cpu_count() or 2)) as pool:
-            list(pool.map(lambda cp: render_clip(root, edl, cp[0], probes, cp[1]), missing))
+            list(pool.map(lambda cp: render_clip(root, edl, cp[0], probes, cp[1]), unique))
         for c, path in missing:
             have[c["id"]] = path
-        stats["rendered"] = len(missing)
+        stats["rendered"] = len(unique)
     return have, stats
 
 
@@ -119,7 +120,7 @@ def build_graph(root, edl, probes, textfiles, sub_shift=0.0, cache=None):
         src = inside(root, edl["sources"][clip["source"]])
         span = clip["out"] - clip["in"]
         inputs += ["-ss", "{:.3f}".format(clip["in"]), "-t", "{:.3f}".format(span), "-i", str(src)]
-        graph.append("[{}:v]{}[v{}]".format(i, E.clip_video_chain(root, edl, clip, textfiles), i))
+        graph.append("[{}:v]{}[v{}]".format(i, E.clip_video_chain(root, edl, clip), i))
         achain = clip_audio_chain(edl, clip, probes)
         if achain:
             graph.append("[{}:a]{}[a{}]".format(i, achain, i))
@@ -149,8 +150,13 @@ def build_graph(root, edl, probes, textfiles, sub_shift=0.0, cache=None):
             v = "vi{}_{}".format(i, k)
             n_inputs += 1
     for k, ov in enumerate(edl.get("overlays", [])):
-        inputs += ["-i", str(inside(root, ov["file"]))]
         at = float(ov.get("at", 0))
+        if Path(ov["file"]).suffix.lower() in IMAGE_EXT:
+            # a still is one frame: loop it for its window (default: to the end), or it shows for a single frame
+            span = float(ov.get("duration", max(total - at, 0)))
+            inputs += ["-loop", "1", "-t", "{:.3f}".format(span), "-i", str(inside(root, ov["file"]))]
+        else:
+            inputs += ["-i", str(inside(root, ov["file"]))]
         graph.append("[{}:v]scale={}:{},setpts=PTS-STARTPTS+{:.3f}/TB[ov{}]".format(n_inputs, fmt["width"], fmt["height"], at, k))
         graph.append("[{}][ov{}]overlay=eof_action=pass:format=auto[vo{}]".format(v, k, k))
         v = "vo{}".format(k)
@@ -159,8 +165,8 @@ def build_graph(root, edl, probes, textfiles, sub_shift=0.0, cache=None):
     if script:
         textfiles.append(str(script))
         from .fonts import font_dir
-        fdir = ":fontsdir='{}'".format(E.esc(font_dir())) if font_dir().exists() else ""
-        graph.append("[{}]ass=filename='{}'{}:shaping=complex[vs]".format(v, E.esc(script), fdir))
+        fdir = ":fontsdir={}".format(E.esc(font_dir())) if font_dir().exists() else ""
+        graph.append("[{}]ass=filename={}{}:shaping=complex[vs]".format(v, E.esc(script), fdir))
         v = "vs"
     graph.append("[{}]format=yuv420p[vout]".format(v))
     # Audio: dialogue/source bed, music (looped, ducked), SFX.
@@ -198,6 +204,8 @@ def build_graph(root, edl, probes, textfiles, sub_shift=0.0, cache=None):
     return inputs, ";".join(graph), "vout", "aout", total
 
 
+IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp"}
+
 QUALITY = {"draft": ("veryfast", "20"), "standard": ("faster", "18"), "best": ("slow", "16")}
 
 
@@ -212,7 +220,8 @@ def render(root, preview=True, quality="standard"):
         probes = E.validate(root, edl)
         out = root / "renders"
         out.mkdir(parents=True, exist_ok=True)
-        stage, master = out / ".stage.mkv", out / "master.mp4"
+        stage, master, final = out / ".stage.mkv", out / ".master.tmp.mp4", out / "master.mp4"
+        (out / "render.json").unlink(missing_ok=True)  # the old record no longer describes what is about to be on disk
         cache, stats = cached_clips(root, edl, probes, build=True)
         textfiles = []
         try:
@@ -248,6 +257,8 @@ def render(root, preview=True, quality="standard"):
             norm = "{},volume={:.2f}dB".format(norm, lufs - result["lufs"])
             result = media.loudness(master)
         stage.unlink(missing_ok=True)
+        master.replace(final)  # atomic: a failed render never leaves a half-written master.mp4
+        master = final
         if preview:
             media.run(["ffmpeg", "-hide_banner", "-y", "-i", str(master), "-vf", "scale='if(gt(iw,ih),-2,720)':'if(gt(iw,ih),720,-2)'",
                        "-c:v", "libx264", "-crf", "26", "-preset", "veryfast", "-c:a", "aac", "-b:a", "128k", str(out / "preview_720p.mp4")])
@@ -255,7 +266,8 @@ def render(root, preview=True, quality="standard"):
         from . import footage
         credits_file = footage.credits(root, edl)
         write_json(out / "render.json", {"edl_fingerprint": E.edit_fingerprint(root, edl), "rendered": now(),
-                                         "expected_seconds": total, "file": "renders/master.mp4", "clips": stats})
+                                         "expected_seconds": total, "file": "renders/master.mp4", "clips": stats,
+                                         "master_sha256": file_hash(master)})
         return {"master": str(master), "expected_seconds": total, "clips_reused": stats["cached"], "clips_rendered": stats["rendered"],
                 "credits": credits_file}
 
@@ -265,12 +277,18 @@ def preview_part(root, ids, context=1):
     for the owner. It is a preview, not the film: the full render still needs the approvals."""
     root = Path(root)
     media.need("ffmpeg")
+    with project_lock(root):
+        return _preview_part(root, ids, context)
+
+
+def _preview_part(root, ids, context):
     edl = E.load(root)
     part, offset, length = E.sub_edl(edl, ids, context)
     probes = E.validate(root, part)
     out = root / "renders" / "parts"
     out.mkdir(parents=True, exist_ok=True)
     target = out / "part-{}.mp4".format("-".join(ids))
+    tmp = out / ".part.tmp.mp4"
     textfiles = []
     try:
         cache, _ = cached_clips(root, part, probes)
@@ -279,7 +297,8 @@ def preview_part(root, ids, context=1):
         graph += ";[{}]{}[pv];[{}]loudnorm=I=-14:TP=-1.5[pa]".format(v, scale, a)
         media.run(["ffmpeg", "-hide_banner", "-y"] + inputs + ["-filter_complex", graph, "-map", "[pv]", "-map", "[pa]",
                    "-c:v", "libx264", "-preset", "veryfast", "-crf", "24", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k",
-                   "-t", "{:.3f}".format(total), str(target)])
+                   "-t", "{:.3f}".format(total), str(tmp)])
+        tmp.replace(target)
     finally:
         for f in textfiles:
             Path(f).unlink(missing_ok=True)
@@ -302,9 +321,21 @@ def qc(root):
     """Measure the master and compare it with the EDL, the learned rules and the style target.
     Writes renders/qc.json and renders/QC.md. Returns the record; `passed` is False on any failure."""
     root = Path(root)
+    with project_lock(root):
+        return _qc(root)
+
+
+def _qc(root):
     edl = E.load(root)
     master = root / "renders" / "master.mp4"
     require(master.exists(), "No renders/master.mp4; render first")
+    made = root / "renders" / "render.json"
+    current = E.edit_fingerprint(root, edl)
+    require(made.exists() and read_json(made).get("edl_fingerprint") == current,
+            "renders/master.mp4 was not rendered from the current EDL (edl.json changed after the render); render again, then qc")
+    master_sha = file_hash(master)
+    require(read_json(made).get("master_sha256") in (None, master_sha),
+            "renders/master.mp4 changed after it was rendered; render again, then qc")
     rules = load_rules()["rules"]
     info = media.probe(master)
     _, total = E.timeline(edl)
@@ -354,7 +385,7 @@ def qc(root):
         if f["result"] != "pass":
             checks.append({"check": "craft: " + f["check"], "result": f["result"], "detail": "{} (rule `{}`)".format(f["detail"], f["rule"])})
     failed = [c for c in checks if c["result"] == "fail"]
-    record = {"edl_fingerprint": E.edit_fingerprint(root, edl), "checked": now(), "passed": not failed, "checks": checks,
+    record = {"edl_fingerprint": current, "master_sha256": master_sha, "checked": now(), "passed": not failed, "checks": checks,
               "measured": {"probe": info, "loudness": loud, "pace": stats},
               "not_checked": ["picture quality and continuity by eye", "lip sync", "audio quality by ear",
                               "spoken words vs the approved script (run `transcribe` on the master when Whisper is available)"]}
@@ -364,7 +395,9 @@ def qc(root):
     lines += ["| {} | {} | {} |".format(c["check"], c["result"].upper(), c["detail"]) for c in checks]
     lines += ["", "Not checked by this tool (Mann reviews the contact frames and says so plainly):", ""]
     lines += ["- " + x for x in record["not_checked"]]
-    (root / "renders" / "QC.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    tmp = root / "renders" / ".QC.md.tmp"
+    tmp.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    tmp.replace(root / "renders" / "QC.md")
     return record
 
 

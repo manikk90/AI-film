@@ -31,6 +31,24 @@ def ratio(value):
         return float(value or 0)
 
 
+def rotation(stream):
+    """Degrees the player rotates this video stream (display matrix side data or the old rotate tag)."""
+    deg = (stream.get("tags") or {}).get("rotate")
+    for side in stream.get("side_data_list") or []:
+        if "rotation" in side:
+            deg = side["rotation"]
+    try:
+        return int(round(float(deg or 0))) % 360
+    except (TypeError, ValueError):
+        return 0
+
+
+def display_size(stream):
+    """Width and height as shown on screen: phone footage stored landscape with a 90/270 turn is portrait."""
+    w, h = int(stream.get("width", 0)), int(stream.get("height", 0))
+    return (h, w) if rotation(stream) in (90, 270) else (w, h)
+
+
 def probe(path):
     need("ffprobe")
     path = Path(path)
@@ -42,7 +60,8 @@ def probe(path):
     out = {"path": str(path), "duration": float(fmt.get("duration") or 0), "has_video": bool(video), "has_audio": bool(audio)}
     if video:
         v = video[0]
-        out.update(width=int(v.get("width", 0)), height=int(v.get("height", 0)),
+        w, h = display_size(v)
+        out.update(width=w, height=h, rotation=rotation(v),
                    fps=round(ratio(v.get("avg_frame_rate") or v.get("r_frame_rate") or 0), 3), vcodec=v.get("codec_name"))
         if not out["duration"]:
             out["duration"] = float(v.get("duration") or 0)

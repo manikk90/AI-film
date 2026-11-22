@@ -122,9 +122,9 @@ def rendered_bbox(edl, item):
     with tempfile.TemporaryDirectory() as tmp:
         script = E.ass_script(tmp, probe_edl)
         from .fonts import font_dir
-        fdir = ":fontsdir='{}'".format(E.esc(font_dir())) if font_dir().exists() else ""
+        fdir = ":fontsdir={}".format(E.esc(font_dir())) if font_dir().exists() else ""
         raw = subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=c=black:s={}x{}:d=1".format(W, H), "-frames:v", "1",
-                              "-vf", "ass=filename='{}'{}:shaping=complex,format=gray".format(E.esc(script), fdir),
+                              "-vf", "ass=filename={}{}:shaping=complex,format=gray".format(E.esc(script), fdir),
                               "-f", "rawvideo", "-"], capture_output=True, timeout=60).stdout
     if len(raw) < W * H:
         return None
@@ -220,7 +220,8 @@ def parse_srt(text):
         m = re.search(r"(\d+):(\d+):(\d+)[,.](\d+)\s*-->\s*(\d+):(\d+):(\d+)[,.](\d+)", block)
         if not m:
             continue
-        g = [int(x) for x in m.groups()]
+        # The fraction is milliseconds: ",5" means 500 ms, so pad it to three digits.
+        g = [int(x[:3].ljust(3, "0")) if i in (3, 7) else int(x) for i, x in enumerate(m.groups())]
         a = g[0] * 3600 + g[1] * 60 + g[2] + g[3] / 1000.0
         b = g[4] * 3600 + g[5] * 60 + g[6] + g[7] / 1000.0
         rows_ = block.splitlines()

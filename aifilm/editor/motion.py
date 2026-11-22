@@ -140,7 +140,11 @@ def add(edit_root, name, at, duration=None, variables=None, label=None):
         typo = edl.get("typography") or {}
         mg = root / "mg"
         mg.mkdir(exist_ok=True)
-        n = 1 + sum(1 for o in edl.get("overlays", []) if o.get("template") == name)
+        # First free name: counting overlays reuses a name (and overwrites a placed file) after one is removed.
+        taken = {o.get("file") for o in edl.get("overlays", [])}
+        n = 1
+        while "mg/{}-{}.mov".format(label or name, n) in taken or (mg / "{}-{}.mov".format(label or name, n)).exists():
+            n += 1
         rel = "mg/{}-{}.mov".format(label or name, n)
         placed = dict(placement(root, edl, float(at), float(duration or template(name).get("duration", 3))))
         if name not in CENTRED:
