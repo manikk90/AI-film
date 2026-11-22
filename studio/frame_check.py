@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """QC a render before it goes to the owner: black frames, frozen stretches, size, fps, duration and audio.
 
-    python3 studio/frame_check.py final.mp4 [--size 1080x1920] [--fps 30] [--audio song.mp3] [--max-mb 20]
+    python3 studio/frame_check.py final.mp4 [--size 1080x1920] [--fps 30] [--audio song.mp3] [--max-mb 20] [--silent]
 
 Exit 1 with a list of problems, else prints OK and the facts (paste them into 06-qc.md). Black = ffmpeg blackdetect
 (>= 0.1 s, pixel 0.10); frozen = freezedetect (>= 1.5 s, noise -60 dB; a deliberate hold may trip it, say so in QC).
-With --audio, the video's duration must match the source audio within 0.1 s. Needs FFmpeg and ffprobe.
+With --audio, the video's duration must match the source audio within 0.1 s. --silent: a video meant to have no
+audio (a living-painting loop) passes without an audio stream. Needs FFmpeg and ffprobe.
 """
 from __future__ import annotations
 
@@ -38,8 +39,11 @@ def main(argv=None) -> int:
     ap.add_argument("--fps", type=float)
     ap.add_argument("--audio")
     ap.add_argument("--max-mb", type=float)
+    ap.add_argument("--silent", action="store_true", help="no audio stream is expected")
     ap.add_argument("--allow-black-ends", action="store_true", help="ignore black within 1 s of the start or end (fades)")
     a = ap.parse_args(argv)
+    if a.silent and a.audio:
+        ap.error("--silent means no audio is expected; it cannot be combined with --audio")
     info = probe(a.video)
     v = next(s for s in info["streams"] if s["codec_type"] == "video")
     has_audio = any(s["codec_type"] == "audio" for s in info["streams"])
@@ -51,8 +55,10 @@ def main(argv=None) -> int:
         problems.append(f"size {v['width']}x{v['height']}, expected {a.size}")
     if a.fps and abs(fps - a.fps) > 0.01:
         problems.append(f"fps {fps:.3f}, expected {a.fps}")
-    if not has_audio:
+    if not has_audio and not a.silent:
         problems.append("no audio stream")
+    if has_audio and a.silent:
+        problems.append("an audio stream is present but --silent says the video has none")
     if a.audio:
         ad = float(probe(a.audio)["format"]["duration"])
         if abs(ad - dur) > 0.1:

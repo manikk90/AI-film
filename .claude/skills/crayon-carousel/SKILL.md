@@ -46,6 +46,9 @@ Run from this skill's folder (`.claude/skills/crayon-carousel/`).
 ## Render settings (studio)
 
 - **Output:** 1080×1350 (4:5) PNG slides, numbered in photo order, plus one contact sheet. No video.
+- **Studio tools for these steps:**
+  - canvas page: start from `studio/canvas_kit.js` (seeded rng, easing, layer cache, camera, karaoke captions, safe zone, burst, grain) and link `studio/fonts/fonts.css`; every font the skills name is vendored there
+  - sound effects: `python3 studio/sfx.py place cues.json sfx.wav` (code-made whoosh, ding, pop, boom, impact, shutter, typing, bell, damru, riser), cue times from the alignment or beats
 
 ---
 From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Trend edits

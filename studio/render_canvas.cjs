@@ -41,12 +41,17 @@ function args(argv) {
 (async () => {
   const a = args(process.argv.slice(2));
   if (!fs.existsSync(a.page)) { console.error(`page not found: ${a.page}`); process.exit(2); }
-  const browser = await chromium.launch(launchOptions());
+  // file:// pages count as their own origin, so a local image would taint the canvas and block export; this flag lets
+  // a page draw the project's own images and frames (it reads only files the page itself names).
+  const opts = launchOptions();
+  const browser = await chromium.launch({ ...opts, args: [...(opts.args || []), '--allow-file-access-from-files'] });
   const page = await browser.newPage({ viewport: { width: a.w, height: a.h } });
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
   await page.goto('file://' + a.page);
-  await page.waitForFunction(() => (window.FILM || window.render) && document.fonts.status === 'loaded' && (window.READY === undefined || window.READY === true), null, { timeout: 60000 });
+  await page.waitForFunction(() => window.READY_ERROR || ((window.FILM || window.render) && document.fonts.status === 'loaded' && (window.READY === undefined || window.READY === true)), null, { timeout: 60000 });
+  const readyError = await page.evaluate(() => window.READY_ERROR || null);
+  if (readyError) { await browser.close(); console.error(`page failed to get ready: ${readyError}`); process.exit(1); }
   const kind = await page.evaluate(() => {
     if (window.FILM) { window.FILM.init && window.FILM.init(); window.__ctx = document.querySelector('canvas').getContext('2d'); return 'film'; }
     return 'render';

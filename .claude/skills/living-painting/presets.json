@@ -1,0 +1,101 @@
+{
+ "_note": "Studio presets for /living-painting, written by the studio (2026-11-14). The method follows the public Skale Out tutorial (learn.skaleout.com/animation-styles); every scene and description here is the studio's own wording. medium = how it must look; motion = how this medium is allowed to move.",
+ "watercolour": {
+  "name": "Watercolour",
+  "scene": "A lotus pond at dawn seen from above: two white egrets wade between floating leaves while small fish dart under the surface.",
+  "medium": "Transparent watercolour on rough cold-press paper: layered washes, blooms where wet paint met wet paint, hard dried edges, granulating pigment, a few splatters, white paper left for the brightest lights. A small palette: cool jade water, warm peach light, white birds.",
+  "action": "The egrets step slowly and one dips its beak; the fish flick in short bursts; leaves turn a little; ring ripples open from the legs and the beak.",
+  "motion": "Ripples are broken painted rings that fade as they widen. Paint layers move; the paper texture stays fixed to the frame."
+ },
+ "mosaic": {
+  "name": "Stone mosaic",
+  "scene": "A dolphin circles a stone floor of waves and shells, seen from above.",
+  "medium": "A floor mosaic of small cut stones (about 12 px on the 1080 px canvas) laid in rows that follow every outline, dark grout between them, each stone a slightly different shade with a faint bevel light. Earth palette: ochre, brick, sea green, slate, cream, one gold glass stone.",
+  "action": "The dolphin glides in a slow arc with strong tail beats; light from above wanders over the tiles as if through water.",
+  "motion": "The animal is its own layer of stones moving over a fixed floor. Stones never melt or slide through each other; light moves as a shimmer of brighter stones."
+ },
+ "sumi_e": {
+  "name": "Ink wash (sumi-e)",
+  "scene": "A heron flies over layered misty peaks toward a pale red moon.",
+  "medium": "Black ink wash on thin rice paper: values from solid black to the palest grey, wet bleeding edges, dry-brush streaks, large areas of empty paper and mist. The moon is the only colour.",
+  "action": "The heron flies with full, slow wingbeats, rising and falling, while ridge after ridge slides past and the mist drifts across them.",
+  "motion": "Mist blooms and thins like wet wash. Ridges are brush strokes in depth layers; the nearest slide fastest."
+ },
+ "impasto": {
+  "name": "Impasto oil",
+  "scene": "A fishing boat climbs a huge storm wave under a torn sky, gulls wheeling above.",
+  "medium": "Thick impasto oil: palette-knife slabs and bristle strokes that follow the forms, raised ridges catching light, broken colour instead of flat fills, canvas weave showing where the paint is thin. Original, not a copy of any known painting.",
+  "action": "The wave lifts the boat to its crest and lets it slide down; spray flies off the crest; the gulls bank against the wind.",
+  "motion": "Waves roll as moving knife strokes, spray is flicked dabs of thick paint. The canvas weave stays fixed to the frame."
+ },
+ "nocturne_gouache": {
+  "name": "Night gouache",
+  "scene": "A fox trots along a moonlit village lane while lanterns sway in the trees.",
+  "medium": "Opaque matte gouache, dark blues and greens laid in flat layers with visible bristle marks, moonlight as a thin pale edge on the fox, lanterns as warm opaque dabs with a soft painted halo.",
+  "action": "The fox trots in, pauses and turns its head; lanterns swing gently; moths circle the light; clouds slide over the moon.",
+  "motion": "Light is painted, not a digital glow: halos brighten and dim as dabs. Brush texture travels with each object; paper grain stays fixed."
+ },
+ "botanical": {
+  "name": "Botanical plate",
+  "scene": "A hummingbird moth visits jasmine and marigold laid out like a scientific plate.",
+  "medium": "A botanical plate: fine ink outlines, soft watercolour fills on cream paper, plants arranged airy and legible like a field guide, fine vein lines in wings and leaves.",
+  "action": "The moth hovers from flower to flower with fast blurred wings, sips, and moves on; stems bend under it and spring back.",
+  "motion": "Lines never flicker: a wing at one angle always looks the same. Stems bend from the base like real stems."
+ },
+ "paper_cut": {
+  "name": "Paper cut diorama",
+  "scene": "A paper whale rises through a stack of cut-paper ocean layers while lantern fish drift past.",
+  "medium": "6 to 9 layers of cut paper from pale surface blue to near black, each casting a soft shadow on the next, visible fibre and slightly uneven blade edges. Translucent tissue pieces glow where light passes through.",
+  "action": "The whale rises slowly with a lazy tail beat; layers slide at different speeds like a multiplane camera; the fish part around it; paper flakes drift down.",
+  "motion": "Everything is paper: pieces slide, hinge, fold and curl, never melt. Strips twist to show their paler back."
+ },
+ "art_nouveau": {
+  "name": "Art Nouveau poster",
+  "scene": "A peacock turns on a branch inside an ornamental arch of vines.",
+  "medium": "A lithograph poster: flowing whiplash lines, a heavy dark outline on every shape, flat muted fills (sage, olive, ochre, cream, deep teal), a patterned halo, stylised leaves growing into the frame, aged paper. No lettering.",
+  "action": "The peacock turns its head and fans its train open, the vines sway and the halo pattern turns slowly.",
+  "motion": "Shapes move as clean outlined pieces, like the print come alive. Paper texture stays fixed to the frame."
+ },
+ "golden_hour": {
+  "name": "Golden hour gouache",
+  "scene": "A kite flies over a mustard field at sunset while a boy runs along the field edge.",
+  "medium": "Warm opaque gouache: low sun turning the field gold and orange, long soft shadows, hazy sky, visible brush texture.",
+  "action": "The kite dips and climbs on its string, the boy runs and looks up, the mustard rolls in waves of wind.",
+  "motion": "The field bends in waves of painted strokes. Brush texture travels with each object; paper grain stays fixed."
+ },
+ "anime_background": {
+  "name": "Hand-painted anime background",
+  "scene": "Two original children cycle down a hill road through green fields under towering summer clouds.",
+  "medium": "A hand-painted animation background in gouache: lush greens, big white cumulus clouds in deep blue sky, tiny flowers in the grass, visible brush texture; characters in clean simple lines and soft flat colour. Original characters and an original look, not a copy of any studio or film.",
+  "action": "The camera tracks beside them; the girl looks back and laughs; hair, clothes and grass flutter; clouds drift.",
+  "motion": "Characters are drawn on twos (a new pose every 2 frames); background layers slide at different speeds."
+ },
+ "madhubani": {
+  "name": "Madhubani",
+  "scene": "A pair of fish circle under a lotus while a peacock dances on the bank.",
+  "medium": "Madhubani: bold double black outlines, flat red, yellow, indigo and green, every shape filled with fine line patterns (scales, hatching, dots), a thick decorated border, handmade paper.",
+  "action": "The fish circle each other, the peacock lifts and spreads its tail, the lotus opens a little, water lines ripple.",
+  "motion": "Shapes move as outlined pieces with their patterns fixed inside them. The border and paper stay fixed to the frame."
+ },
+ "miniature": {
+  "name": "Indian miniature",
+  "scene": "A royal elephant walks along a palace terrace at dusk with lamps being lit.",
+  "medium": "Rajasthani-Mughal miniature: gouache on burnished paper, fine brush outlines, jewel colours (lapis, vermilion, gold, malachite), patterned textiles, a flat tilted perspective and a painted border.",
+  "action": "The elephant walks with a swaying gait, its trunk curling; lamps flicker on one by one; pigeons lift off the parapet.",
+  "motion": "Figures move as painted cut-outs on the flat terrace; flames are small painted tongues that flicker; border and paper stay fixed."
+ },
+ "warli": {
+  "name": "Warli",
+  "scene": "A circle of villagers dances around a drummer under a crescent moon.",
+  "medium": "Warli: white rice-paste figures (circles and triangles, stick limbs) on a red-brown mud wall, simple trees and huts, slightly uneven hand-painted strokes, the wall's earthen grain.",
+  "action": "The dancers step and sway in a turning spiral, the drummer beats, trees sway, the moon glows.",
+  "motion": "Figures change pose in simple stick-figure steps on twos; the wall texture stays fixed."
+ },
+ "diwali_gouache": {
+  "name": "Diwali night gouache",
+  "scene": "Rows of diyas glow on a courtyard rangoli while sparklers trace light and a cat watches from the steps.",
+  "medium": "Opaque gouache night scene: deep indigo, warm diya light as thick yellow-orange dabs with painted halos, the rangoli in bright powder colours, visible brush texture.",
+  "action": "Flames flicker, sparkler trails draw arcs that fade, the cat's tail swishes, a few sparks float up.",
+  "motion": "Light is painted dabs that brighten and fade, never a digital bloom. Paper grain stays fixed."
+ }
+}

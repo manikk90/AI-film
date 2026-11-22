@@ -18,12 +18,25 @@ DEAD_ZONE = 0.04     # ignore moves smaller than 4 % of the source width
 _CASCADES = None
 
 
+CACHE_DIR = Path.home() / ".cache" / "aifilm" / "opencv"   # studio/setup_env.sh puts the cascades here for OpenCV 5
+
+
+def _cascade_dir():
+    """Where the Haar cascades are: OpenCV's own data folder (4.x), else the studio cache (OpenCV 5 ships none)."""
+    import cv2
+    own = Path(getattr(getattr(cv2, "data", None), "haarcascades", "") or "/nonexistent")
+    for base in (own, CACHE_DIR):  # detect() needs both: the profile cascade is its fallback
+        if all((base / n).exists() for n in ("haarcascade_frontalface_default.xml", "haarcascade_profileface.xml")):
+            return base
+    return None
+
+
 def available():
     try:
         import cv2  # noqa: F401
-        return hasattr(cv2, "data") and Path(cv2.data.haarcascades, "haarcascade_frontalface_default.xml").exists()
     except ImportError:
         return False
+    return _cascade_dir() is not None and hasattr(cv2, "CascadeClassifier")
 
 
 def usable():
@@ -36,9 +49,9 @@ def detect(gray):
     global _CASCADES
     import cv2
     if _CASCADES is None:
-        base = cv2.data.haarcascades
-        _CASCADES = [cv2.CascadeClassifier(base + "haarcascade_frontalface_default.xml"),
-                     cv2.CascadeClassifier(base + "haarcascade_profileface.xml")]
+        base = _cascade_dir()
+        _CASCADES = [cv2.CascadeClassifier(str(base / "haarcascade_frontalface_default.xml")),
+                     cv2.CascadeClassifier(str(base / "haarcascade_profileface.xml"))]
     h = gray.shape[0]
     size = (max(int(h * 0.06), 24),) * 2
     found = list(_CASCADES[0].detectMultiScale(gray, 1.1, 5, minSize=size))
