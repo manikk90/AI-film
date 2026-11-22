@@ -58,6 +58,8 @@ jobs:
         npm install --no-save --no-package-lock playwright@1.63.0
         npx playwright install --with-deps chromium
         node -e "require('playwright'); console.log('playwright', require('playwright/package.json').version)"
+        # helper scripts the tests write to temp folders resolve require() from there, not from the repo
+        echo "NODE_PATH=$GITHUB_WORKSPACE/node_modules" >> "$GITHUB_ENV"
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
