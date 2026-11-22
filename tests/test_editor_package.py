@@ -10,7 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-import wave
+import struct
 import xml.etree.ElementTree as ET
 from fractions import Fraction
 from pathlib import Path
@@ -18,6 +18,24 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "studio"))
 import editor_package as EP  # noqa: E402
+
+
+def wav_info(path):
+    """Read a WAV header ourselves: the stdlib wave module rejects WAVE_FORMAT_EXTENSIBLE
+    (what FFmpeg writes for 24-bit) before Python 3.12."""
+    blob = Path(path).read_bytes()
+    assert blob[:4] == b"RIFF" and blob[8:12] == b"WAVE", path
+    pos, fmt, data = 12, None, None
+    while pos + 8 <= len(blob):
+        tag, size = blob[pos:pos + 4], struct.unpack("<I", blob[pos + 4:pos + 8])[0]
+        body = blob[pos + 8:pos + 8 + size]
+        if tag == b"fmt ":
+            fmt = struct.unpack("<HHIIHH", body[:16])
+        elif tag == b"data":
+            data = body
+        pos += 8 + size + (size & 1)
+    channels, rate, align, bits = fmt[1], fmt[2], fmt[4], fmt[5]
+    return {"channels": channels, "rate": rate, "width": bits // 8, "frames": len(data) // align, "data": data}
 
 FPS = Fraction(24)
 
@@ -162,14 +180,13 @@ class PackageMediaTest(unittest.TestCase):
             self.assertEqual({p.name for p in media.iterdir()},
                              {"V_picture.mp4", "VO_L1.wav", "MUS.wav", "Synthetic_fixture.srt"})
             self.assertEqual(EP.count_frames(media / "V_picture.mp4"), 48)
-            with wave.open(str(media / "VO_L1.wav")) as w:  # 0.3 s = frame 7 + 400 samples; 0.5 s of sound
-                self.assertEqual((w.getnchannels(), w.getframerate(), w.getsampwidth(), w.getnframes()),
-                                 (2, 48000, 3, 13 * 2000))
-                raw = w.readframes(w.getnframes())
+            w = wav_info(media / "VO_L1.wav")  # 0.3 s = frame 7 + 400 samples; 0.5 s of sound
+            self.assertEqual((w["channels"], w["rate"], w["width"], w["frames"]), (2, 48000, 3, 13 * 2000))
+            raw = w["data"]
             self.assertEqual(raw[:400 * 6], bytes(400 * 6))  # silent until exactly 0.3 s
             self.assertTrue(any(raw[400 * 6:440 * 6]))
-            with wave.open(str(media / "MUS.wav")) as w:  # float source under full scale -> 24-bit
-                self.assertEqual((w.getsampwidth(), w.getnframes()), (3, 48 * 2000))
+            w = wav_info(media / "MUS.wav")  # float source under full scale -> 24-bit
+            self.assertEqual((w["width"], w["frames"]), (3, 48 * 2000))
 
             root = ET.parse(out / "Synthetic_fixture.xml").getroot()
             self.assertEqual(root.find("sequence/media/video/track/clipitem/file/pathurl").text,

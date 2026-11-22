@@ -270,18 +270,28 @@ def fetch(edit_root, result=None, url=None, license_text=None, credit=None, righ
         shutil.rmtree(root / ".footage-download", ignore_errors=True)
 
 
+def norm(rel):
+    """One spelling per file, so "./raw/archive/x.mp4" or "raw//archive/x.mp4" cannot dodge the gate."""
+    import posixpath
+    return posixpath.normpath(str(rel).replace("\\", "/")).lstrip("/")
+
+
 def used_files(edl):
+    """Every edit file the render reads: sources (inserts point at these), overlays, music and SFX."""
     files = set(edl["sources"].values())
     files |= {o["file"] for o in edl.get("overlays", [])}
-    if edl.get("audio", {}).get("music"):
-        files.add(edl["audio"]["music"]["file"])
-    return files
+    audio = edl.get("audio", {})
+    if audio.get("music"):
+        files.add(audio["music"]["file"])
+    files |= {s["file"] for s in audio.get("sfx", [])}
+    return {norm(f) for f in files}
 
 
 def gate(root, edl):
     """Refuse a render that uses archive footage without an accepted licence; return the records used."""
     root = Path(root)
     log = read_json(root / "footage.json")["clips"] if (root / "footage.json").exists() else {}
+    log = {norm(k): v for k, v in log.items()}
     used = []
     for rel in sorted(used_files(edl)):
         rec = log.get(rel)

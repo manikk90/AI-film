@@ -11,7 +11,7 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
-from aifilm.core import ProductionError, read_json, write_json
+from aifilm.core import ProductionError, file_hash, read_json, write_json
 from aifilm.editor import edl as E
 from aifilm.editor import media, render as R, style as S, tools as T
 from aifilm.editor.cli import main
@@ -126,8 +126,10 @@ class EditorCase(unittest.TestCase):
         self.save()
         with self.assertRaisesRegex(ProductionError, "not approved"):
             R.render(self.edit)
-        with self.assertRaisesRegex(ProductionError, "qc for this EDL"):
+        with self.assertRaisesRegex(ProductionError, "rendered from this exact EDL"):
             E.approve(self.edit, "final ok", kind="final")
+        with self.assertRaisesRegex(ProductionError, "not rendered from the current EDL"):
+            R.qc(self.edit)  # the old master is not QC'd as if it were this edit
         again = E.storyboard(self.edit)
         self.assertTrue(any("C03" in line and "cool-night" in line for line in again["changes_since_previous"]))
 
@@ -179,6 +181,168 @@ class EditorCase(unittest.TestCase):
         self.assertNotIn("frames", saved["analysis"])
 
 
+    # ---- regressions for the Mann review fixes (SYNTHETIC fixtures only) ----
+
+    def approve_and_render(self):
+        E.storyboard(self.edit)
+        E.approve(self.edit, "synthetic fixture approval")
+        return R.render(self.edit, preview=False)
+
+    def test_final_approval_needs_qc_of_this_exact_master(self):  # 1, 5
+        out = self.approve_and_render()
+        rec = read_json(self.edit / "renders" / "render.json")
+        self.assertEqual(rec["master_sha256"], file_hash(out["master"]))
+        self.assertFalse(list((self.edit / "renders").glob(".master.tmp*")))
+        with self.assertRaisesRegex(ProductionError, "Run qc"):
+            E.approve(self.edit, "final ok", kind="final")  # rendered but never QC'd
+        qc = R.qc(self.edit)
+        self.assertEqual(read_json(self.edit / "renders" / "qc.json")["master_sha256"], rec["master_sha256"])
+        if qc["passed"]:
+            with open(out["master"], "ab") as fh:  # master swapped after QC
+                fh.write(b"\0")
+            with self.assertRaisesRegex(ProductionError, "Run qc"):
+                E.approve(self.edit, "final ok", kind="final")
+        else:
+            with self.assertRaisesRegex(ProductionError, "QC failed"):
+                E.approve(self.edit, "final ok", kind="final")
+
+    def test_only_latest_whole_approval_counts(self):  # 2
+        E.storyboard(self.edit)
+        E.approve(self.edit, "synthetic fixture approval one")
+        self.edl["grade"]["preset"] = "cool-night"
+        self.save()
+        E.storyboard(self.edit)
+        E.approve(self.edit, "synthetic fixture approval two")
+        self.edl["grade"]["preset"] = "punchy-social"  # back to the first look: the owner last saw the second
+        self.save()
+        self.assertNotEqual(E.status(self.edit, E.load(self.edit))["scope"], "none")
+        with self.assertRaisesRegex(ProductionError, "not approved"):
+            R.render(self.edit)
+
+    def test_same_size_same_mtime_edit_voids_approval(self):  # 3
+        E.storyboard(self.edit)
+        E.approve(self.edit, "synthetic fixture approval")
+        target = self.edit / "raw" / "music.mp3"
+        st = target.stat()
+        data = bytearray(target.read_bytes())
+        data[len(data) // 2] ^= 0xFF
+        target.write_bytes(bytes(data))
+        os.utime(target, ns=(st.st_atime_ns, st.st_mtime_ns))
+        self.assertEqual(target.stat().st_size, st.st_size)
+        self.assertFalse(E.approved(self.edit, E.load(self.edit)))
+
+    def test_writers_respect_project_lock(self):  # 4
+        (self.edit / ".production.lock").write_text("synthetic other writer", encoding="utf-8")
+        for call in (lambda: R.qc(self.edit), lambda: R.preview_part(self.edit, ["C02"])):
+            with self.assertRaisesRegex(ProductionError, "busy"):
+                call()
+
+    def test_repeated_shot_renders_once(self):  # 6
+        self.edl["clips"].append(dict(self.edl["clips"][2], id="C04"))
+        self.save()
+        probes = E.validate(self.edit, self.edl)
+        have, stats = R.cached_clips(self.edit, self.edl, probes, build=True, workers=4)
+        self.assertEqual(have["C03"], have["C04"])
+        self.assertEqual(stats["rendered"], 3)
+        self.assertFalse(list(R.cache_dir(self.edit).glob(".tmp-*")))
+
+    def test_ingest_refuses_name_clash(self):  # 7
+        other = Path(self.temp.name) / "other"
+        other.mkdir()
+        shutil.copyfile(self.fixtures / "whoosh.wav", other / "music.mp3")
+        with self.assertRaisesRegex(ProductionError, "different file"):
+            T.ingest(self.edit, [other / "music.mp3"])
+        T.ingest(self.edit, [self.fixtures / "music.mp3"])  # same bytes again is fine
+
+    def test_probe_reports_displayed_size_of_rotated_video(self):  # 8
+        from aifilm.core import probe_media
+        rot = Path(self.temp.name) / "rotated.mp4"
+        ff("-display_rotation", "90", "-i", self.fixtures / "A.mp4", "-c", "copy", rot)
+        info = media.probe(rot)
+        self.assertEqual((info["width"], info["height"]), (360, 640))
+        self.assertEqual(probe_media(rot)["width"], 360)
+
+    def test_validation_rejects_bad_shapes(self):  # 9, 16
+        cases = [
+            (lambda d: d["clips"][0].update(text="bare string"), "text item must be an object"),
+            (lambda d: d["clips"][0].update(zoom=1.2), "zoom must be an object"),
+            (lambda d: d["audio"].update(music={"gain_db": -3}), "needs a \"file\""),
+            (lambda d: d["audio"].update(sfx=[{"at": 1}]), "needs a \"file\""),
+            (lambda d: d["clips"].__setitem__(2, "C03"), "must be an object"),
+            (lambda d: d["clips"][2].update(**{"in": 2.0, "out": 2.01}), "shorter than one frame"),
+        ]
+        for mutate, message in cases:
+            with self.subTest(message=message):
+                data = json.loads(json.dumps(self.edl))
+                mutate(data)
+                with self.assertRaisesRegex(ProductionError, message):
+                    E.validate(self.edit, data)
+        with self.assertRaisesRegex(ProductionError, "Unknown clip id"):
+            E.sub_edl(self.edl, ["C09"])
+        (self.edit / "edl.json").write_text("{not json", encoding="utf-8")
+        with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(main(["validate", str(self.edit)]), 2)  # an error line, not a traceback
+        self.assertIn("error:", err.getvalue())
+
+    def test_footage_gate_normalises_paths_and_covers_sfx(self):  # 11
+        from aifilm.editor import footage
+        arch = self.edit / "raw" / "archive"
+        arch.mkdir()
+        shutil.copyfile(self.fixtures / "A.mp4", arch / "x.mp4")
+        shutil.copyfile(self.fixtures / "whoosh.wav", arch / "boom.wav")
+        for mutate in (lambda d: d["sources"].update(A="./raw/archive/x.mp4"),
+                       lambda d: d["sources"].update(A="raw//archive/x.mp4"),
+                       lambda d: d["audio"]["sfx"].append({"file": "raw/archive/boom.wav", "at": 0.5})):
+            data = json.loads(json.dumps(self.edl))
+            mutate(data)
+            with self.assertRaisesRegex(ProductionError, "provenance"):
+                footage.gate(self.edit, data)
+
+    def test_filter_paths_with_apostrophes_and_commas(self):  # 12
+        odd = Path(self.temp.name) / "it's, a: test"
+        odd.mkdir()
+        shutil.copyfile(self.fixtures / "subs.srt", odd / "subs.srt")
+        ff("-f", "lavfi", "-i", "color=c=black:s=64x64:d=0.2,subtitles=filename={}".format(E.esc(odd / "subs.srt")),
+           "-frames:v", "1", odd / "frame.png")
+        self.assertTrue((odd / "frame.png").exists())
+
+    def test_still_image_overlay_spans_its_duration(self):  # 13
+        ff("-f", "lavfi", "-i", "color=c=red:s=64x64", "-frames:v", "1", self.edit / "raw" / "badge.png")
+        self.edl["overlays"] = [{"file": "raw/badge.png", "at": 0.5, "duration": 1.0}]
+        self.save()
+        inputs, *_ = R.build_graph(self.edit, self.edl, E.validate(self.edit, self.edl), [])
+        i = next(k for k, v in enumerate(inputs) if str(v).endswith("badge.png"))
+        self.assertEqual(inputs[i - 5:i], ["-loop", "1", "-t", "1.000", "-i"])
+
+    def test_part_approval_needs_the_same_whole_look(self):  # 14
+        E.storyboard(self.edit)
+        E.approve(self.edit, "synthetic fixture approval")
+        self.edl["clips"][2]["grade"] = "cool-night"
+        self.save()
+        E.storyboard(self.edit, only=["C03"])
+        board = self.edit / "storyboard" / "part" / "part.json"
+        part = read_json(board)
+        part["globals_fingerprint"] = "synthetic-other-look"
+        write_json(board, part)
+        with self.assertRaisesRegex(ProductionError, "different whole-video look"):
+            E.approve(self.edit, "synthetic part ok", clips=["C03"])
+
+    def test_motion_overlay_takes_first_free_name(self):  # 15
+        from unittest import mock
+        from aifilm.editor import motion
+        (self.edit / "mg").mkdir()
+        (self.edit / "mg" / "lower-third-2.mov").write_bytes(b"synthetic placed overlay")
+        self.edl["overlays"] = [{"file": "mg/lower-third-2.mov", "at": 0, "template": "lower-third"}]
+        self.save()
+        with mock.patch.object(motion, "render", lambda name, out, *a, **k: Path(out).write_bytes(b"synthetic")), \
+                mock.patch.object(motion, "placement", lambda *a, **k: {}), \
+                mock.patch.object(motion, "template", lambda name: {"duration": 2}):
+            first = motion.add(self.edit, "lower-third", 1.0)
+            second = motion.add(self.edit, "lower-third", 2.0)
+        self.assertEqual((first["file"], second["file"]), ("mg/lower-third-1.mov", "mg/lower-third-3.mov"))
+        self.assertEqual((self.edit / "mg" / "lower-third-2.mov").read_bytes(), b"synthetic placed overlay")
+
+
 class EditorStaticTest(unittest.TestCase):
     def test_rules_file(self):
         data = read_json(REPO / "editor" / "rules.json")
@@ -196,6 +360,25 @@ class EditorStaticTest(unittest.TestCase):
                     "words": [{"start": i * 0.4, "end": i * 0.4 + 0.3, "word": w} for i, w in enumerate("abcde")]}]
             self.assertEqual(T.write_srt(seg, Path(tmp) / "x.srt", max_words=2), 3)
             self.assertIn("00:00:01,600 --> 00:00:01,900", (Path(tmp) / "x.srt").read_text(encoding="utf-8"))
+
+    def test_srt_fraction_is_milliseconds(self):  # 18
+        from aifilm.editor import craft
+        cue = craft.parse_srt("1\n00:00:01,5 --> 00:00:02,25\nsynthetic\n")[0]
+        self.assertEqual((cue["start"], cue["end"]), (1.5, 2.25))
+        self.assertIn("00:00:00,500", E.shift_srt("00:00:01,5 --> 00:00:02,000", 1.0))
+
+    def test_documents_are_not_sound_effects(self):  # 17
+        from aifilm.editor import engine as G
+        for name in ("notes.md", "brief.txt", "shots.json"):
+            self.assertEqual(G.kind_of("raw/" + name, {}), "document")
+
+    def test_clip_chain_takes_no_dead_arguments(self):  # 19
+        import inspect
+        self.assertEqual(list(inspect.signature(E.clip_video_chain).parameters), ["root", "edl", "clip"])
+
+    def test_esc_escapes_both_filter_levels(self):  # 12
+        self.assertEqual(E.esc("a'b"), "a\\\\\\'b")
+        self.assertEqual(E.esc("x,y:z"), "x\\,y\\\\:z")
 
     def test_vendor_gsap_rewrites_cdn_link_without_network_when_present(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -285,6 +468,14 @@ class EngineCase(unittest.TestCase):
         self.edit = Path(self.temp.name) / "edit"
         T.ingest(self.edit, sorted(self.fixtures.iterdir()))
         (self.edit / "BRIEF.md").write_text("Synthetic fixture brief: travel recap\n", encoding="utf-8")
+
+    def test_engine_writers_take_the_project_lock(self):  # 4 (SYNTHETIC fixtures)
+        from aifilm.editor import engine as G
+        (self.edit / ".production.lock").write_text("synthetic other writer", encoding="utf-8")
+        for call in (lambda: G.assets(self.edit), lambda: G.suggest(self.edit, "9:16"),
+                     lambda: G.autocut(self.edit, G.catalog()[0]["slug"], 10, "9:16")):
+            with self.assertRaisesRegex(ProductionError, "busy"):
+                call()
 
     def test_assets_beats_and_suggestions(self):
         from aifilm.editor import engine as G

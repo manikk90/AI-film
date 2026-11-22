@@ -113,6 +113,7 @@ def validate(root, edl):
     require(isinstance(clips, list) and clips, "clips must be a nonempty list")
     seen = set()
     for i, clip in enumerate(clips):
+        require(isinstance(clip, dict), "Clip {} must be an object".format(i + 1))
         cid = clip.get("id")
         require(isinstance(cid, str) and re.fullmatch(r"[A-Za-z0-9_-]+", cid) is not None and cid not in seen,
                 "Clip {} needs a unique id (letters, digits, - and _)".format(i + 1))
@@ -121,9 +122,11 @@ def validate(root, edl):
         dur = probes[clip["source"]]["duration"]
         start, end = num(clip.get("in"), cid + ".in", 0), num(clip.get("out"), cid + ".out", 0)
         require(start < end, cid + ": in must be before out")
+        frame = 1.0 / float(fmt.get("fps", 30))
         require(end <= dur + 0.05, "{}: out {:.2f}s is past the end of {} ({:.2f}s)".format(cid, end, clip["source"], dur))
         num(clip.get("speed", 1.0), cid + ".speed", 0.25, 4.0)
         num(clip.get("freeze", 0), cid + ".freeze", 0, 10)
+        require(clip_duration(clip) >= frame, "{}: clip is shorter than one frame ({:.3f}s)".format(cid, frame))
         require(clip.get("reframe") in (None, "auto", "center"), cid + ": reframe must be auto or center")
         kind, tdur = transition(clip)
         require(kind in TRANSITIONS, "{}: unknown transition {!r}".format(cid, kind))
@@ -137,13 +140,16 @@ def validate(root, edl):
             require(fx in FX, "{}: unknown fx {!r}; choose from {}".format(cid, fx, sorted(FX)))
         zoom = clip.get("zoom")
         if zoom:
+            require(isinstance(zoom, dict), cid + ": zoom must be an object like {\"from\": 1.0, \"to\": 1.2}")
             num(zoom.get("from", 1.0), cid + ".zoom.from", 1.0, 3.0)
             num(zoom.get("to", 1.0), cid + ".zoom.to", 1.0, 3.0)
         for text in as_list(clip.get("text")):
+            require(isinstance(text, dict), cid + ": each text item must be an object with a value")
             require(isinstance(text.get("value"), str) and text["value"].strip(), cid + ": text needs a value")
             require(text.get("position", "bottom") in TEXT_POSITIONS, cid + ": text position must be top/center/bottom")
             require(text.get("role") in (None, "title", "headline", "body", "caption", "label"), cid + ": text role must be title/headline/body/caption/label")
         for ins in clip.get("inserts", []):
+            require(isinstance(ins, dict), cid + ": each insert must be an object")
             require(ins.get("source") in sources, "{}: insert has unknown source {!r}".format(cid, ins.get("source")))
             a, b = num(ins.get("in"), cid + ".insert.in", 0), num(ins.get("out"), cid + ".insert.out", 0)
             require(a < b <= probes[ins["source"]]["duration"] + 0.05, cid + ": insert in/out outside its source")
@@ -156,15 +162,19 @@ def validate(root, edl):
     audio = edl.get("audio", {})
     music = audio.get("music")
     if music:
+        require(isinstance(music, dict) and isinstance(music.get("file"), str), "audio.music needs a \"file\"")
         require(media.probe(inside(root, music["file"]))["has_audio"], "Music file has no audio")
     for sfx in audio.get("sfx", []):
+        require(isinstance(sfx, dict) and isinstance(sfx.get("file"), str), "each audio.sfx item needs a \"file\"")
         require(media.probe(inside(root, sfx["file"]))["has_audio"], "SFX {} has no audio".format(sfx["file"]))
         num(sfx.get("at"), "sfx.at", 0)
     for ov in edl.get("overlays", []):
+        require(isinstance(ov, dict) and isinstance(ov.get("file"), str), "each overlay needs a \"file\"")
         media.probe(inside(root, ov["file"]))
         num(ov.get("at", 0), "overlay.at", 0)
     subs = edl.get("subtitles")
     if subs:
+        require(isinstance(subs, dict) and isinstance(subs.get("file"), str), "subtitles needs a \"file\"")
         require(inside(root, subs["file"]).is_file(), "Subtitle file missing: " + subs["file"])
         require(subs.get("position", "bottom") in TEXT_POSITIONS, "subtitles.position must be top/center/bottom")
         require(subs.get("color", "white") in SUB_COLOURS, "subtitles.color must be one of {}".format(sorted(SUB_COLOURS)))
@@ -222,8 +232,16 @@ def font_for(text, override=None):
 
 
 def esc(path):
-    """Escape a path for use inside an FFmpeg filter option."""
-    return str(path).replace("\\", "/").replace(":", "\\:").replace("'", "\\'").replace(",", "\\,")
+    """Escape a path as an unquoted FFmpeg filter option value.
+
+    Two levels: the option parser (\\ ' :) and then the filtergraph parser (\\ ' [ ] , ;),
+    so apostrophes, colons and commas in folder names survive. Use it bare: key=VALUE."""
+    value = str(path).replace("\\", "/")
+    for ch in "\\':":
+        value = value.replace(ch, "\\" + ch)
+    for ch in "\\'[],;":
+        value = value.replace(ch, "\\" + ch)
+    return value
 
 
 def grade_chain(root, edl, clip):
@@ -241,7 +259,7 @@ def grade_chain(root, edl, clip):
     if g.get("temperature"):
         parts.append("colortemperature=temperature={}".format(int(num(g["temperature"], "grade.temperature", 1000, 40000))))
     if g.get("lut"):
-        parts.append("lut3d=file='{}'".format(esc(inside(root, g["lut"]))))
+        parts.append("lut3d=file={}".format(esc(inside(root, g["lut"]))))
     if g.get("vignette"):
         parts.append("vignette=PI/5")
     if g.get("grain"):
@@ -256,7 +274,7 @@ def frame_chain(edl, W, H):
     return ["scale={W}:{H}:force_original_aspect_ratio=increase".format(W=W, H=H), "crop={W}:{H}".format(W=W, H=H)]
 
 
-def clip_video_chain(root, edl, clip, textfiles, t0=0.0):
+def clip_video_chain(root, edl, clip):
     """FFmpeg filters that turn a trimmed source clip into a formatted, graded, titled shot."""
     fmt = edl["format"]
     W, H, fps = fmt["width"], fmt["height"], fmt.get("fps", 30)
@@ -268,7 +286,7 @@ def clip_video_chain(root, edl, clip, textfiles, t0=0.0):
     zoom = clip.get("zoom")
     if zoom and (zoom.get("from", 1.0) != 1.0 or zoom.get("to", 1.0) != 1.0):
         z0, z1 = float(zoom.get("from", 1.0)), float(zoom.get("to", 1.0))
-        expr = "({z0}+({z1}-{z0})*min(1,(t+{t0})/{d}))".format(z0=z0, z1=z1, t0=t0, d=dur)
+        expr = "({z0}+({z1}-{z0})*min(1,t/{d}))".format(z0=z0, z1=z1, d=dur)
         chain += ["scale=w='2*trunc({W}*{e}/2)':h='2*trunc({H}*{e}/2)':eval=frame".format(W=W, H=H, e=expr),
                   "crop={W}:{H}".format(W=W, H=H)]
     if clip.get("freeze"):
@@ -469,7 +487,7 @@ def stage_subtitles(root, edl, shift=0.0, name=".mann-subs.srt"):
 
 def shift_srt(text, shift):
     def stamp(m):
-        t = int(m.group(1)) * 3600 + int(m.group(2)) * 60 + int(m.group(3)) + int(m.group(4)) / 1000.0 - shift
+        t = int(m.group(1)) * 3600 + int(m.group(2)) * 60 + int(m.group(3)) + int(m.group(4)[:3].ljust(3, "0")) / 1000.0 - shift
         t = max(t, 0)
         ms = int(round(t * 1000))
         return "{:02d}:{:02d}:{:02d},{:03d}".format(ms // 3600000, ms // 60000 % 60, ms // 1000 % 60, ms % 1000)
@@ -479,7 +497,9 @@ def shift_srt(text, shift):
 # ---- fingerprints and approvals -------------------------------------------------
 
 def hashed(root, rel):
-    """sha256 of an edit file, cached by size and mtime so big footage is hashed once."""
+    """sha256 of an edit file, cached by size, mtime, ctime and inode so big footage is hashed once.
+    ctime and inode change whenever the bytes are rewritten, even if size and mtime are put back,
+    so an edited file can never keep an old approval (a user can set mtime back, never ctime)."""
     root = Path(root)
     path = inside(root, rel)
     st = path.stat()
@@ -488,7 +508,7 @@ def hashed(root, rel):
         cache = json.loads(cache_path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         cache = {}
-    key = "{}|{}|{}".format(rel, st.st_size, st.st_mtime_ns)
+    key = "{}|{}|{}|{}|{}".format(rel, st.st_size, st.st_mtime_ns, st.st_ctime_ns, st.st_ino)
     if key not in cache:
         cache = {k: v for k, v in cache.items() if not k.startswith(rel + "|")}
         cache[key] = file_hash(path)
@@ -544,6 +564,15 @@ def status(root, edl):
     """What the owner still has to see: nothing, some parts, or the whole video."""
     g, clips = fingerprints(root, edl)
     boards = [a for a in approvals(root) if a["kind"] == "storyboard"]
+    # The owner saw one whole cut at a time: only the latest whole approval counts, together with the part
+    # approvals made after it (a part is approved against that whole). Mixing clips from different whole
+    # approvals would approve a combination the owner never saw.
+    wholes = [i for i, a in enumerate(boards) if a.get("scope", "whole") == "whole" and a.get("globals")]
+    if wholes:
+        last = wholes[-1]
+        boards = [boards[last]] + [a for a in boards[last + 1:] if a.get("scope") == "part"]
+    else:
+        boards = []
     globals_ok = any(a.get("globals") == g for a in boards)
     approved_fps = {(cid, fp) for a in boards for cid, fp in a.get("clips", {}).items()}
     changed = [cid for cid, fp in clips.items() if (cid, fp) not in approved_fps]
@@ -551,11 +580,9 @@ def status(root, edl):
     return {"scope": scope, "globals_approved": globals_ok, "changed_clips": changed if globals_ok else list(clips)}
 
 
-def approved(root, edl, kind="storyboard"):
-    if kind == "storyboard":
-        return status(root, edl)["scope"] == "none"
-    current = edit_fingerprint(root, edl)
-    return any(a["kind"] == kind and a.get("edl_fingerprint") == current for a in approvals(root))
+def approved(root, edl):
+    """True when the storyboard approvals cover this exact EDL."""
+    return status(root, edl)["scope"] == "none"
 
 
 def require_approval(root, edl):
@@ -794,14 +821,22 @@ def approve(root, words, by="owner", kind="storyboard", clips=None):
         g, clip_fps = fingerprints(root, edl)
         if kind == "final":
             qc = root / "renders" / "qc.json"
+            rendered = root / "renders" / "render.json"
             current = fingerprint({"globals": g, "clips": clip_fps})
-            require(qc.exists() and read_json(qc).get("edl_fingerprint") == current, "Run render and qc for this EDL before final approval")
+            require(rendered.exists() and read_json(rendered).get("edl_fingerprint") == current,
+                    "renders/master.mp4 was not rendered from this exact EDL; render again before final approval")
+            require(qc.exists() and read_json(qc).get("edl_fingerprint") == current and read_json(qc).get("master_sha256")
+                    and read_json(qc)["master_sha256"] == file_hash(root / "renders" / "master.mp4"),
+                    "Run qc on the master rendered from this EDL before final approval")
+            require(read_json(qc).get("passed"), "QC failed for this master; fix the failures before final approval")
             return record(root, {"kind": "final", "edl_fingerprint": current, "by": by, "words": words.strip()})
         if clips:
             board = root / "storyboard" / "part" / "part.json"
             require(board.exists(), "No part storyboard yet; run `storyboard --only {}` first".format(",".join(clips)))
             part = read_json(board)
             require(status(root, edl)["globals_approved"], "A whole-video setting changed, so the whole storyboard needs approval, not a part")
+            require(part.get("globals_fingerprint") == g,
+                    "The part storyboard was made with a different whole-video look; rebuild it with `storyboard --only` and re-show it")
             for cid in clips:
                 require(cid in clip_fps, "Unknown clip " + cid)
                 require(part["clip_fingerprints"].get(cid) == clip_fps[cid], "Clip {} changed after its part storyboard; rebuild and re-show it".format(cid))
@@ -818,6 +853,9 @@ def sub_edl(edl, ids, context=1):
     """The part of the EDL around `ids` (plus `context` neighbours), re-timed to start at 0,
     for a quick video preview of a one-part correction."""
     order = [c["id"] for c in edl["clips"]]
+    ids = list(ids)
+    unknown = [i for i in ids if i not in order]
+    require(ids and not unknown, "Unknown clip id(s) {}; the EDL has {}".format(unknown or "(none given)", order))
     idx = sorted(order.index(i) for i in ids)
     lo, hi = max(idx[0] - context, 0), min(idx[-1] + context, len(order) - 1)
     rows, _ = timeline(edl)
