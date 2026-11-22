@@ -373,7 +373,9 @@ def run(audio, text: str, synths: list[tuple[str, Callable[[str], np.ndarray]]],
                    "check": bool(ln.pop("flagged") or ln["cost"] is None or ln["cost"] > 1.5 * med)})
     return {"audio": str(audio) if isinstance(audio, Path) else "<array>",
             "method": f"offline TTS reference (Kokoro {voice or '?'}, {lang or '?'}) + MFCC + subsequence DTW",
-            "words": [{"w": w["w"], "s": w["s"], "e": w["e"], "line": w["line"]} for w in res["words"]],
+            # w/s/e (daksh-ai's format) and text/start/end (mms_align.py's, read by mouth_curve and canvas_kit)
+            "words": [{"w": w["w"], "s": w["s"], "e": w["e"], "line": w["line"],
+                       "text": w["w"], "start": w["s"], "end": w["e"]} for w in res["words"]],
             "lines": res["lines"], "warp": res["warp"],
             "note": "Lines marked check matched worse than the rest; look at them before trusting their word times."}
 

@@ -185,14 +185,23 @@ def save(rows: list[dict], out: Path, want: int | None = None) -> list[Path]:
     return written
 
 
-MARKERS = {  # what the source page must show for the licence Openverse reported
-    "cc0": ["creativecommons.org/publicdomain/zero", "creative commons 0", "cc0"],
-    "pdm": ["creativecommons.org/publicdomain/mark", "public domain"],
-    "by": ["creativecommons.org/licenses/by/", "attribution 4.0", "attribution 3.0"],
-}
-OTHER = {"cc0": ["creativecommons.org/licenses/by-nc", "noncommercial", "creativecommons.org/licenses/by/"],
-         "pdm": ["creativecommons.org/licenses/by-nc", "noncommercial"],
-         "by": ["creativecommons.org/licenses/by-nc", "noncommercial", "creativecommons.org/licenses/by-nd"]}
+CC_LINK = re.compile(r"creativecommons\.org/(licenses|publicdomain)/([a-z-]+)")
+
+
+def licence_verdict(page: str, lic: str) -> str | None:
+    """'verified', 'mismatch' or None, from the licence LINKS on a work's source page.
+
+    Any link to a different Creative Commons licence, or the word "noncommercial", is a mismatch, even when the
+    expected licence also appears somewhere (a page can show a filter or a footer link for CC0 while the work itself
+    is BY-NC). With no licence link, plain text is not trusted: the result is None (unverified)."""
+    page = (page or "").lower()
+    if not page:
+        return None
+    want = {"cc0": {("publicdomain", "zero")}, "pdm": {("publicdomain", "mark")}, "by": {("licenses", "by")}}[lic]
+    links = {(kind, code) for kind, code in CC_LINK.findall(page)}
+    if links - want or "noncommercial" in page or "non-commercial" in page:
+        return "mismatch"
+    return "verified" if links & want else None
 
 
 def verify(out: Path) -> list[dict]:
@@ -209,13 +218,7 @@ def verify(out: Path) -> list[dict]:
                 page = _get(s["landing"]).decode("utf-8", "ignore").lower() if s.get("landing") else ""
             except (urllib.error.URLError, ValueError):
                 page = ""
-            lic = s["license"]
-            if page and any(m in page for m in OTHER.get(lic, [])) and not any(m in page for m in MARKERS.get(lic, [])):
-                s["verified"] = "mismatch"
-            elif page and any(m in page for m in MARKERS.get(lic, [])):
-                s["verified"] = "verified"
-            else:
-                s["verified"] = None
+            s["verified"] = licence_verdict(page, s["license"])
             s["verified_on"] = date.today().isoformat()
         _atomic_write(src_path, json.dumps(sources, ensure_ascii=False, indent=1) + "\n")
         _atomic_write(out / "CREDITS.md", _credits(sources))

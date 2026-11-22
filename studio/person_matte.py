@@ -51,9 +51,9 @@ def model(key: str) -> str:
 
 
 def frames(path: str, fps: float):
-    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height",
-                          "-of", "csv=p=0", path], capture_output=True, text=True, check=True).stdout
-    w, h = map(int, out.strip().split(",")[:2])
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from media_probe import displayed_size
+    w, h, _ = displayed_size(path)  # FFmpeg rotates phone clips on decode: size the frames as displayed
     p = subprocess.Popen(["ffmpeg", "-v", "error", "-i", path, "-vf", f"fps={fps}", "-f", "rawvideo", "-pix_fmt",
                           "rgb24", "-"], stdout=subprocess.PIPE)
     size = w * h * 3

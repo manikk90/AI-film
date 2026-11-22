@@ -178,9 +178,15 @@
    * Group aligned words ({text, start, end, line}) into on-screen chunks of up to `max` words. A chunk never crosses
    * a line, and a pause longer than `gap` seconds starts a new one.
    */
+  /** One word format for every timing tool: {text, start, end, line}. Accepts word_timing.py's {w, s, e, line},
+   * mms_align.py's {text, start, end, line}, a bare array or a {words: [...]} object. */
+  K.words = data => (Array.isArray(data) ? data : (data && data.words) || []).map(w => ({
+    ...w, text: w.text !== undefined ? w.text : w.w, start: w.start !== undefined ? w.start : w.s,
+    end: w.end !== undefined ? w.end : w.e, line: w.line !== undefined ? w.line : 0,
+  }));
   K.chunks = (words, max = 3, gap = 0.6) => {
     const out = []; let cur = [];
-    for (const w of words) {
+    for (const w of K.words(words)) {
       const prev = cur[cur.length - 1];
       if (cur.length && (cur.length >= max || prev.line !== w.line || w.start - prev.end > gap)) { out.push(cur); cur = []; }
       cur.push(w);
@@ -256,7 +262,10 @@
   K.fontsLoaded = () => K.FONTS.filter(f => document.fonts.check(`40px "${f}"`));
   window.STUDIO_FONTS = {
     ready: new Promise(res => window.addEventListener('load', () => {
-      Promise.all(K.FONTS.map(f => document.fonts.load(`40px "${f}"`, 'अa').catch(() => null))).then(res);
+      // load every declared face, not just regular: a bold or italic face loaded lazily would draw frame 0 in a
+      // fallback font. document.fonts holds one FontFace per @font-face rule of fonts.css.
+      const faces = [...document.fonts].map(f => f.load().catch(() => null));
+      Promise.all(faces.concat(K.FONTS.map(f => document.fonts.load(`40px "${f}"`, 'अa').catch(() => null)))).then(res);
     })),
   };
   window.STUDIO_FONTS.ready

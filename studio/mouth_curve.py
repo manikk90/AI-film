@@ -48,19 +48,32 @@ def curve(y: np.ndarray, fps: float, spans=None) -> list[float]:
     return [round(float(x), 3) for x in out]
 
 
+def word_spans(data, speaker=None) -> list[tuple[float, float]]:
+    """(start, end) of each word, from mms_align.py ({text,start,end,speaker}) or word_timing.py ({w,s,e}) output."""
+    ws = data.get("words", data) if isinstance(data, dict) else data
+    out = []
+    for w in ws:
+        if speaker is not None and w.get("speaker") != speaker:
+            continue
+        out.append((float(w["start"] if "start" in w else w["s"]), float(w["end"] if "end" in w else w["e"])))
+    return out
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("audio")
     ap.add_argument("out")
     ap.add_argument("--fps", type=float, default=30)
     ap.add_argument("--js", help="also write `window.MOUTH = {...}` for a canvas page")
-    ap.add_argument("--words", help="word timings JSON; keep the mouth shut outside the words")
+    ap.add_argument("--words", help="word timings JSON (mms_align.py or word_timing.py); keep the mouth shut outside the words")
+    ap.add_argument("--speaker", help="only this speaker's words (mms_align.py `SPEAKER|text` lines): one curve per character")
     a = ap.parse_args(argv)
     spans = None
     if a.words:
         d = json.load(open(a.words, encoding="utf-8"))
-        ws = d.get("words", d) if isinstance(d, dict) else d
-        spans = [(w["start"], w["end"]) for w in ws]
+        spans = word_spans(d, a.speaker)
+        if a.speaker and not spans:
+            raise SystemExit(f"no words for speaker {a.speaker!r} in {a.words}")
     vals = curve(load(a.audio), a.fps, spans)
     data = {"fps": a.fps, "values": vals}
     json.dump(data, open(a.out, "w"), separators=(",", ":"))
