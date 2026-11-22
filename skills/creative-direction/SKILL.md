@@ -9,6 +9,8 @@ Inputs: full screenplay, audience/format if available, existing approved referen
 
 Apply [Director rules](../../docs/DIRECTOR_RULES.md): understand the beat before camera, preserve established world blocking, and explore composition/lighting alternatives within approved locks. Use its research reference for optional visual communication methods; keep proposals distinct from sourced story facts. A new visual idea does not authorise new plot, props, identities or architecture.
 
+For art-direction concepts, visual worlds, materials/palettes, reference analysis and design QC, load [AI Art Direction](../ai-art-direction/SKILL.md) and only its relevant references. Keep its sourced cases and proposed applications distinct; preserve current project canon and gates.
+
 Define emotional intention, period/world, realism level, palette, lighting logic, camera behaviour, aspect ratio and performance tone. Derive these from the script and user context. Provide a coherent treatment the asset and shot skills can execute; avoid unrelated style adjectives.
 
 Populate plan `treatment` and `decisions` using the [contract](../../docs/CONTRACT.md). Classify each choice as screenplay fact, inferred default or explicit human choice. Routine decisions within established direction are resolved autonomously.

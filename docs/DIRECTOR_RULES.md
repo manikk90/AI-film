@@ -72,6 +72,8 @@ For video, keep all action, camera, sound and performance direction before a bla
 
 ## Art-direction research
 
+Use [AI Art Direction](../skills/ai-art-direction/SKILL.md) for the operational workflow, technique selection, world/material design, 2S/OTS and lighting decisions, worked examples and separate QC passes. Load relevant references rather than the entire library. Its synthetic examples are not project canon; strict frames, blocking, identities, exact bindings and current approval gates remain authoritative.
+
 Use [the research reference](director/art-direction-research.md) for visual communication, perception and design methods. Keep sourced techniques separate from untested applications. A metaphor is optional and must serve the scene; it does not authorise a new prop, altered geography or a premature reveal. Distinguish what an image depicts, what it suggests and whether the execution is coherent.
 
 ## Review and sync scope
