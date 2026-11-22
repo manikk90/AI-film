@@ -19,8 +19,11 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-CHROMIUM = Path("/opt/pw-browsers")
-KOKORO = Path(os.environ.get("KOKORO_DIR") or Path(__file__).resolve().parents[2] / "lemomo-ai/lemo-opuscar/core/tts")
+REPO = Path(__file__).resolve().parents[1]
+# the offline Kokoro voice for studio/word_timing.py: only where the owner points KOKORO_DIR (never a path outside the
+# repo by default; AGENTS.md: no code or data from unrelated workspaces)
+KOKORO = Path(os.environ["KOKORO_DIR"]) if os.environ.get("KOKORO_DIR") else None
+NPX_ENV = "AIFILM_NPX_ALLOWED"   # the owner sets it to 1 once they allow npx packages in their permission settings
 HOSTS = {
     "dl.fbaipublicfiles.com": "https://dl.fbaipublicfiles.com/mms/torchaudio/ctc_alignment_mling_uroman/model.pt",
     "openaipublic.azureedge.net": "https://openaipublic.azureedge.net/main/whisper/models/"
@@ -35,6 +38,9 @@ HOSTS = {
     "api.openverse.org": "https://api.openverse.org/v1/audio/?q=bell&page_size=1",
     "cdn.freesound.org": "https://cdn.freesound.org/",
     "upload.wikimedia.org": "https://upload.wikimedia.org/",
+    "github.com": "https://github.com/Leonxlnx/earshot",
+    "download.pytorch.org": "https://download.pytorch.org/whl/cpu/",
+    "raw.githubusercontent.com": "https://raw.githubusercontent.com/opencv/opencv/4.10.0/README.md",
 }
 # capability, the tools it needs, the hosts it needs (all of them), alternative hosts (any one), env vars, who uses it
 CAPABILITIES = [
@@ -63,8 +69,10 @@ CAPABILITIES = [
     ("WhatsApp copy and render QC (studio/whatsapp_copy.py, studio/frame_check.py)", ["ffmpeg", "ffprobe"], [], [],
      [], "every finished video"),
     ("ElevenLabs voice and SFX", [], ["api.elevenlabs.io"], [], ["ELEVENLABS_API_KEY"], "the director's voice and SFX"),
-    ("HyperFrames render (npm)", ["node"], ["registry.npmjs.org"], [], [],
-     "daksh-ai's own renderer; also needs the owner's permission to run npx packages"),
+    ("HyperFrames render (npm)", ["node"], ["registry.npmjs.org"], [], [NPX_ENV],
+     "daksh-ai's own renderer; runs through npx, which needs the owner's permission"),
+    ("Remotion render (npm: remotion, d3-geo, topojson-client, world-atlas)", ["node"], ["registry.npmjs.org"], [],
+     [NPX_ENV], "watercolor-map; runs through npx, which needs the owner's permission"),
 ]
 
 
@@ -73,10 +81,29 @@ def probe_tool(name: str) -> bool:
         import importlib.util
         return importlib.util.find_spec(name[3:]) is not None
     if name == "chromium":
-        return CHROMIUM.is_dir() and any(CHROMIUM.glob("chromium*"))
+        return chromium_ready()
     if name == "kokoro":  # the offline voice model, with a Python that can run it (the Lemo-Opuscar venv)
-        return (KOKORO / "kokoro-v1.0.onnx").exists() and (KOKORO / "voices-v1.0.bin").exists()
+        return KOKORO is not None and (KOKORO / "kokoro-v1.0.onnx").exists() and (KOKORO / "voices-v1.0.bin").exists()
     return shutil.which(name) is not None
+
+
+def chromium_ready() -> bool:
+    """What studio/render_canvas.cjs needs: Node can load the playwright module (from the repo, NODE_PATH or the
+    global npm root), and a browser exists: AIFILM_CHROMIUM_EXECUTABLE when set, else Playwright's own Chromium."""
+    if not shutil.which("node"):
+        return False
+    env = dict(os.environ)
+    if shutil.which("npm"):
+        root = subprocess.run(["npm", "root", "-g"], capture_output=True, text=True).stdout.strip()
+        if root:
+            env["NODE_PATH"] = os.pathsep.join(p for p in (root, env.get("NODE_PATH", "")) if p)
+    override = env.get("AIFILM_CHROMIUM_EXECUTABLE")
+    script = ("const p=require('playwright');const fs=require('fs');const o=process.env.AIFILM_CHROMIUM_EXECUTABLE;"
+              "const e=o||p.chromium.executablePath();process.exit(e&&fs.existsSync(e)?0:1)")
+    if override and not (os.path.isfile(override) and os.access(override, os.X_OK)):
+        return False
+    r = subprocess.run(["node", "-e", script], cwd=REPO, env=env, capture_output=True, timeout=60)
+    return r.returncode == 0
 
 
 def probe_host(url: str) -> str:
@@ -101,7 +128,8 @@ def assess(tools: dict, hosts: dict, env: dict) -> list[dict]:
         missing += [h for h in need_hosts if hosts.get(h, "000") == "000"]
         if any_hosts and all(hosts.get(h, "000") == "000" for h in any_hosts):
             missing.append(" or ".join(any_hosts))
-        missing += [f"${v} not set" for v in need_env if not env.get(v)]
+        missing += [(f"the owner's permission to run npx (then set {v}=1)" if v == NPX_ENV else f"${v} not set")
+                    for v in need_env if not env.get(v)]
         rows.append({"capability": name, "ready": not missing, "missing": missing, "used_by": used_by})
     return rows
 
@@ -114,7 +142,8 @@ def main(argv=None) -> int:
     tools = {t: probe_tool(t) for t in sorted(names)}
     with ThreadPoolExecutor(len(HOSTS)) as pool:
         hosts = dict(zip(HOSTS, pool.map(probe_host, HOSTS.values())))
-    env = {"ELEVENLABS_API_KEY": bool(os.environ.get("ELEVENLABS_API_KEY"))}
+    env = {"ELEVENLABS_API_KEY": bool(os.environ.get("ELEVENLABS_API_KEY")),
+           NPX_ENV: os.environ.get(NPX_ENV) == "1"}
     rows = assess(tools, hosts, env)
     if a.json:
         print(json.dumps({"tools": tools, "hosts": hosts, "env": env, "capabilities": rows}, indent=1))

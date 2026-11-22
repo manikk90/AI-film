@@ -1,5 +1,9 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+# Tests, lint and packaging checks on every push to main and every PR into main.
+#
+# The runner installs what the media tests need (FFmpeg, numpy, Pillow, Playwright Chromium), so the render,
+# storyboard-gate, acceptance and invalidation tests run here instead of being skipped. Heavy optional tools
+# (librosa, OpenCV, MediaPipe, torch, earshot, Blender) are not installed: the few tests that need them are the only
+# skips allowed, and the job fails if the skip count grows past MAX_SKIPPED (see the last step).
 
 name: Python package
 
@@ -9,33 +13,69 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
 
     # pinned: ubuntu-latest became 26.04 in Nov 2026, which has no Python 3.9 builds (pyproject still supports 3.9)
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    env:
+      # Tests whose dependencies are deliberately not installed here (librosa, OpenCV, earshot). Raise it only when a
+      # new test needs one of those, and say so in the PR.
+      # Today: 3 (test_skill_tools: librosa, test_sound_sources: earshot, test_studio_skills: OpenCV).
+      MAX_SKIPPED: "3"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+    - name: System tools (FFmpeg for the media tests)
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq ffmpeg
+        ffmpeg -version | head -1
+    - name: Python dependencies
       run: |
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python -m pip install -e ".[media]"
+    - name: Playwright Chromium (canvas renders)
+      run: |
+        npm install --no-save --no-package-lock playwright@1.63.0
+        npx playwright install --with-deps chromium
+        node -e "require('playwright'); console.log('playwright', require('playwright/package.json').version)"
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        # everything else is advisory; .flake8 sets the line length and excludes vendored and generated files
+        flake8 . --count --exit-zero --statistics
+    - name: Compile and package smoke test
+      run: |
+        python -m compileall -q aifilm studio
+        aifilm --help > /dev/null
+        mann --help > /dev/null
     - name: Test with pytest
       run: |
-        pytest
+        pytest -rs -q 2>&1 | tee pytest.log
+        test "${PIPESTATUS[0]}" -eq 0
+    - name: Fail if too many tests were skipped
+      run: |
+        skipped=$(grep -oE '[0-9]+ skipped' pytest.log | tail -1 | grep -oE '[0-9]+' || echo 0)
+        echo "skipped: $skipped (allowed: $MAX_SKIPPED)"
+        grep -E '^SKIPPED' pytest.log || true
+        test "$skipped" -le "$MAX_SKIPPED"
