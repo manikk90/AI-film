@@ -7,6 +7,8 @@ description: Establish a screenplay-grounded film treatment and resolve routine 
 
 Inputs: full screenplay, audience/format if available, existing approved references and decisions. Read [creative decision policy](../../docs/SOP.md).
 
+Apply [Director rules](../../docs/DIRECTOR_RULES.md): understand the beat before camera, preserve established world blocking, and explore composition/lighting alternatives within approved locks. Use its research reference for optional visual communication methods; keep proposals distinct from sourced story facts. A new visual idea does not authorise new plot, props, identities or architecture.
+
 Define emotional intention, period/world, realism level, palette, lighting logic, camera behaviour, aspect ratio and performance tone. Derive these from the script and user context. Provide a coherent treatment the asset and shot skills can execute; avoid unrelated style adjectives.
 
 Populate plan `treatment` and `decisions` using the [contract](../../docs/CONTRACT.md). Classify each choice as screenplay fact, inferred default or explicit human choice. Routine decisions within established direction are resolved autonomously.

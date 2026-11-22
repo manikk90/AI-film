@@ -16,6 +16,8 @@ Read [film-production](../skills/film-production/SKILL.md) to coordinate the who
 
 These files add domain instructions; they do not supply model subscriptions, image generation, video playback or provider APIs. Use the capabilities of the host assistant, preserve user authorization and report missing capabilities accurately. Reading a skill does not install it globally. Keep this repository available so linked contracts resolve.
 
+For shot/composition work, the Director and phases 2, 5-8 share [Director rules](DIRECTOR_RULES.md): blocking, exploration, lighting, detailed panels, cut connections, exact local tags and individual-shot prompt scope. Its [lighting library](director/lighting.md) and [art-direction research](director/art-direction-research.md) are loaded only when needed. This is instruction-level behaviour; the CLI does not automatically infer or validate cinematic meaning.
+
 ## Viral studio
 
 For trend-led films, `/viral-studio` ([pipeline](../.claude/skills/viral-studio/SKILL.md)) coordinates four project agents in `.claude/agents/`: **social** (trends, virality, publishing kit), **researcher** (unique angle, verified detail), **writer** (hooks, retention, the script packet for [ai-writer](../skills/ai-writer/SKILL.md)'s approval gate) and **director** (style, format, duration, production, QC). The owner's feedback is recorded by `/studio-learn` in [studio/LEARNINGS.md](../studio/LEARNINGS.md). An overview is in [studio/README.md](../studio/README.md).

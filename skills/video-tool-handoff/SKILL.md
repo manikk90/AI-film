@@ -7,6 +7,8 @@ description: Adapt a planned shot to an identified video tool/model, bind its ac
 
 Inputs: current shot plan, actual reference files, selected tool and model/version, applicable spending authorization. Read [profiles/bundles](../../docs/CONTRACT.md) and [walkthrough](../../docs/WALKTHROUGH.md).
 
+Apply [Director rules](../../docs/DIRECTOR_RULES.md). Derive each prompt and visual input set from that shot's actual frame/authorised progression, not all scene assets. Preserve exact relevant bindings and genuine dependency provenance. Screenshot-based prompting defaults to frame match unless a bounded redesign is authorised. Keep offscreen audio roles separate; put the exact dialogue in the final separated block of each video prompt. Default short; explicit detail deepens only the current shot's useful direction.
+
 Verify current official documentation or a dated direct check for the exact tool/model: input route, reference count/roles/order, duration, aspect ratio, prompt syntax, audio/dialogue and other required controls. Do not assume two UIs exposing the same model have identical features. Included portable profiles are unverified templates.
 
 Choose a compatible route. Single-image generation needs a clean composed keyframe; multi-reference generation needs actual supported image bindings. Build the prompt around intended performance and motion; preserve visual context when the tool requires it. Unsupported dialogue or reference roles must be resolved explicitly, not silently dropped.

@@ -48,6 +48,8 @@ Keep this repository available to the assistant and ask:
 
 These are repository skills, not automatically installed plugins. Hosts that load `SKILL.md` can use them directly; other assistants can read the same instructions and linked contracts. Keep the repo layout intact because skills link to shared docs. [Skill map](docs/SKILLS.md).
 
+The [Director rules](docs/DIRECTOR_RULES.md) also cover stable blocking, broad composition/lighting exploration, detailed emotional coverage, reactions/inserts, match cuts and exact frame-local prompt information. They are shared by the Director agent and the relevant production skills; the linked lighting and art-direction references are supporting knowledge, not new runtime/model integrations.
+
 For image references, manual video import and review commands, follow the [walkthrough](docs/WALKTHROUGH.md). The [data contract](docs/CONTRACT.md) defines plan and review formats. The [SOP](docs/SOP.md) defines decision and completion rules.
 
 ## Style library (drafts)

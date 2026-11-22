@@ -7,6 +7,8 @@ description: Independently check original-screenplay coverage and inspect genera
 
 Inputs: original screenplay, plan, canonical assets, actual clips and their hashes. Read [review contract](../../docs/CONTRACT.md).
 
+Apply [Director rules](../../docs/DIRECTOR_RULES.md) to each shot alone. Check exact required tags/location views, visible partial ownership and relevance of ALL prose and actual bindings; a valid tag can still be irrelevant. Detailed mode must add useful source-supported depth, not scene-wide inventory or filler. Check stable blocking/light, reaction causality, insert purpose, match-cut pairs and panel boundaries. Keep text review separate from inspected visual/temporal/audio results.
+
 First compare original source against semantic beats and planned shots. A line mapping cannot prove every sub-action is represented. Inspect compound actions, exact dialogue/speakers, off-screen information, transitions and scene boundaries. Record breakdown acceptance only after this check and full structural mapping.
 
 Inspect the entire relevant clip sequence, including audio where required. Compare face/look, geography, prop state/ownership, screen direction, performance and start/end boundaries against source, canonical images and adjacent shots. Do not infer action execution from a still or provider success flag.

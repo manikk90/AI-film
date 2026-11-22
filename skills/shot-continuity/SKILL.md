@@ -7,6 +7,8 @@ description: Turn screenplay beats and designed assets into a complete ordered s
 
 Inputs: source-linked beats, treatment, character/look/location/prop records. Read the [shot contract](../../docs/CONTRACT.md).
 
+Apply [Director rules](../../docs/DIRECTOR_RULES.md), especially stable world blocking, detailed-beat expansion, causal reactions, meaningful inserts and outgoing/incoming cut states. For each individually executable shot, repeat exact relevant approved character/partial-owner, prop and matching registered location-view bindings. Keep wider continuity in state records; actual visual prompts and inputs contain only that shot's required inventory. Genuine composed-frame ancestor provenance remains intact.
+
 Plan shots around dramatic purpose and observable action. A shot may cover multiple beats; every beat must have coverage. Preserve exact dialogue and allow time to perform it. Do not remove beats to fit a model's duration; split at an intelligible action boundary instead.
 
 Specify composition, blocking, eyeline, screen direction, camera behaviour, lighting, audio intent, duration and aspect ratio. Set concrete `start_state` and `end_state` covering position, prop ownership/state, costume/injury and emotion. Check adjacency and scene chronology, including flashbacks and deliberate jumps.

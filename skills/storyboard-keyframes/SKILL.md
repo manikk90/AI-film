@@ -7,6 +7,8 @@ description: Create and inspect shot-specific storyboard panels and clean genera
 
 Inputs: shot plan, canonical images, target input route. Follow [reference routing](../../docs/SOP.md).
 
+Apply [Director rules](../../docs/DIRECTOR_RULES.md). A detailed panel request develops useful emotional/causal depth, reactions, inserts and cut connections while each cell shows one instant and only its own relevant information/tags. Default a requested panel to nine horizontal 16:9 shots unless overridden; preserve the requested panel/scene boundary. Explore cameras around established blocking rather than moving the world; strict frames retain their inventory, crop, light and applicable locks. Prompt-only delivery is one copy-ready block of individual shots, without shared scene/lock preambles or Refs lines.
+
 Use a storyboard to resolve framing, action readability, blocking and geography before expensive video generation. Preserve identities and scene-specific looks by supplying actual canonical references. A contact sheet is a review artifact, not automatically a valid starting frame for one video shot.
 
 Extract or regenerate the intended panel into a clean, sufficiently detailed image without labels/borders. Inspect face, wardrobe, important props, hands, perspective, entrance geometry and intended initial pose. Resolve contradictions with the planned action: a final pose is not necessarily a useful starting pose.
