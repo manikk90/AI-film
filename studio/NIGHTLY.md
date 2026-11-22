@@ -7,7 +7,7 @@ The run only suggests. It does not research deeply, write scripts, start product
 ## Steps
 
 1. **Read** `studio/LEARNINGS.md` (every section; the newest rule wins), `studio/PROFILE.md`, `.claude/agents/social.md` (Job 1 rules) and `studio/STYLE_MENU.md`.
-2. **Search** with WebSearch, about 15–20 queries, several per turn, `standard` first and `extended` for freshness:
+2. **Search** with WebSearch, at most 15 queries (the caveman cap for a trend scan), several per turn, `standard` first and `extended` for freshness:
    - what is trending in India in the last 24–72 h (Google Trends India, YouTube trending and Shorts, Reels formats, X India, top news)
    - film, OTT and cricket events this week
    - the festival and observance calendar for the next 14–30 days, with dates from a source
@@ -32,7 +32,7 @@ Aaj ke 10 topics (DD Mon YYYY): top 3 pehle
    Hook: "<Hinglish hook line>"
    Kyun abhi: <one line> (<source, date>)
    Style: <best style> (`slug`, library/draft) · Experiment: <bold option> (`slug`)
-   Format: <9:16 Reels/Shorts, NN s> · Music: <one line: mood, instruments>
+   Format: <9:16 Reels/Shorts, NN s; a story film at least 2 min> · Music: <one line: mood, instruments>
    Risk: <one line, or "none">
 ...
 10. ...

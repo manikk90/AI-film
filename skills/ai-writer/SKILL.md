@@ -39,7 +39,7 @@ Keep three lists apart: approved canon, proposed alternatives and rejected ideas
 
 ## The script packet (what the owner approves)
 
-Save it as `script/SCRIPT_v<N>.md` in the project folder and show it in chat:
+Save it where the caller says. In a `/viral-studio` run that is `04-script/SCRIPT_v<N>.md`; standalone, also use `04-script/` in the project folder. Show it in chat:
 
 1. **Logline** (one sentence), **theme**, **audience**, **length**, **language**, **voice** (who is speaking, and how).
 2. **Two or three approaches**, a few lines each, with a recommendation and the reason for it.
@@ -53,8 +53,9 @@ Save it as `script/SCRIPT_v<N>.md` in the project folder and show it in chat:
 
 - After presenting the packet, **stop**. Do not generate voice, music, picture, stills, storyboards, renders or uploads.
 - Only an explicit approval from the owner opens the gate ("approved", "haan, ye theek hai, banao", or similar). Silence, "dekhte hain", or a question about the script is not approval.
+- Auto mode exception: when the owner said "auto" or "hamesha auto", the orchestrator's logged `auto-approved` line in `STATUS.md` for Gate 2 counts as that approval, and only for a clean critique round (`studio/README.md` → "Auto mode"). Never for rights, facts, real people or publishing.
 - On feedback, the writer revises. Show version N+1 with a change list, and wait again.
-- Once the script is approved, record the exact words in `script/dialogue-lock.md` (with the version and the date). Voice, subtitles and timing then use those words unchanged. If production shows that a line has to change (for example, it is too long for its shot), take the change back to the writer and to the owner. Never edit it silently.
+- Once the script is approved, the orchestrator records the exact words in `04-script/dialogue-lock.md` (with the version and the date). Voice, subtitles and timing then use those words unchanged. If production shows that a line has to change (for example, it is too long for its shot), take the change back to the writer and to the owner. Never edit it silently.
 
 ## Handoff
 

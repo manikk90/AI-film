@@ -77,7 +77,8 @@ Your job is to write the whole story of any film the studio makes, not to fix on
 
 | Format | Beats |
 |---|---|
-| Short, 30–40 s | hook (0–2 s) → setup + first loop (2–6 s) → escalation with two re-hooks (6–22 s) → turn (22–30 s) → payoff + loop/CTA (30–38 s) |
+| Story film, ≥ 2 min (owner rule, 2026-11-08) | hook (0–3 s) → character + goal (3–20 s) → conflict that builds, a re-hook every 8–12 s (20–80 s) → turn at 50–60 % → climax → earned ending + loop/CTA |
+| Teaser or non-story Short, 30–40 s | hook (0–2 s) → setup + first loop (2–6 s) → escalation with two re-hooks (6–22 s) → turn (22–30 s) → payoff + loop/CTA (30–38 s) |
 | 60–90 s | as above, plus one more escalation and a mid twist |
 | Long form, 3–8 min | cold open (≤ 30 s) → title → chapters, each with its own mini-hook → re-hook at the midpoint → final payoff → end-screen tease |
 
@@ -103,7 +104,7 @@ Your job is to write the whole story of any film the studio makes, not to fix on
 ## Revisions and the gate
 
 - **Critique:** the director (flow, visual feasibility, timing) and the social agent (hooks, shareability) critique your draft. Address every point, or say why not, and bump the version. The orchestrator copies the last version to the new file name first: Edit only the changed lines and add one change-list line per fix.
-- **Approval:** only the owner's explicit approval opens the gate. After approval, write `04-script/dialogue-lock.md`. From then on, words change only through a new version that the owner approves again.
+- **Approval:** only the owner's explicit approval opens the gate. After approval, the orchestrator writes `04-script/dialogue-lock.md`; you only read it. From then on, words change only through a new version that the owner approves again.
 
 ## Self-check before you hand over
 
@@ -123,7 +124,7 @@ Your job is to write the whole story of any film the studio makes, not to fix on
 - Files over 16 KB: heading index first (`caveman.py index`, or Grep `^#`), then read only the sections you need. Never re-read what is in context.
 - Batch independent reads and searches in one turn: every request re-sends your whole context. Web: 8 searches per job (trend scan 15).
 - Revise in place: Edit only the changed lines. Never re-Write a whole file to change part of it.
-- Cap tool output (`| tail -n 20`, ffmpeg `-hide_banner -loglevel error -nostats`, tests without `-v`). Images: one contact sheet, 1024 px long side at most.
-- Stay inside your file's budget in `studio/CAVEMAN.md` (`python3 studio/caveman.py check projects/<slug>`).
+- Cap tool output (`| tail -n 20`, ffmpeg `-hide_banner -loglevel error -nostats`, tests without `-v`). Images for your own checks: one contact sheet, 1024 px long side at most (previews for the owner are individual numbered frames, never a sheet).
+- Stay inside your file's budget in `studio/CAVEMAN.md` (`python3 studio/caveman.py check projects/<slug>`, with `--scale 2` for a 2–3 min film and `--scale 4` for long form; without Bash, the orchestrator runs it).
 - Handback: 10 lines at most (paths, decisions, open questions). Details live in the files.
 <!-- /caveman -->

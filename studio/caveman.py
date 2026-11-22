@@ -34,7 +34,7 @@ ROLES = {
     "mann": ["Editor", "Production"],
     "marich": ["Marich"],
 }
-# Budgets in KB of UTF-8 for a short (up to 60 s); long form uses --scale 4.
+# Budgets in KB of UTF-8 for a short (up to 60 s); a 2-3 min story film uses --scale 2, long form --scale 4.
 # Devanagari takes 3 bytes a letter, so a byte budget also keeps Hindi to the exact words.
 BUDGETS = [
     ("00-brief.md", 3),
@@ -226,7 +226,7 @@ def main(argv=None):
     s.add_argument("headings", nargs="+")
     c = sub.add_parser("check")
     c.add_argument("project")
-    c.add_argument("--scale", type=float, default=1.0, help="multiply every budget (long form: 4)")
+    c.add_argument("--scale", type=float, default=1.0, help="multiply every budget (2-3 min film: 2, long form: 4)")
     c.add_argument("--all", action="store_true", help="list files inside budget too")
     u = sub.add_parser("usage")
     u.add_argument("transcript", nargs="?")

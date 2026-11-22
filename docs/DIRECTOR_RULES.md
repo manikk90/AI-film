@@ -35,7 +35,7 @@ An explicit request for detail overrides short-prompt defaults for that request.
 - Plan outgoing and incoming cut states. Distinguish continuation of one action from a graphic/thematic match between different images. Use reaction cuts, contrast, J/L sound bridges and holds where motivated; no match-cut quota.
 - Estimate pacing from actual dialogue/audio, action and processing. Label unmeasured times. Preserve exact words and reveal order.
 
-Default one panel is a 3x3 board of nine distinct horizontal 16:9 shots unless the owner specifies otherwise. Each still shows one exact instant. Put movement/focus progression in video direction. Do not silently expand a requested single panel into later scenes; state any remaining beat/next entry state. Report unused capacity rather than inventing filler. A board's total resolution is not each cell's resolution.
+Default one panel is a 3x3 board of nine distinct shots in the film's aspect (9:16 for the studio's reels and story films, 16:9 for long form) unless the owner specifies otherwise. Each still shows one exact instant. Put movement/focus progression in video direction. Do not silently expand a requested single panel into later scenes; state any remaining beat/next entry state. Report unused capacity rather than inventing filler. A board's total resolution is not each cell's resolution.
 
 ## Every prompt is an individual shot
 

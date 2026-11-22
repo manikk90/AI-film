@@ -17,6 +17,7 @@ The owner's instruction (2026-11-01): "jo jo chije batata jau usko update krte j
    - **Writer**
    - **Director**
    - **Editor** (Mann: cutting, motion graphics, sound design, colour, VFX, style sheets)
+   - **Marich** (reverse engineering under Daksh)
    - **Production** (voice, music, SFX, render)
    - **Project: <slug>**, for anything that only holds for one film
 
@@ -31,7 +32,7 @@ The owner's instruction (2026-11-01): "jo jo chije batata jau usko update krte j
 6. **Write** the entry under its section in `studio/LEARNINGS.md`:
    `- YYYY-MM-DD · kind · rule. Why: … Source: "<owner's words>" (project)`
 7. **Editor rules that can be measured** (loudness, dead air, shot length, hook timing, subtitles, pace) also go into `editor/rules.json`: change or add the threshold under `rules` and append a `history` entry `{date, rule, value, kind, source}` quoting the owner. Mann's `qc` enforces these from the next render. If a style sheet was wrong, fix `editor/styles/<slug>/STYLE_SHEET.md` too.
-8. **Save it.** Run `python3 -m unittest tests.test_studio tests.test_editor`. Then commit only `studio/LEARNINGS.md` (and `editor/rules.json` or the style sheet when they changed), with the message `studio: learn - <short rule>`, and push the current working branch.
+8. **Save it.** Run `python3 -m unittest tests.test_studio tests.test_editor`. Then commit only `studio/LEARNINGS.md` (and `editor/rules.json` or the style sheet when they changed), with the message `studio: learn - <short rule>`, on a work branch (never the default branch), push it and open a PR; it merges once CI is green (owner rule, 2026-11-08: PR auto-merge).
 9. **Confirm** to the owner in one line which rule was recorded, then continue the task with the new rule applied.
 
 ## Never
