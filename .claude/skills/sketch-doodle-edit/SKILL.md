@@ -45,7 +45,7 @@ One photo turned into the trending sketch doodle edit from How to do this with C
 - **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size, audio present and in sync.
 - **Studio tools for these steps:**
   - canvas page: start from `studio/canvas_kit.js` (seeded rng, easing, layer cache, camera, karaoke captions, safe zone, burst, grain) and link `studio/fonts/fonts.css`; every font the skills name is vendored there
-  - sound effects: `python3 studio/sfx.py place cues.json sfx.wav` (code-made whoosh, ding, pop, boom, impact, shutter, typing, bell, damru, riser), cue times from the alignment or beats
+  - sound effects: `python3 studio/sfx.py place cues.json sfx.wav --report sfx.json`: real-sounding effects by words through earshot (`"want": "footstep on gravel"`), real CC0 recordings from `studio/openverse_audio.py get` (`"file"`), code-made sounds as the fallback; cue times from the alignment or beats, the report goes into CREDITS
   - `python3 studio/beats.py song.mp3 beats.json`: tempo, beats, downbeats, kicks, hits
 
 ---

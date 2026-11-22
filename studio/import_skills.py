@@ -160,7 +160,9 @@ TOOLS = [  # (pattern in the skill text, tool line)
     (r"HTML canvas|canvas", "canvas page: start from `studio/canvas_kit.js` (seeded rng, easing, layer cache, camera, "
      "karaoke captions, safe zone, burst, grain) and link `studio/fonts/fonts.css`; every font the skills name is vendored there"),
     (r"[Ss]ound effect|whoosh|ding|sting|shutter sound|cha-ching|SFX|bell|damru", "sound effects: `python3 studio/sfx.py place "
-     "cues.json sfx.wav` (code-made whoosh, ding, pop, boom, impact, shutter, typing, bell, damru, riser), cue times from the alignment or beats"),
+     "cues.json sfx.wav --report sfx.json`: real-sounding effects by words through earshot (`\"want\": \"footstep on gravel\"`), "
+     "real CC0 recordings from `studio/openverse_audio.py get` (`\"file\"`), code-made sounds as the fallback; cue times from the "
+     "alignment or beats, the report goes into CREDITS"),
     (r"demucs|[Ss]eparate the vocals", "`python3 studio/separate_vocals.py song.mp3 stems/`: vocals for alignment, "
      "instrumental for muting a word; the film keeps the original mix"),
     (r"[Ff]orce-align|MMS_FA|word-level timings|[Tt]ranscribe", "word timing: `python3 studio/mms_align.py` "
