@@ -5,7 +5,8 @@
 #
 # Needs these hosts open (environment network settings): pypi.org, download.pytorch.org, dl.fbaipublicfiles.com
 # (MMS_FA + demucs weights, fetched on first use), openaipublic.azureedge.net (Whisper, on first use),
-# storage.googleapis.com (MediaPipe models, on first use), download.blender.org, raw.githubusercontent.com.
+# storage.googleapis.com (MediaPipe models, on first use), download.blender.org, raw.githubusercontent.com,
+# github.com (earshot), api.openverse.org + cdn.freesound.org (recorded CC0 sounds).
 # Then run `python3 studio/check_env.py` to see what is ready.
 set -euo pipefail
 
@@ -34,7 +35,8 @@ for mod in demucs uroman whisper mediapipe librosa soundfile; do
 done
 
 say "earshot: real-sounding effects in words (MIT; github.com/Leonxlnx/earshot, not the PyPI name)"
-command -v earshot >/dev/null || python3 -m pip install -q "earshot @ git+https://github.com/Leonxlnx/earshot"
+command -v earshot >/dev/null || python3 -m pip install -q "earshot @ git+https://github.com/Leonxlnx/earshot" \
+  || echo "earshot could not be installed (is github.com allowed?); sfx.py falls back to its code sounds"
 
 say "Blender (LTS) for 3d-explainer"
 if ! command -v blender >/dev/null; then

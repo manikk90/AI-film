@@ -34,6 +34,7 @@ HOSTS = {
     "download.blender.org": "https://download.blender.org/release/",
     "api.openverse.org": "https://api.openverse.org/v1/audio/?q=bell&page_size=1",
     "cdn.freesound.org": "https://cdn.freesound.org/",
+    "upload.wikimedia.org": "https://upload.wikimedia.org/",
 }
 # capability, the tools it needs, the hosts it needs (all of them), alternative hosts (any one), env vars, who uses it
 CAPABILITIES = [
@@ -56,8 +57,8 @@ CAPABILITIES = [
      "skills that put graphics behind the owner or trace their outline"),
     ("Real sound effects: earshot (studio/sfx.py want / place)", ["earshot"], [], [], [],
      "every skill with sound effects: footsteps, whooshes, foley, ambience, film hits"),
-    ("Recorded CC0 sounds: Openverse (studio/openverse_audio.py)", ["python3"], ["api.openverse.org", "cdn.freesound.org"],
-     [], [], "a specific real recording: temple bell, rain, crowd, train"),
+    ("Recorded CC0 sounds: Openverse (studio/openverse_audio.py)", ["python3"], ["api.openverse.org"],
+     ["cdn.freesound.org", "upload.wikimedia.org"], [], "a specific real recording: temple bell, rain, crowd, train"),
     ("Blender headless (EEVEE)", ["blender"], [], [], [], "3d-explainer"),
     ("WhatsApp copy and render QC (studio/whatsapp_copy.py, studio/frame_check.py)", ["ffmpeg", "ffprobe"], [], [],
      [], "every finished video"),

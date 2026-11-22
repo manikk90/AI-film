@@ -26,6 +26,24 @@ def row(i, license="cc0", mature=False, ms=3000, title="bell", url=None):
             "duration": ms, "filetype": "aif", "mature": mature, "provider": "freesound"}
 
 
+FAKE_EARSHOT = """#!/usr/bin/env python3
+# SYNTHETIC FIXTURE: a stand-in for the earshot CLI with fixed answers
+import json, subprocess, sys
+a = sys.argv[1:]
+out = a[a.index("-o") + 1]
+want = a[-1]
+dur = a[a.index("--dur") + 1] if "--dur" in a else "3"
+open(out + ".args", "w").write(json.dumps(a))
+if "hang" in want:
+    import time; time.sleep(5)
+subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "sine=f=500:d=3", out], check=True)
+info = {"sound": "bell/bike", "files": [out], "unknown": [], "not_in_sound": [], "takes": [{"dur_s": 3.0}]}
+if "temple" in want:
+    info["not_in_sound"] = ["temple"]
+print(json.dumps(info))
+"""
+
+
 class OpenverseTest(unittest.TestCase):
     def test_only_safe_licences_and_no_mature_or_overlong_results(self):
         rows = [row(1, "by-nc"), row(2, mature=True), row(3, ms=90000), row(4), row(5, "pdm"), row(6, "by")]
@@ -36,30 +54,47 @@ class OpenverseTest(unittest.TestCase):
         self.assertIn("REQUIRED", OV.credit_line(row(6, "by")))
         self.assertNotIn("REQUIRED", OV.credit_line(row(4)))
 
-    def test_save_writes_files_credits_and_sources_skips_refused_and_existing(self):
+    @unittest.skipUnless(FF, "needs FFmpeg to make a real audio body")
+    def test_save_writes_files_credits_and_sources_skips_refused_bad_and_existing(self):
         calls = []
+        with tempfile.TemporaryDirectory() as t2:
+            mp3 = Path(t2) / "a.mp3"  # synthetic tone standing in for a downloaded recording
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "sine=d=0.5", str(mp3)], check=True)
+            audio = mp3.read_bytes()
 
         def fake_get(url, tries=6):
             calls.append(url)
             if "/2-" in url:
                 raise urllib.error.HTTPError(url, 403, "Forbidden", None, None)
-            return b"ID3 synthetic audio bytes"
+            if "/5-" in url:
+                return b"<html>login page</html>"  # HTTP 200 but not audio
+            return audio
 
         real = OV._get
         OV._get = fake_get
         try:
             with tempfile.TemporaryDirectory() as tmp:
                 out = Path(tmp)
-                files = OV.save([row(1), row(2), row(3), row(4)], out, want=2)
-                self.assertEqual([f.name for f in files], ["bell-1_00000001.mp3", "bell-3_00000003.mp3"])  # 2 refused
+                files = OV.save([row(1), row(2), row(5), row(3), row(4)], out, want=2)
+                self.assertEqual([f.name for f in files], ["bell-1_00000001.mp3", "bell-3_00000003.mp3"])  # 2, 5 skipped
                 self.assertTrue(all(f.suffix == ".mp3" for f in files))  # from the URL, not filetype "aif"
+                self.assertFalse(list(out.glob("*.part")))  # the bad body left nothing behind
                 src = json.loads((out / "sources.json").read_text())
                 self.assertEqual([s["file"] for s in src], [f.name for f in files])
-                self.assertEqual(src[0]["license"], "cc0")
-                self.assertEqual(len((out / "CREDITS.md").read_text().splitlines()), 2)
+                self.assertEqual((src[0]["license"], src[0]["verified"]), ("cc0", None))
+                credits = (out / "CREDITS.md").read_text()
+                self.assertEqual(credits.count("UNVERIFIED]"), 2)
                 again = OV.save([row(1)], out)  # already there: skipped, nothing appended
                 self.assertEqual(again, [])
                 self.assertEqual(len(json.loads((out / "sources.json").read_text())), 2)
+                # verify: the source page decides; page 1 shows CC0, page 3 shows a non-commercial licence
+                pages = {"https://example.org/s/1": b"... creativecommons.org/publicdomain/zero/1.0 ...",
+                         "https://example.org/s/3": b"... creativecommons.org/licenses/by-nc/4.0 ..."}
+                OV._get = lambda url, tries=6: pages[url]
+                rows = OV.verify(out)
+                self.assertEqual([r["verified"] for r in rows], ["verified", "mismatch"])
+                self.assertIn("LICENCE MISMATCH", (out / "CREDITS.md").read_text())
+                self.assertEqual(OV.main(["verify", str(out)]), 1)  # a mismatch blocks
         finally:
             OV._get = real
         self.assertNotIn(row(4)["url"], calls)  # stopped once it had two files
@@ -101,6 +136,65 @@ class SfxSourcesTest(unittest.TestCase):
         sfx.place([{"t": 0.1, "want": "temple bell", "sfx": "bell"}], dur=3, report=rows)
         self.assertEqual(rows[0]["source"], "code")
         self.assertIn("did not understand", rows[0]["fallback_reason"])
+
+
+@unittest.skipUnless(FF and importlib.util.find_spec("numpy"), "needs FFmpeg and numpy")
+class EarshotContractTest(unittest.TestCase):
+    """Uses a fake earshot on PATH so the edge cases are exact and need no install."""
+
+    def setUp(self):
+        import os
+        self.tmp = tempfile.TemporaryDirectory()
+        self.bin = Path(self.tmp.name)
+        (self.bin / "earshot").write_text(FAKE_EARSHOT)
+        (self.bin / "earshot").chmod(0o755)
+        self.old_path = os.environ["PATH"]
+        os.environ["PATH"] = f"{self.bin}{os.pathsep}{self.old_path}"
+
+    def tearDown(self):
+        import os
+        os.environ["PATH"] = self.old_path
+        self.tmp.cleanup()
+
+    def test_not_in_sound_is_refused_like_unknown(self):
+        import sfx
+        with self.assertRaises(sfx.EarshotMiss):
+            sfx.earshot("temple bell")
+        x, info = sfx.earshot("temple bell", allow_guess=True)
+        self.assertTrue(info["guess"])
+
+    def test_length_is_passed_and_enforced(self):
+        import sfx
+        rows = []
+        bed = sfx.place([{"t": 0.0, "want": "a soft whoosh", "len": 1.0, "sfx": "whoosh"}], dur=3, report=rows)
+        self.assertEqual(rows[0]["source"], "earshot")
+        self.assertLess(float(abs(bed[int(1.05 * sfx.SR):]).max()), 1e-3)  # 3 s take trimmed to the 1 s cue
+
+    def test_required_engine_never_falls_back_and_timeouts_are_misses(self):
+        import subprocess as sp
+        import sfx
+        with self.assertRaises(SystemExit):
+            sfx.place([{"t": 0.0, "want": "temple bell", "sfx": "bell"}], dur=2, engine="earshot")
+        real = sp.run
+
+        def quick_timeout(cmd, *a, **k):
+            if cmd and cmd[0] == "earshot":
+                raise sp.TimeoutExpired(cmd, 300)
+            return real(cmd, *a, **k)
+        sfx.subprocess.run = quick_timeout
+        try:
+            rows = []
+            sfx.place([{"t": 0.0, "want": "a soft whoosh", "sfx": "whoosh"}], dur=2, report=rows)  # auto: falls back
+            self.assertEqual(rows[0]["source"], "code")
+            self.assertIn("300 s", rows[0]["fallback_reason"])
+        finally:
+            sfx.subprocess.run = real
+
+    def test_want_accepts_a_catalogue_id_without_words(self):
+        import sfx
+        out = self.bin / "w.wav"
+        self.assertEqual(sfx.main(["want", "--sound", "whoosh/fast", str(out)]), 0)
+        self.assertTrue(out.exists())
 
 
 if __name__ == "__main__":

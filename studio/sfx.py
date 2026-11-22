@@ -237,7 +237,7 @@ def _read_any(path: str) -> np.ndarray:
 
 
 def earshot(want: str | None = None, sound: str | None = None, seed: int = 0, allow_guess: bool = False,
-            gain_db: float = -3.0) -> tuple[np.ndarray, dict]:
+            gain_db: float = -3.0, dur: float | None = None) -> tuple[np.ndarray, dict]:
     """Render one take with earshot. Returns (stereo float (n, 2) peaked at gain_db, info)."""
     if not earshot_available():
         raise EarshotMiss("earshot is not installed (bash studio/setup_env.sh)")
@@ -246,19 +246,25 @@ def earshot(want: str | None = None, sound: str | None = None, seed: int = 0, al
     with tempfile.TemporaryDirectory() as tmp:
         out = str(Path(tmp) / "take.wav")
         cmd = ["earshot", "make", "-o", out, "--json", "--seed", str(seed)]
+        if dur:
+            cmd += ["--dur", f"{float(dur):g}"]
         if sound:
             cmd += ["--sound", sound]
         if want:
             cmd.append(want)
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        except subprocess.TimeoutExpired:
+            raise EarshotMiss("earshot took over 300 s and was stopped")
         try:
             info = json.loads(r.stdout)
         except json.JSONDecodeError:
             raise EarshotMiss(f"earshot failed: {(r.stderr or r.stdout).strip()[:300]}")
         if r.returncode or not Path(out).exists():
             raise EarshotMiss(f"earshot failed: {info.get('summary', '')[:300]}")
-        if info.get("unknown") and not sound and not allow_guess:
-            raise EarshotMiss(f"earshot did not understand {', '.join(info['unknown'])!s} in {want!r}; its nearest "
+        missing = list(info.get("unknown") or []) + list(info.get("not_in_sound") or [])
+        if missing and not sound and not allow_guess:
+            raise EarshotMiss(f"earshot did not understand or cannot make {', '.join(missing)} in {want!r}; its nearest "
                               f"guess was {info.get('sound')} (pass allow_guess, name a catalogue id, or use a code sfx)")
         x = _read_any(out)
     peak = np.max(np.abs(x)) or 1.0
@@ -267,7 +273,7 @@ def earshot(want: str | None = None, sound: str | None = None, seed: int = 0, al
     x[-fade:] *= np.linspace(1, 0, fade)[:, None]
     take = (info.get("takes") or [{}])[0]
     return x, {"source": "earshot", "id": info.get("sound"), "want": want, "seed": seed,
-               "guess": bool(info.get("unknown")), "dur_s": take.get("dur_s")}
+               "guess": bool(info.get("unknown") or info.get("not_in_sound")), "dur_s": take.get("dur_s")}
 
 
 def render_cue(c: dict, i: int = 0, engine: str = "auto") -> tuple[np.ndarray, dict]:
@@ -287,11 +293,16 @@ def render_cue(c: dict, i: int = 0, engine: str = "auto") -> tuple[np.ndarray, d
     why = None
     if wants_earshot and engine != "code" and (engine == "earshot" or earshot_available()):
         try:
-            return earshot(c.get("want"), c.get("sound"), seed, bool(c.get("allow_guess")), gain)
+            x, info = earshot(c.get("want"), c.get("sound"), seed, bool(c.get("allow_guess")), gain, c.get("len"))
+            if c.get("len") and len(x) > int(float(c["len"]) * SR):  # earshot honours --dur only for some sounds
+                x = x[:int(float(c["len"]) * SR)].copy()
+                fade = min(len(x), int(0.02 * SR))
+                x[-fade:] *= np.linspace(1, 0, fade)[:, None]
+            return x, info
         except EarshotMiss as e:
             why = str(e)
-            if engine == "earshot" and not c.get("sfx"):
-                raise
+            if engine == "earshot":  # earshot was required: never fall back silently
+                raise SystemExit(f"cue {i} at {c.get('t')} s: {e}")
     if not c.get("sfx"):
         raise SystemExit(f"cue {i} at {c.get('t')} s has no code `sfx` to fall back to"
                          + (f": {why}" if why else " (earshot not used)"))
@@ -329,12 +340,13 @@ def main(argv=None) -> int:
     m.add_argument("--len", type=float)
     m.add_argument("--gain", type=float, default=-3.0)
     w = sub.add_parser("want")
-    w.add_argument("words")
+    w.add_argument("words", nargs="?", default="", help="the request in words (optional with --sound)")
     w.add_argument("out")
     w.add_argument("--seed", type=int, default=0)
     w.add_argument("--sound", help="an earshot catalogue id instead of words")
     w.add_argument("--allow-guess", action="store_true")
     w.add_argument("--gain", type=float, default=-3.0)
+    w.add_argument("--len", type=float, help="length in seconds (earshot --dur)")
     al = sub.add_parser("all")
     al.add_argument("outdir")
     p = sub.add_parser("place")
@@ -352,7 +364,9 @@ def main(argv=None) -> int:
         print(a.out)
     elif a.cmd == "want":
         try:
-            x, info = earshot(a.words or None, a.sound, a.seed, a.allow_guess, a.gain)
+            if not (a.words or a.sound):
+                raise SystemExit("want needs words or --sound <catalogue id>")
+            x, info = earshot(a.words or None, a.sound, a.seed, a.allow_guess, a.gain, a.len)
         except EarshotMiss as e:
             raise SystemExit(str(e))
         write(a.out, x)
