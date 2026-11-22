@@ -11,3 +11,10 @@ exports/
 .env.*
 !.env.example
 .mann-footage-search.json
+node_modules/
+.claude/settings.local.json
+.claude/worktrees/
+.vercel/
+renders/
+.rag/
+pytest.log

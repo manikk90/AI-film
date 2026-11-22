@@ -9,6 +9,14 @@ description = "Portable screenplay-to-video production records, skills, and cove
 requires-python = ">=3.9"
 dependencies = []
 
+# Install from a clone in editable mode: `pip install -e ".[media]"`. Mann and the studio read data that lives
+# next to the package (editor/, styles/, studio/), so a plain non-editable install is not supported.
+[project.optional-dependencies]
+# what the media, render and QC tests and tools need (FFmpeg and Node Playwright are installed separately)
+media = ["numpy", "Pillow"]
+# heavy optional tools; bash studio/setup_env.sh installs these with the right CPU builds
+studio = ["numpy", "Pillow", "librosa", "soundfile", "mediapipe", "uroman"]
+
 [project.scripts]
 aifilm = "aifilm.cli:main"
 mann = "aifilm.editor.cli:main"
