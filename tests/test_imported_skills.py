@@ -45,9 +45,11 @@ class ImportedSkillsTest(unittest.TestCase):
             self.assertTrue(json.loads(m.group(2)))
             self.assertEqual(text.count(MARK), 1, e["name"])
             head = text.split("\n## ", 1)[0]
-            for needle in ["studio/SKILL_HARNESS.md", "studio/LEARNINGS.md", "3 numbered frames at 3 timecodes",
-                           "studio/deliver.py", "third_party/ai-animation/LICENSE", IS.WORDS[e["kind"]],
-                           "studio/check_env.py", "studio/render_canvas.cjs"]:
+            still = e["name"] in IS.NO_VIDEO  # slides, not a video: first-slide preview, zip delivery
+            for needle in ["studio/SKILL_HARNESS.md", "studio/LEARNINGS.md", "third_party/ai-animation/LICENSE",
+                           IS.WORDS[e["kind"]], "studio/check_env.py"] + (
+                    ["first finished slide"] if still else
+                    ["3 numbered frames at 3 timecodes", "studio/deliver.py", "studio/render_canvas.cjs", "hook,mid,end"]):
                 self.assertIn(needle, head, e["name"])
             for flag in e["flags"]:
                 self.assertIn(IS.FLAG_LINES[flag], head, e["name"])

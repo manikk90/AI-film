@@ -75,7 +75,7 @@ Run `python3 studio/check_env.py` at the start of every production, and put its 
 - **ElevenLabs** only when it is reachable and the key is in `ELEVENLABS_API_KEY` (see `LEARNINGS.md`).
 - **Rendering:**
   - `node studio/render_canvas.cjs <page.html> <out.mp4> [--audio voice.mp3]` renders a canvas page frame by frame in the pre-installed Chromium and encodes it with FFmpeg, with nothing from the network. Pages that use `window.FILM.render(ctx, t)` (daksh-ai) or `window.render(t)` (Lemo-Opuscar) work.
-  - `--stills 1,6,11` writes the Gate 3 preview frames.
+  - `--stills hook,mid,end` writes the Gate 3 preview frames at 1 s, the middle and 0.5 s before the end (times in seconds also work, and a time past the end is refused).
 - **`daksh-ai`:**
   - Its stub-canvas harness passes on the template.
   - The template renders end to end with `studio/render_canvas.cjs`: 360 frames, 12.0 s, 1920×1080 at 30 fps (2026-11-02).

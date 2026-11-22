@@ -54,7 +54,8 @@ KIND = {
              "spotify-particle-lyrics", "pink-spotify-clip-lyrics", "night-glow-lyrics", "red-rap-lyrics",
              "glass-to-neon-lyrics", "breakup-chat-lyrics", "phone-chat-lyrics", "red-sun-lyrics",
              "red-silhouette-lyrics", "miniature-painting-lyrics", "one-take-forest-lyrics", "night-city-lyrics",
-             "anime-doodle-lyrics", "minimal-love-lyrics", "painted-beat-edit"],
+             "anime-doodle-lyrics", "minimal-love-lyrics", "painted-beat-edit",
+             "flicker-edit", "beat-transition-edit", "scribble-edit", "sketch-doodle-edit"],
     "third-party-audio": ["pusho-reel", "latent-reel", "comic-reel", "katha-video", "podcast-explainer",
                           "podcast-comic", "latent-comic", "podcast-cartoon", "mirzapur-video", "street-interview",
                           "maut-ke-bare-mai-sochte-ho", "madira-peekar-soo-gaye", "baba-pusho", "woof-woof"],
@@ -159,7 +160,7 @@ NO_VIDEO = {"crayon-carousel": "1080×1350 (4:5) PNG slides, numbered in photo o
 TOOLS = [  # (pattern in the skill text, tool line)
     (r"HTML canvas|canvas", "canvas page: start from `studio/canvas_kit.js` (seeded rng, easing, layer cache, camera, "
      "karaoke captions, safe zone, burst, grain) and link `studio/fonts/fonts.css`; every font the skills name is vendored there"),
-    (r"[Ss]ound effect|whoosh|ding|sting|shutter sound|cha-ching|SFX|bell|damru", "sound effects: `python3 studio/sfx.py place "
+    (r"[Ss]ound effects?|\bwhoosh|\bding\b|\bsting\b|shutter sound|cha-ching|\bSFX\b|\bbells?\b|\bdamru\b", "sound effects: `python3 studio/sfx.py place "
      "cues.json sfx.wav --report sfx.json`: real-sounding effects by words through earshot (`\"want\": \"footstep on gravel\"`), "
      "real CC0 recordings from `studio/openverse_audio.py get` (`\"file\"`), code-made sounds as the fallback; cue times from the "
      "alignment or beats, the report goes into CREDITS"),
@@ -168,28 +169,34 @@ TOOLS = [  # (pattern in the skill text, tool line)
     (r"[Ff]orce-align|MMS_FA|word-level timings|[Tt]ranscribe", "word timing: `python3 studio/mms_align.py` "
      "(MMS_FA, `--windows` for squeezed lines) when check_env says it is ready, else `studio/word_timing.py` for "
      "known words; Whisper (large-v3) only for unknown words"),
-    (r"librosa|[Bb]eat|kick", "`python3 studio/beats.py song.mp3 beats.json`: tempo, beats, downbeats, kicks, hits"),
-    (r"[Ll]ip-sync|mouth", "`python3 studio/mouth_curve.py voice.wav mouth.json --js mouth.js --words words.json`: "
+    (r"librosa|\b[Bb]eats?\b|\bkicks?\b", "`python3 studio/beats.py song.mp3 beats.json`: tempo, beats, downbeats, kicks, hits"),
+    (r"[Ll]ip-sync|\bmouths?\b", "`python3 studio/mouth_curve.py voice.wav mouth.json --js mouth.js --words words.json`: "
      "the mouth-open curve per frame (one run per speaker)"),
-    (r"[Cc]ut me out|segmentation|person mask|matte|cut-?out of|body cut out|outline around me|[Tt]race my outline",
+    (r"[Cc]ut me out|segmentation|person mask|\bmattes?\b|cut-?out of|body cut out|outline around me|[Tt]race my outline",
      "`python3 studio/person_matte.py clip.mp4 mattes/`: the person matte per frame"),
     (r"reference reel|[Aa]nalyze the reference|[Aa]nalyze each reference",
      "`python3 studio/ref_analyze.py ref.mp4 ref/`: frames at 2 fps, cut times, shot lengths, levels"),
 ]
 
 
-def render_settings(name: str, text: str) -> str:
+def render_settings(name: str, text: str, scripts: tuple = ()) -> str:
     lines = [f"## Render settings (studio)", ""]
     if name in NO_VIDEO:
         lines.append(f"- **Output:** {NO_VIDEO[name]}")
     else:
         outs, fps = RENDER.get(name, ([V], 30))
         song = kind_of(name) == "song" or "song as AAC" in text
+        canvas = ("canvas page → `node studio/render_canvas.cjs page.html out.mp4 --size WxH --fps N --audio a.mp3"
+                  + (" --abitrate 256k`" if song else "`"))
+        own_footage = kind_of(name) in ("clip", "assets") or re.search(r"\bmy (?:own )?(?:clip|video|footage)|your own clip", text, re.I)
         engine = ("Blender EEVEE (`blender -b`) frames, encoded with FFmpeg" if name == "3d-explainer" else
-                  "Remotion (`npx remotion render`)" if name == "watercolor-map" else
-                  "canvas page → `node studio/render_canvas.cjs page.html out.mp4 --size WxH --fps N --audio a.mp3" +
-                  (" --abitrate 256k`" if song else "`")
-                  if "canvas" in text else "FFmpeg / canvas compositor over the owner's footage")
+                  "Remotion (`npx remotion render`; needs the owner's permission to run npx here)"
+                  if name == "watercolor-map" else
+                  "this skill's own " + ", ".join(f"`scripts/{x}`" for x in scripts) + " (see its Helper scripts)"
+                  if scripts else
+                  canvas + "; the owner's footage goes in as frames extracted with FFmpeg (a canvas page cannot "
+                  "decode video by itself)" if "canvas" in text and own_footage else
+                  canvas if "canvas" in text else "FFmpeg / canvas compositor over the owner's footage")
         lines += [f"- **Outputs:** " + "; ".join(f"`{o}`" for o in outs) + f", {fps} fps, H.264 High, yuv420p, CRF 18, "
                   f"`-movflags +faststart`.",
                   f"- **Audio:** the original {'song' if song else 'recording'}, AAC {'256k' if song else '192k'} "
@@ -198,8 +205,9 @@ def render_settings(name: str, text: str) -> str:
                   "- **WhatsApp copy:** `python3 studio/whatsapp_copy.py final.mp4 final_whatsapp.mp4` (720p, under "
                   "20 MB).",
                   "- **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio "
-                  "<source audio>`: no black or frozen frames, right size, audio present and in sync."]
-    tools = [t for pat, t in TOOLS if re.search(pat, text)]
+                  "<source audio>`: no black or frozen frames, right size and fps, audio present with the source's "
+                  "length. Listen to the sync yourself at three points: the check does not prove lip or beat sync."]
+    tools = [t for pat, t in TOOLS if re.search(pat, text)] if name not in NO_VIDEO else []
     if tools:
         lines.append("- **Studio tools for these steps:**")
         lines += [f"  - {t}" for t in tools]
@@ -231,6 +239,7 @@ def parse(md: str, path: Path) -> tuple[dict, str]:
 
 
 def block(name: str, source: str, commit: str, kind: str, flags: list[str]) -> str:
+    still = name in NO_VIDEO
     origin = (f"Added from the owner's spec (`{source}`, {commit}), a skill from the same aansh.ai catalogue as the "
               f"[Ai-Animation]({UPSTREAM}) repo, MIT © 2026 aansh.ai: see " if commit == LOCAL_COMMIT else
               f"Imported from the owner's [Ai-Animation]({UPSTREAM}) repo (`{source}`, commit `{commit}`), MIT © 2026 "
@@ -244,18 +253,24 @@ def block(name: str, source: str, commit: str, kind: str, flags: list[str]) -> s
         f"> - **Words:** {WORDS[kind]}",
         "> - **Before you start:** run `python3 studio/check_env.py`. It shows what works in this session: rendering, "
         "word timing, Whisper and ElevenLabs.",
-        "> - **Preview (Gate 3):** before the full render, send 3 numbered frames at 3 timecodes (the hook, the "
-        "middle, the end), plus a 20–30 s music sketch when the skill adds music, and wait for the owner's OK. This "
-        "replaces any contact sheet, stills or snapshot step below. For a canvas page, "
-        "`node studio/render_canvas.cjs <page> <prefix> --stills 1,6,11` makes the frames, and the same script renders "
-        "the video locally.",
+        ("> - **Preview (Gate 3):** show the owner the first finished slide and wait for their OK before making "
+         "the rest." if still else
+         "> - **Preview (Gate 3):** before the full render, send 3 numbered frames at 3 timecodes (the hook, the "
+         "middle, the end), plus a 20–30 s music sketch when the skill adds music, and wait for the owner's OK. This "
+         "replaces any contact sheet, stills or snapshot step below. For a canvas page, "
+         "`node studio/render_canvas.cjs <page> <prefix> --stills hook,mid,end` makes the frames at 1 s, the middle "
+         "and 0.5 s before the end of the page's duration, and the same script renders the video locally."),
         *[f"> - {FLAG_LINES[f]}" for f in flags],
     ]
     if kind != "visual":
-        lines.append("> - **Word timing:** never guess. For known words (a script, lyrics, the locked dialogue), "
-                     "`studio/word_timing.py` aligns them offline. For unknown words, the doctor shows whether "
-                     "Whisper or alignment can run; if not, ask the owner for a transcript. Say which route you used.")
-    lines.append("> - **Deliver:** to `projects/<slug>/final/`, then send exactly 2 files with `studio/deliver.py`: "
+        lines.append("> - **Word timing:** never guess. For known words (a script, lyrics, the locked dialogue): "
+                     "`studio/mms_align.py` (MMS_FA) when `check_env.py` shows it ready, otherwise "
+                     "`studio/word_timing.py` offline if its Kokoro model is installed. For unknown words, Whisper when "
+                     "the doctor shows it ready; if nothing can run, ask the owner for a transcript. Say which route "
+                     "you used.")
+    lines.append("> - **Deliver:** to `projects/<slug>/final/`, then send the slides as one zip, with the first slide "
+                 "shown in chat. `studio/deliver.py` is for videos." if still else
+                 "> - **Deliver:** to `projects/<slug>/final/`, then send exactly 2 files with `studio/deliver.py`: "
                  "the final video, and one zip with everything else. Keep any WhatsApp copy in `final/` unless the "
                  "owner asks for it.")
     return "\n".join(lines) + "\n"
@@ -343,12 +358,21 @@ def main(argv=None) -> int:
             if (folder / "scripts").is_dir():
                 shutil.copytree(folder / "scripts", dest / "scripts", ignore=shutil.ignore_patterns("__pycache__"))
         harness = block(name, source, src_commit, info["kind"], info["flags"])
-        settings = "" if name == ENGINE else render_settings(name, body)
+        scripts = tuple(sorted(x.name for x in (folder / "scripts").glob("*.py"))) if (folder / "scripts").is_dir() else ()
+        settings = "" if name == ENGINE else render_settings(name, body, scripts)
         (dest / "SKILL.md").write_text(render(front, body, harness, info["input"], settings), encoding="utf-8")
         entries.append(info)
     REGISTRY.write_text(json.dumps(sorted(entries, key=lambda e: e["name"]), ensure_ascii=False, indent=1) + "\n",
                         encoding="utf-8")
     THIRD.mkdir(parents=True, exist_ok=True)
+    for e in entries:  # a new skill falls back to "clip"; say so when its input is not footage
+        if e["kind"] == "clip" and not re.search(r"clip|video|recording|footage|folder|photo|shot", e["input"], re.I):
+            print(f"note: {e['name']} defaults to kind 'clip' but takes {e['input']!r}; classify it in KIND")
+        if e["kind"] == "clip" and re.search(r"\bsong\b|\bMP3\b", e["input"]):
+            print(f"note: {e['name']} takes a song but is kind 'clip' (no song-rights line, AAC 192k); classify it")
+    gone_local = {e["name"] for e in old_entries if e["commit"] == LOCAL_COMMIT} - {e["name"] for e in entries}
+    for g in sorted(gone_local):
+        print(f"note: {g} is no longer in studio/skill_sources; its copy was left in place, remove it on purpose")
     if src is None:
         print(f"{len(found)} local skills regenerated; {len(kept)} upstream entries kept as they were")
         return 0
@@ -368,9 +392,6 @@ def main(argv=None) -> int:
     names = {e["name"] for e in entries}
     for gone in sorted(old - names):
         print(f"note: {gone} is no longer upstream; its copy was left in place, remove it on purpose if wanted")
-    for e in entries:  # a new upstream skill falls back to "clip"; say so when its input is not footage
-        if e["kind"] == "clip" and not re.search(r"clip|video|recording|footage|folder|photo|shot", e["input"], re.I):
-            print(f"note: {e['name']} defaults to kind 'clip' but takes {e['input']!r}; classify it in KIND")
     print(f"{len(entries)} skills imported from {src.name}@{commit} -> {SKILLS.relative_to(REPO)}")
     return 0
 

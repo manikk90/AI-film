@@ -296,8 +296,8 @@ Kind says where the words come from and which gate applies (see `studio/SKILL_HA
 |---|---|---|---|---|
 | Anime doodle lyrics | `/anime-doodle-lyrics` | a song MP3 (or a clip of it), its lyrics and 3–6 horizontal anime clips (with the start time for each) | song | third-party-footage |
 | Bairan style | `/bairan-style` | a song MP3 and its lyrics (Hindi or Haryanvi, one sung line per row) | song | - |
-| Breakup chat lyrics | `/breakup-chat-lyrics` | a song MP3 (or a 40–60 s cut), its lyrics, the cover art, 3–6 clips or photos for the mood, and the 2–4 chat lines you want in the intro | song | third-party-footage |
-| Glass to neon lyrics | `/glass-to-neon-lyrics` | a song MP3 (or a clip of it), its lyrics, the cover art, and 4–6 clips or photos with the mood you want for each part | song | third-party-footage |
+| Breakup chat lyrics | `/breakup-chat-lyrics` | a song MP3 (or a 40–60 s cut), its lyrics, the cover art, 3–6 clips or photos for the mood, and the 2–4 chat lines you want in the intro | song | third-party-footage, app-ui |
+| Glass to neon lyrics | `/glass-to-neon-lyrics` | a song MP3 (or a clip of it), its lyrics, the cover art, and 4–6 clips or photos with the mood you want for each part | song | third-party-footage, app-ui |
 | Glow lyrics | `/glow-lyrics` | a song MP3 and its lyrics (one sung line per row) | song | - |
 | Ink line lyrics | `/ink-line-lyrics` | a song MP3 and its lyrics, one sung line per row | song | - |
 | Miniature painting lyrics | `/miniature-painting-lyrics` | a song MP3 (a 60–75 s cut works), its lyrics in Devanagari, the song title and the artist name | song | generated-media |
@@ -305,28 +305,28 @@ Kind says where the words come from and which gate applies (see `studio/SKILL_HA
 | Minimal lyrics | `/minimal-lyrics` | a song MP3 and its lyrics (one sung line per row) | song | - |
 | Neon lyrics | `/neon-lyrics` | a song MP3, its lyrics, and photos of the rapper's look | song | real-people |
 | Night city lyrics | `/night-city-lyrics` | a song MP3 (or a clip of it), its lyrics and the song title + artist | song | - |
-| Night glow lyrics | `/night-glow-lyrics` | a song MP3 (or a clip of it), its lyrics, 2–4 emotional video clips (glowing / dreamy couple clips work best) and the song title + artists | song | third-party-footage |
+| Night glow lyrics | `/night-glow-lyrics` | a song MP3 (or a clip of it), its lyrics, 2–4 emotional video clips (glowing / dreamy couple clips work best) and the song title + artists | song | third-party-footage, app-ui |
 | One-take forest lyrics | `/one-take-forest-lyrics` | the song MP3, the lyrics and your Flow clips | song | generated-media |
 | Paper cutout | `/paper-cutout` | a song MP3 and its lyrics | song | - |
 | Party lyrics | `/party-lyrics` | a song MP3 and its lyrics | song | real-people |
-| Phone chat lyrics | `/phone-chat-lyrics` | a song MP3 (a 40–60 s cut works), its lyrics, the song title, and 5–8 clips with the time range you want from each (one must show someone looking at a phone) | song | third-party-footage |
-| Pink Spotify clip lyrics | `/pink-spotify-clip-lyrics` | a song MP3 (or a clip of it), its lyrics, 1–3 emotional video clips (with the start time for each), a cover image and the Spotify logo PNG | song | third-party-footage |
+| Phone chat lyrics | `/phone-chat-lyrics` | a song MP3 (a 40–60 s cut works), its lyrics, the song title, and 5–8 clips with the time range you want from each (one must show someone looking at a phone) | song | third-party-footage, app-ui |
+| Pink Spotify clip lyrics | `/pink-spotify-clip-lyrics` | a song MP3 (or a clip of it), its lyrics, 1–3 emotional video clips (with the start time for each), a cover image and the Spotify logo PNG | song | third-party-footage, app-ui |
 | Red rap lyrics | `/red-rap-lyrics` | a rap song MP3 (or a clip of it), its lyrics (Hindi in Devanagari works), one photo of the rapper and your reference reels for each section | song | real-people |
 | Red silhouette lyrics | `/red-silhouette-lyrics` | a song MP3 (a 40–60 s cut works), its lyrics with / marks where you want each phrase to split, and the song title | song | - |
 | Red sun lyrics | `/red-sun-lyrics` | a song MP3 (a 30–60 s cut works), its lyrics, the song title and the artist name | song | - |
-| Spotify particle lyrics | `/spotify-particle-lyrics` | a song MP3 (or a clip of it), its lyrics, 1–2 photos (the artists, and a second photo to morph into), the Spotify logo PNG and a reference reel for the motion-graphic part | song | real-people |
+| Spotify particle lyrics | `/spotify-particle-lyrics` | a song MP3 (or a clip of it), its lyrics, 1–2 photos (the artists, and a second photo to morph into), the Spotify logo PNG and a reference reel for the motion-graphic part | song | real-people, app-ui |
 | Watercolor lyrics | `/watercolor-lyrics` | a song MP3, its lyrics, and 10–14 watercolour images of the same couple (I can write the image prompts for you) | song | generated-media |
 
 ### Trend edits
 
 | Format | Skill | Owner gives | Kind | Checks |
 |---|---|---|---|---|
-| Beat transition edit | `/beat-transition-edit` | your model video, 3+ photos, the song MP3 and the reference reel | clip | - |
+| Beat transition edit | `/beat-transition-edit` | your model video, 3+ photos, the song MP3 and the reference reel | song | - |
 | Crayon carousel | `/crayon-carousel` | 3–10 of your photos, and their crayon drawings from Gemini | visual | generated-media |
-| Flicker edit | `/flicker-edit` | a shot (or photo) of the model, the same frame without her, and the song MP3 | clip | - |
+| Flicker edit | `/flicker-edit` | a shot (or photo) of the model, the same frame without her, and the song MP3 | song | - |
 | Painted beat edit | `/painted-beat-edit` | the song MP3 and the reference reel | song | - |
-| Scribble edit | `/scribble-edit` | a 9:16 clip of you moving (a plain wall behind you works best) and the song MP3 | clip | - |
-| Sketch doodle edit | `/sketch-doodle-edit` | one photo (people against an open sky works best), its pencil-sketch version from Gemini, and the song MP3 | clip | generated-media |
+| Scribble edit | `/scribble-edit` | a 9:16 clip of you moving (a plain wall behind you works best) and the song MP3 | song | - |
+| Sketch doodle edit | `/sketch-doodle-edit` | one photo (people against an open sky works best), its pencil-sketch version from Gemini, and the song MP3 | song | generated-media |
 
 ### Reel formats
 

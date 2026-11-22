@@ -10,9 +10,9 @@ argument-hint: "[3–10 of your photos, and their crayon drawings from Gemini]"
 > **Studio harness: read this first.** Added from the owner's spec (`studio/skill_sources/crayon-carousel/SKILL.md`, owner-spec-2026-11-08), a skill from the same aansh.ai catalogue as the [Ai-Animation](https://github.com/manikk90/Ai-Animation) repo, MIT © 2026 aansh.ai: see [`third_party/ai-animation/LICENSE`](../../../third_party/ai-animation/LICENSE). In this repo it runs inside the studio. Read `studio/LEARNINGS.md` and [`studio/SKILL_HARNESS.md`](../../../studio/SKILL_HARNESS.md) first; where they disagree with the steps below, they win.
 > - **Words:** no words beyond place labels and titles; the owner approves them, and the route, at the preview.
 > - **Before you start:** run `python3 studio/check_env.py`. It shows what works in this session: rendering, word timing, Whisper and ElevenLabs.
-> - **Preview (Gate 3):** before the full render, send 3 numbered frames at 3 timecodes (the hook, the middle, the end), plus a 20–30 s music sketch when the skill adds music, and wait for the owner's OK. This replaces any contact sheet, stills or snapshot step below. For a canvas page, `node studio/render_canvas.cjs <page> <prefix> --stills 1,6,11` makes the frames, and the same script renders the video locally.
+> - **Preview (Gate 3):** show the owner the first finished slide and wait for their OK before making the rest.
 > - **Generated images and clips:** only the ones the owner makes from the prompts and hands over (Gemini, Flow). If one is missing, ask for it; never use a placeholder.
-> - **Deliver:** to `projects/<slug>/final/`, then send exactly 2 files with `studio/deliver.py`: the final video, and one zip with everything else. Keep any WhatsApp copy in `final/` unless the owner asks for it.
+> - **Deliver:** to `projects/<slug>/final/`, then send the slides as one zip, with the first slide shown in chat. `studio/deliver.py` is for videos.
 
 The trending crayon carousel from How to do this with Claude (Ep 3): every slide puts a crayon drawing of your photo on top, labelled “One day”, over the real photo labelled “Day one”, ready to post as an Instagram carousel.
 
@@ -46,9 +46,6 @@ Run from this skill's folder (`.claude/skills/crayon-carousel/`).
 ## Render settings (studio)
 
 - **Output:** 1080×1350 (4:5) PNG slides, numbered in photo order, plus one contact sheet. No video.
-- **Studio tools for these steps:**
-  - canvas page: start from `studio/canvas_kit.js` (seeded rng, easing, layer cache, camera, karaoke captions, safe zone, burst, grain) and link `studio/fonts/fonts.css`; every font the skills name is vendored there
-  - sound effects: `python3 studio/sfx.py place cues.json sfx.wav --report sfx.json`: real-sounding effects by words through earshot (`"want": "footstep on gravel"`), real CC0 recordings from `studio/openverse_audio.py get` (`"file"`), code-made sounds as the fallback; cue times from the alignment or beats, the report goes into CREDITS
 
 ---
 From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Trend edits

@@ -10,7 +10,7 @@ argument-hint: "[two places, like “Bengaluru → California”]"
 > **Studio harness: read this first.** Imported from the owner's [Ai-Animation](https://github.com/manikk90/Ai-Animation) repo (`skills/watercolor-map/SKILL.md`, commit `f02c89a`), MIT © 2026 aansh.ai: see [`third_party/ai-animation/LICENSE`](../../../third_party/ai-animation/LICENSE). In this repo it runs inside the studio. Read `studio/LEARNINGS.md` and [`studio/SKILL_HARNESS.md`](../../../studio/SKILL_HARNESS.md) first; where they disagree with the steps below, they win.
 > - **Words:** no words beyond place labels and titles; the owner approves them, and the route, at the preview.
 > - **Before you start:** run `python3 studio/check_env.py`. It shows what works in this session: rendering, word timing, Whisper and ElevenLabs.
-> - **Preview (Gate 3):** before the full render, send 3 numbered frames at 3 timecodes (the hook, the middle, the end), plus a 20–30 s music sketch when the skill adds music, and wait for the owner's OK. This replaces any contact sheet, stills or snapshot step below. For a canvas page, `node studio/render_canvas.cjs <page> <prefix> --stills 1,6,11` makes the frames, and the same script renders the video locally.
+> - **Preview (Gate 3):** before the full render, send 3 numbered frames at 3 timecodes (the hook, the middle, the end), plus a 20–30 s music sketch when the skill adds music, and wait for the owner's OK. This replaces any contact sheet, stills or snapshot step below. For a canvas page, `node studio/render_canvas.cjs <page> <prefix> --stills hook,mid,end` makes the frames at 1 s, the middle and 0.5 s before the end of the page's duration, and the same script renders the video locally.
 > - **Deliver:** to `projects/<slug>/final/`, then send exactly 2 files with `studio/deliver.py`: the final video, and one zip with everything else. Keep any WhatsApp copy in `final/` unless the owner asks for it.
 
 A painted watercolor world map: a pin drops on the start city, a plane flies the real great-circle route, and the destination washes in with colour.
@@ -37,11 +37,9 @@ A painted watercolor world map: a pin drops on the start city, a plane flies the
 
 - **Outputs:** `16:9 1920×1080`, 30 fps, H.264 High, yuv420p, CRF 18, `-movflags +faststart`.
 - **Audio:** the original recording, AAC 192k 48 kHz, never re-timed; short fades only where the skill asks.
-- **Engine:** Remotion (`npx remotion render`).
+- **Engine:** Remotion (`npx remotion render`; needs the owner's permission to run npx here).
 - **WhatsApp copy:** `python3 studio/whatsapp_copy.py final.mp4 final_whatsapp.mp4` (720p, under 20 MB).
-- **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size, audio present and in sync.
-- **Studio tools for these steps:**
-  - sound effects: `python3 studio/sfx.py place cues.json sfx.wav --report sfx.json`: real-sounding effects by words through earshot (`"want": "footstep on gravel"`), real CC0 recordings from `studio/openverse_audio.py get` (`"file"`), code-made sounds as the fallback; cue times from the alignment or beats, the report goes into CREDITS
+- **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size and fps, audio present with the source's length. Listen to the sync yourself at three points: the check does not prove lip or beat sync.
 
 ---
 From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Animated videos
