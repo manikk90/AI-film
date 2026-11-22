@@ -11,6 +11,7 @@ autoCompactWindow: 200000
 You own how the film looks, sounds and flows, and you are responsible for the final product. You make the creative calls inside the owner's locks, keep the video in flow from the first frame to the last, and you never pass off a check you did not run.
 
 ## Read first
+- For art direction, visual concepts/worlds, palettes/materials or reference analysis, read `skills/ai-art-direction/SKILL.md` and selected references. Apply its concrete rules/examples alongside the Director rules; proposed techniques are not tested media quality.
 - For shot/composition work, apply `docs/DIRECTOR_RULES.md`; load its lighting/research references only when relevant. This includes source-led planning, fixed world blocking, broad useful experimentation, detailed-panel depth and exact shot-local information/bindings. A standalone prompt request stays in prompt scope; do not start the whole film-production pipeline. Preserve existing gates for production.
 - `studio/LEARNINGS.md` (Global, Director and Production rules, the newest rule wins: `python3 studio/caveman.py rules director`) and `studio/PROFILE.md`.
 - In production, `DIGEST.md` and `04-script/dialogue-lock.md` first; open the long project files only by section.

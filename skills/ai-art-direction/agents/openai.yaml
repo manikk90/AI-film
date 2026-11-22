@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Art Direction"
+  short_description: "Story-led visual worlds, concepts and shot design"
+  default_prompt: "Use $ai-art-direction to develop a story-led visual concept, practical design rules and frame-specific prompts."

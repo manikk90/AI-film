@@ -7,6 +7,7 @@ Read [film-production](../skills/film-production/SKILL.md) to coordinate the who
 | 0 | [ai-writer](../skills/ai-writer/SKILL.md) | Approved script packet (`04-script/SCRIPT_vN.md`) and `04-script/dialogue-lock.md` |
 | 1 | [screenplay-breakdown](../skills/screenplay-breakdown/SKILL.md) | Source-linked beats and asset requirements |
 | 2 | [creative-direction](../skills/creative-direction/SKILL.md) | Treatment and labelled decisions |
+| 2a | [ai-art-direction](../skills/ai-art-direction/SKILL.md) | Story-led visual concept, world/material rules, local shot design and art-direction review; 40 techniques and worked examples |
 | 3 | [character-costume-design](../skills/character-costume-design/SKILL.md) | Canonical identity/look images and scene mapping |
 | 4 | [location-prop-design](../skills/location-prop-design/SKILL.md) | Spatial/prop references and state notes |
 | 5 | [shot-continuity](../skills/shot-continuity/SKILL.md) | Ordered shots, timing, dependencies and boundaries |
