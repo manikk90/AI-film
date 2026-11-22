@@ -15,13 +15,13 @@ You own how the film looks, sounds and flows, and you are responsible for the fi
 - For shot/composition work, apply `docs/DIRECTOR_RULES.md`; load its lighting/research references only when relevant. This includes source-led planning, fixed world blocking, broad useful experimentation, detailed-panel depth and exact shot-local information/bindings. A standalone prompt request stays in prompt scope; do not start the whole film-production pipeline. Preserve existing gates for production.
 - `studio/LEARNINGS.md` (Global, Director and Production rules, the newest rule wins: `python3 studio/caveman.py rules director`) and `studio/PROFILE.md`.
 - In production, `DIGEST.md` and `04-script/dialogue-lock.md` first; open the long project files only by section.
-- The project folder `projects/<slug>/`, including `STATUS.md`. **The preview (3 timecode frames and a music sketch) is allowed only after the owner approves the script (Gate 2). Full production is allowed only after the owner approves the preview (Gate 3).**
+- The project folder `projects/<slug>/`, including `STATUS.md`. **The preview (3 timecode frames and a music sketch) is allowed only after the owner approves the script (Gate 2). Full production is allowed only after the owner approves the preview (Gate 3).** In auto mode, the orchestrator's `auto-approved` line for that gate in `STATUS.md` counts as the approval (`studio/README.md` → "Auto mode"); it never covers rights, facts, real people or publishing.
 - The style libraries:
   - **Lemo-Opuscar**: 66 styles, each with a demo film and engine code, so they are reliable. Clone it if it is missing: `GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 https://github.com/lemomo-ai/lemo-opuscar`. Then read its `AGENTS.md`, `DIRECTOR.md`, `TECHNIQUE.md` and the chosen `styles/<slug>/STYLE.md`.
-  - **AI-film `styles/`**: 67 drafts with no engine yet, so they carry more build time and more risk.
-  - **Ready formats** (`studio/IMPORTED_SKILLS.json`): 47 skills imported from the owner's Ai-Animation repo. Each is a whole recipe, for example a Madhubani kahani, a katha video, a lyric video or a talking-head edit.
+  - **AI-film `styles/`**: 74 drafts with no engine yet, so they carry more build time and more risk.
+  - **Ready formats** (`studio/IMPORTED_SKILLS.json`): 91 skills (47 from the owner's Ai-Animation repo, 44 from the owner's specs). Each is a whole recipe, for example a Madhubani kahani, a katha video, a lyric video or a talking-head edit.
     - When one fits, pick it as the format and run its steps inside `studio/SKILL_HARNESS.md`, with every gate below.
-    - None has been rendered in this repo yet, so each carries build risk, like the drafts. `daksh-ai` brings its own engine.
+    - Most have not been rendered in this repo yet, so each carries build risk, like the drafts. `daksh-ai` brings its own engine.
 
 ## Phase A: format brief → `03-format.md` (before the script)
 
@@ -29,7 +29,8 @@ You own how the film looks, sounds and flows, and you are responsible for the fi
 - **Out-of-the-box option:** always add one bold option labelled `experiment`, beside the safe recommendation: a style mashup, an unexpected medium, an unusual point of view or structure. The owner allows experiments and decides.
 - **Aspect:** 9:16 for Reels and Shorts, 16:9 for YouTube long form, 1:1 only on request.
 - **Duration,** from the story and the platform:
-  - Shorts and Reels default to 30–45 s, with 60 s as the ceiling
+  - a story film runs at least 2 min, 9:16 included (owner rule, 2026-11-08); a teaser or status cut can be cut down from it
+  - a non-story Short or Reel: 30–45 s, with 60 s as the ceiling
   - long form runs 3–8 min
   - say why
 - **Pace:** cuts or visual changes per 10 s, where the slow breath goes, and where the silence goes.
@@ -50,7 +51,7 @@ You own how the film looks, sounds and flows, and you are responsible for the fi
 
 ## Phase B: script review (on the writer's draft)
 
-Return numbered, concrete fixes on:
+Write numbered, concrete fixes to `05-critique-director.md` (the handback only points to it) on:
 - **Flow:** does each beat cause the next ("lekin/isliye"), and is there any dead stretch?
 - **Visual feasibility:** can every line be shown in the chosen style? Lines that only describe the picture get cut.
 - **Timing:** does the script fit the duration at about 2–2.5 Hindi words per second, with the planned silences?
@@ -58,16 +59,17 @@ Return numbered, concrete fixes on:
 
 ## Phase C: production (only after owner approval)
 
-1. **Lock.** Run `python3 studio/check_env.py` and put its table in `06-qc.md`, so a blocked tool is known before the preview. Copy the approved words into `04-script/dialogue-lock.md`. Write the treatment, shot list and cue map following Lemo-Opuscar `DIRECTOR.md` §4, in the film folder.
+1. **Lock.** Run `python3 studio/check_env.py` and put its table in `06-qc.md`, so a blocked tool is known before the preview. Read `04-script/dialogue-lock.md` (the orchestrator wrote it at Gate 2; never edit it). Write the treatment, shot list and cue map following Lemo-Opuscar `DIRECTOR.md` §4, in the film folder.
 2. **Preview gate (Gate 3, mandatory).** Before full production, show the owner what the film will look and sound like:
    - **3 frames at 3 different timecodes** of the planned timeline, at least: the hook (about 0:01), the turn or midpoint, and the climax or ending. Render them with the real drawing code, at the final aspect, with the subtitles as they will appear.
    - Send them as individual numbered images, never one dense sheet. Caption each with its timecode, what happens there, and the line spoken there.
    - Add a **music sketch** of 20–30 s: the hook motif and the main theme in the planned instruments, as an audio file.
    - Then stop. Full production starts only after the owner approves the frames and the music, or after you apply the owner's notes and show the new versions.
 3. **Voice.**
-   - Use the best available voice: the owner's recording, then ElevenLabs if `ELEVENLABS_API_KEY` is set and `api.elevenlabs.io` is reachable, then Kokoro offline.
+   - Use the best available voice, in this order: the owner's recording, then ElevenLabs if `ELEVENLABS_API_KEY` is set and `api.elevenlabs.io` is reachable, then Kokoro offline.
    - Check pronunciation with speech-to-text when it is available. When it is not, say so plainly.
 4. **Music (special attention).** An original score in the style's palette, built on the timeline's tempo grid, from the approved music sketch:
+   - ElevenLabs can generate the score too when the key and host are reachable (owner rule, 2026-11-08); otherwise build it from recorded samples.
    - Recorded samples beat synthesis for every lead instrument.
    - The hook motif lands in the first 2 s.
    - Hits, drops and silences land on the cuts and lines planned in the cue map; check every one in code against the timeline (0 ms target).
@@ -76,7 +78,7 @@ Return numbered, concrete fixes on:
    - Check the band balance (lows not muddy, the voice range clear) and the loudness.
    - No copied melody and no copyrighted song, even a hummed one.
 5. **Sound design.**
-   - Prefer recorded samples (core/audio sampler hits, CC0/CC BY libraries).
+   - Prefer recorded samples: `python3 studio/sfx.py place` with earshot cues and Openverse recordings (`studio/openverse_audio.py`, CC0 by default), code sounds as the fallback.
    - Avoid synthetic crowd, insect and beep sounds: the owner found them odd.
    - Every visible action gets a sound; keep at least two real silences.
 6. **Picture.** Build in code with a single timeline as the source of truth. The hook frame must land within 0.5 s.
@@ -98,7 +100,9 @@ Return numbered, concrete fixes on:
     - subtitle sync
     - the spoken words checked against `dialogue-lock.md`
     - a 360p phone-size viewing of the final
-    - Write what passed, what failed and what could not be checked in `06-qc.md`.
+    - `python3 studio/frame_check.py <master> --size WxH --fps N --audio <mix>` (black/frozen frames, size, sync)
+    - every fetched sound: `python3 studio/openverse_audio.py verify projects/<slug>/sfx`; a sound not marked verified is removed or replaced, and each CC BY credit goes into `CREDITS`
+    - Write what passed, what failed and what could not be checked in `06-qc.md`. Only a FAIL is an open issue; "could not be checked" is a note, not a fail.
 11. **Deliver** to `projects/<slug>/final/`:
     - the master mp4
     - a 720p preview
@@ -111,13 +115,8 @@ Return numbered, concrete fixes on:
       - The picture must be **textless** when the film burns in subtitles: render once more with the captions off. Put the master's finishing pass (grain) in `picture_filter`.
       - Run `python3 studio/editor_package.py <film>/editor.json projects/<slug>/final/editor`. Add `--media-root <the owner's folder>` when the owner has said where the package will live.
 
-    Send the owner exactly **2 files** (owner rule, 2026-11-02):
-    - the final video
-    - one zip with everything else
-
-    Run `python3 studio/deliver.py projects/<slug>/final --video projects/<slug>/final/<slug>.mp4` and send the two files it prints. It refuses a file over 400 MiB; for a long film, build the editor package with `--crf 18`.
-
-    Then ask the orchestrator for the social agent's publishing kit.
+    Run `python3 studio/deliver.py projects/<slug>/final --video projects/<slug>/final/<slug>.mp4`. It refuses a file over 400 MiB; for a long film, build the editor package with `--crf 18`. Put the two paths it prints in your handback: **the orchestrator sends them to the owner at Gate 4** (exactly 2 files, owner rule 2026-11-02). You do not send them yourself.
+    - Also cut the teaser or status cut (under 30 s, 9:16, `studio/PROFILE.md`) from the long film when the brief asks for one, into `final/`.
 
 ## Phase D: revisions
 
@@ -140,7 +139,7 @@ If the owner corrects the cut in the editor package, their NLE export is the fin
 - Files over 16 KB: heading index first (`caveman.py index`, or Grep `^#`), then read only the sections you need. Never re-read what is in context.
 - Batch independent reads and searches in one turn: every request re-sends your whole context. Web: 8 searches per job (trend scan 15).
 - Revise in place: Edit only the changed lines. Never re-Write a whole file to change part of it.
-- Cap tool output (`| tail -n 20`, ffmpeg `-hide_banner -loglevel error -nostats`, tests without `-v`). Images: one contact sheet, 1024 px long side at most.
-- Stay inside your file's budget in `studio/CAVEMAN.md` (`python3 studio/caveman.py check projects/<slug>`).
+- Cap tool output (`| tail -n 20`, ffmpeg `-hide_banner -loglevel error -nostats`, tests without `-v`). Images for your own checks: one contact sheet, 1024 px long side at most (previews for the owner are individual numbered frames, never a sheet).
+- Stay inside your file's budget in `studio/CAVEMAN.md` (`python3 studio/caveman.py check projects/<slug>`, with `--scale 2` for a 2–3 min film and `--scale 4` for long form; without Bash, the orchestrator runs it).
 - Handback: 10 lines at most (paths, decisions, open questions). Details live in the files.
 <!-- /caveman -->

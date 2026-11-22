@@ -1,0 +1,15 @@
+[flake8]
+# The GitHub editor is 127 characters wide.
+max-line-length = 127
+max-complexity = 10
+# Vendored code and generated skill copies are not ours to lint.
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    node_modules,
+    third_party,
+    .claude/skills,
+    .claude/worktrees,
+    projects,
+    exports

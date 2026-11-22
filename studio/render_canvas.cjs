@@ -6,7 +6,11 @@
  *   node studio/render_canvas.cjs <page.html> <out.mp4> [--fps 30] [--size 1920x1080] [--audio voice.mp3]
  *                                 [--from 0] [--to <seconds>] [--crf 18] [--abitrate 192k]
  *   node studio/render_canvas.cjs <page.html> <out-prefix> --stills 1,6.5,11
- *       → <out-prefix>_1.png ... : the owner's Gate 3 preview frames at those timecodes (seconds)
+ *   node studio/render_canvas.cjs <page.html> <out-prefix> --stills hook,mid,end
+ *       → <out-prefix>_1.png ... : the owner's Gate 3 preview frames at those timecodes (seconds). hook = 1 s (a quarter of a
+ *         film under 2 s), mid = half the duration, end = 0.5 s before the end. A time past the end fails.
+ * --size WxH is the OUTPUT size. When the page's canvas has another size, the page must take the new size through
+ * FILM.setSize(w, h) (called before init); otherwise the render stops with an error instead of a wrong-size video.
  *
  * Two page contracts are supported:
  *   - daksh-ai (and the imported canvas skills): window.FILM = { DUR, init(), render(ctx, t) } drawing on the first <canvas>
@@ -23,7 +27,7 @@ const path = require('path');
 const fs = require('fs');
 
 function args(argv) {
-  const pos = [], opt = { fps: 30, size: '1920x1080', crf: 18, abitrate: '192k' };
+  const pos = [], opt = { fps: 30, crf: 18, abitrate: '192k' };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i].startsWith('--')) opt[argv[i].slice(2)] = argv[++i];
     else pos.push(argv[i]);
@@ -32,10 +36,12 @@ function args(argv) {
     console.error('usage: node studio/render_canvas.cjs <page.html> <out.mp4> [--fps 30] [--size 1920x1080] [--audio a.mp3] [--from 0] [--to s] [--crf 18]');
     process.exit(2);
   }
-  const [w, h] = String(opt.size).split('x').map(Number);
-  const stills = opt.stills ? String(opt.stills).split(',').map(Number) : null;
-  if (stills && stills.some(t => !(t >= 0))) { console.error('--stills takes timecodes in seconds, like 1,6.5,11'); process.exit(2); }
-  return { page: path.resolve(pos[0]), out: path.resolve(pos[1]), fps: +opt.fps, w, h, audio: opt.audio, from: +(opt.from || 0), to: opt.to, crf: +opt.crf, abitrate: String(opt.abitrate), stills };
+  const sizeGiven = opt.size !== undefined;
+  const [w, h] = String(opt.size || '1920x1080').split('x').map(Number);
+  if (!(w > 0 && h > 0)) { console.error('--size takes WxH, like 1080x1920'); process.exit(2); }
+  const stills = opt.stills ? String(opt.stills).split(',').map(x => (['hook', 'mid', 'end'].includes(x) ? x : Number(x))) : null;
+  if (stills && stills.some(t => typeof t === 'number' && !(t >= 0))) { console.error('--stills takes timecodes in seconds (1,6.5,11) or hook,mid,end'); process.exit(2); }
+  return { page: path.resolve(pos[0]), out: path.resolve(pos[1]), fps: +opt.fps, w, h, sizeGiven, audio: opt.audio, from: +(opt.from || 0), to: opt.to, crf: +opt.crf, abitrate: String(opt.abitrate), stills };
 }
 
 (async () => {
@@ -52,6 +58,16 @@ function args(argv) {
   await page.waitForFunction(() => window.READY_ERROR || ((window.FILM || window.render) && document.fonts.status === 'loaded' && (window.READY === undefined || window.READY === true)), null, { timeout: 60000 });
   const readyError = await page.evaluate(() => window.READY_ERROR || null);
   if (readyError) { await browser.close(); console.error(`page failed to get ready: ${readyError}`); process.exit(1); }
+  if (a.sizeGiven) {  // the output size is the canvas size: make them agree, or stop
+    const res = await page.evaluate(([w, h]) => {
+      const c = document.querySelector('canvas');
+      if (!c) return 'no <canvas> on the page';
+      if (c.width === w && c.height === h) return 'ok';
+      if (window.FILM && typeof window.FILM.setSize === 'function') { window.FILM.setSize(w, h); return (c.width === w && c.height === h) ? 'ok' : `FILM.setSize left the canvas at ${c.width}x${c.height}`; }
+      return `the page draws at ${c.width}x${c.height} and has no FILM.setSize(w, h)`;
+    }, [a.w, a.h]);
+    if (res !== 'ok') { await browser.close(); console.error(`--size ${a.w}x${a.h}: ${res}. Render at the page's own size, or give the page FILM.setSize.`); process.exit(2); }
+  }
   const kind = await page.evaluate(() => {
     if (window.FILM) { window.FILM.init && window.FILM.init(); window.__ctx = document.querySelector('canvas').getContext('2d'); return 'film'; }
     return 'render';
@@ -61,9 +77,13 @@ function args(argv) {
     return document.querySelector('canvas').toDataURL('image/png').split(',')[1];
   }, [kind, t]);
   if (a.stills) {
+    const total = await page.evaluate(() => (window.FILM ? window.FILM.DUR : window.DUR));
+    const times = a.stills.map(t => (t === 'hook' ? (total >= 2 ? 1 : total / 4) : t === 'mid' ? total / 2 : t === 'end' ? Math.max(0, total - 0.5) : t));
+    const past = times.filter(t => total > 0 && t >= total);
+    if (past.length) { await browser.close(); console.error(`--stills ${past.join(',')} is past the end of the film (${total} s)`); process.exit(2); }
     fs.mkdirSync(path.dirname(a.out), { recursive: true });
     const written = [];
-    for (const [i, t] of a.stills.entries()) {
+    for (const [i, t] of times.entries()) {
       const f = `${a.out}_${i + 1}.png`;
       fs.writeFileSync(f, Buffer.from(await draw(t), 'base64'));
       written.push(`${f} (t=${t}s)`);

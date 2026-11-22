@@ -4,7 +4,7 @@ Read [film-production](../skills/film-production/SKILL.md) to coordinate the who
 
 | Phase | Skill | Persistent output |
 |---|---|---|
-| 0 | [ai-writer](../skills/ai-writer/SKILL.md) | Approved script packet (`script/SCRIPT_vN.md`) and `dialogue-lock.md` |
+| 0 | [ai-writer](../skills/ai-writer/SKILL.md) | Approved script packet (`04-script/SCRIPT_vN.md`) and `04-script/dialogue-lock.md` |
 | 1 | [screenplay-breakdown](../skills/screenplay-breakdown/SKILL.md) | Source-linked beats and asset requirements |
 | 2 | [creative-direction](../skills/creative-direction/SKILL.md) | Treatment and labelled decisions |
 | 2a | [ai-art-direction](../skills/ai-art-direction/SKILL.md) | Story-led visual concept, world/material rules, local shot design and art-direction review; 40 techniques and worked examples |
@@ -25,4 +25,4 @@ For trend-led films, `/viral-studio` ([pipeline](../.claude/skills/viral-studio/
 
 ## Mann: AI video editor
 
-For the owner's own raw footage, the **mann** agent ([definition](../.claude/agents/mann.md)) edits with FFmpeg, Whisper, yt-dlp and Hyperframes. `/mann-edit` ([skill](../.claude/skills/mann-edit/SKILL.md)) runs ingest → cut plan → **storyboard approval** → render → QC → final-cut approval. `/mann-style-lab` ([skill](../.claude/skills/mann-style-lab/SKILL.md)) turns reference videos into style sheets in [editor/styles/](../editor/styles/README.md). Corrections are recorded by `/studio-learn` in the Editor section of the ledger and, when measurable, in [editor/rules.json](../editor/rules.json). Commands and the EDL format: [editor/README.md](../editor/README.md).
+For the owner's own raw footage, the **mann** agent ([definition](../.claude/agents/mann.md)) edits with FFmpeg, Whisper, yt-dlp and Hyperframes. `/mann-edit` ([skill](../.claude/skills/mann-edit/SKILL.md)) runs ingest → cut plan → **storyboard approval** → render → QC → delivery as 2 files (`studio/deliver.py`); there is no separate final-cut approval round. `/mann-style-lab` ([skill](../.claude/skills/mann-style-lab/SKILL.md)) turns reference videos into style sheets in [editor/styles/](../editor/styles/README.md). Corrections are recorded by `/studio-learn` in the Editor section of the ledger and, when measurable, in [editor/rules.json](../editor/rules.json). Commands and the EDL format: [editor/README.md](../editor/README.md).

@@ -65,7 +65,7 @@ Every finished film comes with `final/editor/`, a timeline the owner opens in **
 
 ## Ready formats (imported skills)
 
-The owner's Ai-Animation repo brought 47 format skills, listed in `studio/IMPORTED_SKILLS.json` and under "Ready formats" in `STYLE_MENU.md`. They include `/madhubani-kahani`, `/katha-video`, `/lyric-video`, `/hindi-lyric-video`, `/anime-reel`, `/talking-head-edit`, 27 more reel edits, effects and looks, and `daksh-ai` with its own engine.
+The studio has 91 format skills: 47 from the owner's Ai-Animation repo and 44 from the owner's specs (2026-11-08), listed in `studio/IMPORTED_SKILLS.json` and under "Ready formats" in `STYLE_MENU.md`. They include `/madhubani-kahani`, `/katha-video`, `/lyric-video`, `/hindi-lyric-video`, `/anime-reel`, `/talking-head-edit`, many reel edits, lyric videos, effects and looks, and `daksh-ai` with its own engine.
 
 - **Calling them:** call one directly ("`/madhubani-kahani kahani.mp3`"), or let the director pick one as the format.
 - **Running them:** every one runs inside [`SKILL_HARNESS.md`](SKILL_HARNESS.md):
@@ -100,7 +100,7 @@ While auto mode is on, the orchestrator does not stop and wait at Gate 1–4 or 
 - **Gate 1 (pick):** take the top-ranked pitch, as already happens when the owner says "khud chuno".
 - **Gate 2 (script + format):** take the script once the critique round passed with no unresolved fixes; if a fix is still open, revise once more before treating it as approved.
 - **Gate 3 (look + music):** take the director's own recommended frames and sketch over the `experiment` option.
-- **Gate 4 (final cut):** take the delivered cut as approved only if `06-qc.md` shows no open QC issue; an open issue is not auto-approved, and the film goes back to the director's fix list instead.
+- **Gate 4 (final cut):** take the delivered cut as approved only if `06-qc.md` shows no open QC issue (an open issue is a FAIL; "could not be checked" notes are not); a FAIL is not auto-approved, and the film goes back to the director's fix list instead. The two `deliver.py` files are still sent to the owner at Gate 4.
 - **Gate R1 (replica spec):** take Marich's spec as approved only if it names no blocking risk or rights gap.
 - **Gate R2 (replica report):** take `REPLICA_REPORT.md` as approved only if every acceptance check reads pass (or a not-measurable one is explained and accepted by a passing majority); a report with a real fail is never auto-approved — route it back to rebuild per the spec's fixes (Daksh's existing 2-iteration cap still applies), and if it still fails, stop and tell the owner instead of calling it done.
 
@@ -109,13 +109,14 @@ At each gate it then, instead of waiting:
 - gives the owner one line in chat about what it decided and moved on to
 
 Auto mode never skips:
-- the rules under "Rules that never bend" below (rights, real logos, sourced facts, copying someone else's assets, posting or publishing)
+- the rights, facts, real-people and publishing rules under "Rules that never bend" below (rights and licences, real logos and likenesses, sourced facts, copying someone else's assets, posting or publishing); the Gate 2 and Gate 3 rule there is met by a logged auto-approval of a clean result
 - stopping for a message the owner actually sends mid-run — that is new direction, not noise, even while auto is on
 - a risk or rights gap Marich or the director flags as blocking (Daksh's and Marich's own limits still apply)
 - Mann's gate (see "Covers" above) — it is never in scope for auto mode
 
 ## Rules that never bend
-- No production before the owner approves the script (Gate 2), and none before the owner approves 3 timecode frames and the music sketch (Gate 3).
+- No production before the script is approved (Gate 2), and none before 3 timecode frames and the music sketch are approved (Gate 3). Approved means the owner's explicit words, or, only in auto mode, the orchestrator's logged `auto-approved` line for a clean result.
+- Rights, licences, real people's likenesses and sourced facts are checked by a person's rules, never auto-approved: a rights gap or an unverified sound (`studio/openverse_audio.py verify`) blocks delivery.
 - Music gets special attention at every stage.
 - Out-of-the-box experiments are allowed: every brief and script carries one bold option labelled `experiment`.
 - Every night about 10:40 PM IST a scheduled task suggests 10 trending topics with a style for each (`studio/NIGHTLY.md`).

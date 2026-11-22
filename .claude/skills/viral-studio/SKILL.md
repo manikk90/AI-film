@@ -12,7 +12,7 @@ You are the orchestrator, the producer. The four specialists are subagents in `.
 1. Read `studio/LEARNINGS.md` (all sections; the newest rule wins) and `studio/PROFILE.md`. Follow caveman mode (below); open `studio/README.md` only for a tool you need.
 2. Create `projects/<slug>/` (git-ignored). Copy in `studio/templates/STATUS.md` and `studio/templates/00-brief.md`, then fill in the brief from the owner's request. Infer whatever the request implies; leave the rest at the profile defaults.
 3. Talk to the owner in Hinglish. Do not ask about routine choices. The gates below are the owner's explicit rules, not optional permission questions.
-4. **Auto mode:** if the owner said "auto" (this run) or "hamesha auto" (standing), do not stop at Gate 1–4 below. Take the recommended option at each, with the per-gate rules in `studio/README.md` → "Auto mode" (Gate 2 needs a clean critique round; Gate 4 needs a clean `06-qc.md`). Your own choice there satisfies "only after the owner approves" wherever it appears below or in `writer.md`/`director.md`. Log one line to `STATUS.md` as `auto-approved`, not the full packet, and give one chat line, then continue. A message the owner actually sends mid-run still overrides it.
+4. **Auto mode:** if the owner said "auto" (this run) or "hamesha auto" (standing), do not stop at Gate 1–4 below. Take the recommended option at each, with the per-gate rules in `studio/README.md` → "Auto mode" (Gate 2 needs a clean critique round; Gate 4 needs a clean `06-qc.md`). Your own choice there satisfies "only after the owner approves" wherever it appears below or in `writer.md`/`director.md`. Log one line to `STATUS.md` as `auto-approved`, not the full packet, and give one chat line, then continue. A message the owner actually sends mid-run still overrides it. "Hamesha auto" and "manual" are standing rules: record them with `studio-learn` (Global) in the same turn, and check `LEARNINGS.md` for the newest one at the start of every run.
 
 ## The flow
 
@@ -23,13 +23,13 @@ You are the orchestrator, the producer. The four specialists are subagents in `.
 | 2. Research | researcher | `02-research.md`, `FACTS.md` | stage 3 |
 | 3. Format brief | director | `03-format.md` (style, aspect, duration, pace, first frame, voice, music) | stage 2 |
 | 4. Script | writer | `04-script/SCRIPT_v1.md` (hooks, retention map, full script) | – |
-| 5. Critique | director (flow, feasibility, timing) + social (hooks, shareability) | numbered fixes | each other |
-| 6. Revision | writer | `SCRIPT_v2.md` (you `cp` v1 first; the writer edits it in place) + change list | – |
+| 5. Critique | director (flow, feasibility, timing) + social (hooks, shareability) | `05-critique-director.md`, `05-critique-social.md` (numbered fixes) | each other |
+| 6. Revision | writer | `SCRIPT_v2.md` (you `cp` v1 first; the writer edits it in place, reading both critique files) + change list | – |
 | **Gate 2: approve script + format** | owner | an explicit "approved" | **mandatory** (see `skills/ai-writer/SKILL.md`) |
 | 7. Preview | director | **3 frames at 3 timecodes** (hook ≈ 0:01, the turn or midpoint, the climax or ending), rendered with the real code at the final aspect, plus a 20–30 s **music sketch** | – |
 | **Gate 3: approve look + music** | owner | an explicit "approved" or notes | **mandatory**. Send the frames as individual numbered images, each captioned with its timecode, what happens and the line spoken; send the music sketch as audio |
-| 8. Production | director | the film: voice → music → SFX → picture → edit → mix → QC, plus the editor package (`final/editor/`) | – |
-| **Gate 4: final cut** | owner | approval or notes; small fixes the owner can make directly in the editor package (Premiere Pro or DaVinci Resolve) | mandatory before the publish kit is called final |
+| 8. Production | director | the film: voice → music → SFX → picture → edit → mix → QC (`frame_check.py`, Openverse `verify`), plus the editor package (`final/editor/`) and the two `deliver.py` paths | – |
+| **Gate 4: final cut** | owner | **you send the two files `deliver.py` printed** (the only send in the run), then wait for approval or notes; small fixes the owner can make directly in the editor package (Premiere Pro or DaVinci Resolve) | mandatory before the publish kit is called final |
 | 9. Publishing kit | social | `07-publish-kit.md` | – |
 | 10. Learn | you | updates to `studio/LEARNINGS.md` | – |
 
@@ -60,16 +60,16 @@ Full rules and measured numbers: `studio/CAVEMAN.md`. For you:
   - the writer writes the music cues
   - the director writes a music brief, makes a music sketch for Gate 3, and checks every sync point in the final score
 - **Out-of-the-box experiments are allowed.** Every format brief and script packet carries one bold option labelled `experiment` beside the safe recommendation; the owner decides.
-- **Ready formats.** The 47 skills imported from the owner's Ai-Animation repo (`studio/IMPORTED_SKILLS.json`, listed under "Ready formats" in `studio/STYLE_MENU.md`) are formats like any style. Examples are `/madhubani-kahani`, `/katha-video`, `/lyric-video` and `/talking-head-edit`.
+- **Ready formats.** The 91 format skills (47 from the owner's Ai-Animation repo, 44 from the owner's specs; `studio/IMPORTED_SKILLS.json`, listed under "Ready formats" in `studio/STYLE_MENU.md`) are formats like any style. Examples are `/madhubani-kahani`, `/katha-video`, `/lyric-video` and `/talking-head-edit`.
   - When the director or the social agent picks one, it runs inside `studio/SKILL_HARNESS.md`, with every gate above.
   - The owner can also call one directly; it still runs inside the harness.
-- **The nightly scan** (`studio/NIGHTLY.md`) runs automatically every night and suggests 10 topics with a style for each. When the owner replies with a pick ("/viral-studio #N"), start at stage 2 with that topic.
+- **The nightly scan** (`studio/NIGHTLY.md`) runs automatically every night and suggests 10 topics with a style for each. When the owner replies with a pick ("/viral-studio #N"), the nightly report is not in this session: ask the owner to paste that pitch (or quote it from their message), write it as the chosen pitch in `01-trend-board.md`, have social run the competition scan for it, then start at stage 2.
 
 ## How to run each agent
 - Use the Agent tool with `subagent_type` set to the agent's name. If a session does not list the project agents yet, use `general-purpose` with the prompt "Read `.claude/agents/<name>.md` and act as that agent".
 - Brief each one in at most 15 lines: the project folder path, the exact task (for example "Job 2: hook critique on SCRIPT_v1.md"), the files and sections to read, the file to write, its budget and a 10-line handback. Never paste file contents. Each agent reads `studio/LEARNINGS.md` itself.
 - **Run at most 3 agents at a time.** Seven in parallel exhausted the owner's 5-hour usage limit on 2026-11-01. Run in parallel only the stages marked as parallel above.
-- After each stage, read the handback, run `python3 studio/caveman.py check projects/<slug>`, and open only the sections of the output file you need. Check it against the agent's checklist, update `STATUS.md` (stage, version, gate state, open issues), and send it back once if it misses the brief.
+- After each stage, read the handback, run `python3 studio/caveman.py check projects/<slug>` (add `--scale 2` for a 2–3 min film, `--scale 4` for long form, from the duration in `03-format.md`), and open only the sections of the output file you need. Check it against the agent's checklist, update `STATUS.md` (stage, version, gate state, open issues), and send it back once if it misses the brief.
 
 ## Coordination rules
 - **Files are the handoff.** Each stage reads the earlier files. Nobody relies on another agent's chat summary.
@@ -91,6 +91,4 @@ Tell the owner, in Hinglish:
 - the publishing kit
 - the learnings that were recorded
 
-Send exactly 2 files with SendUserFile (owner rule, 2026-11-02), the ones `studio/deliver.py` prints:
-- the final video
-- one zip with everything else: the editor package, subtitles, cover, credits and the QC note
+The 2 files (owner rule, 2026-11-02) were already sent at Gate 4: the ones `studio/deliver.py` printed (the final video, and one zip with the editor package, subtitles, cover, credits and the QC note). Do not send them again; send a new pair only for a new version.

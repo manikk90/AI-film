@@ -8,6 +8,7 @@ Style lab: fetch -> analyze-style -> publish-style.
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -280,7 +281,7 @@ def main(argv=None):
             result = {"file": T.mg_render(args.edit, args.name, alpha=not args.opaque)}
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return 0
-    except ProductionError as exc:
+    except (ProductionError, OSError, KeyError, TypeError, ValueError, subprocess.TimeoutExpired) as exc:
         print("error: {}".format(exc), file=sys.stderr)
         return 2
 

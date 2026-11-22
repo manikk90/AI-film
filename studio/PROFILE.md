@@ -27,8 +27,8 @@ What the studio assumes when a brief does not say otherwise. These are defaults 
 
 | Platform | Role | Default format |
 |---|---|---|
-| Instagram Reels | discovery | 9:16, 30–45 s |
-| YouTube Shorts | discovery | 9:16, 30–45 s (60 s maximum) |
+| Instagram Reels | discovery | 9:16; a story film runs at least 2 min (owner rule, 2026-11-08); 30–45 s for a teaser or non-story reel |
+| YouTube Shorts | discovery | 9:16, 30–45 s (60 s maximum): teasers cut from the long film, or non-story shorts |
 | YouTube | depth | 16:9, 3–8 min |
 | Facebook | Hindi/Hinglish regional reach | 9:16 or 16:9 |
 | X, LinkedIn | AI-filmmaking audience | clips and behind-the-scenes |
@@ -37,4 +37,4 @@ What the studio assumes when a brief does not say otherwise. These are defaults 
 ## Production defaults
 - **Pipeline:** films are made in code with the Lemo-Opuscar library (no video generation) unless the owner chooses a generation tool through AI-film's handoff skills.
 - **Output:** 1080p, 24 fps unless the style says otherwise; −14 LUFS; burned-in subtitles plus an `.srt`.
-- **Voice:** ElevenLabs when reachable, otherwise Kokoro offline, or the owner's own recording.
+- **Voice:** the owner's own recording first, then ElevenLabs when reachable, then Kokoro offline (the director's order). **Music:** ElevenLabs can generate it too when reachable; otherwise recorded samples.

@@ -25,6 +25,34 @@ def has_playwright() -> bool:
 
 
 class DoctorTest(unittest.TestCase):
+    def test_kokoro_comes_only_from_kokoro_dir(self):
+        import importlib
+        import os
+        saved = os.environ.pop("KOKORO_DIR", None)
+        try:
+            self.assertIsNone(importlib.reload(C).KOKORO)
+            self.assertFalse(C.probe_tool("kokoro"))
+        finally:
+            if saved is not None:
+                os.environ["KOKORO_DIR"] = saved
+            importlib.reload(C)
+
+    def test_chromium_probe_honours_a_bad_override(self):
+        import os
+        saved = os.environ.get("AIFILM_CHROMIUM_EXECUTABLE")
+        os.environ["AIFILM_CHROMIUM_EXECUTABLE"] = "/nonexistent/chrome"
+        try:
+            self.assertFalse(C.chromium_ready())
+        finally:
+            if saved is None:
+                del os.environ["AIFILM_CHROMIUM_EXECUTABLE"]
+            else:
+                os.environ["AIFILM_CHROMIUM_EXECUTABLE"] = saved
+
+    @unittest.skipUnless(has_playwright(), "needs Node and Playwright")
+    def test_chromium_probe_finds_playwrights_browser(self):
+        self.assertTrue(C.chromium_ready())
+
     def test_capabilities_follow_tools_hosts_and_keys(self):
         hosts = {h: "000" for h in C.HOSTS} | {"pypi.org": "200", "registry.npmjs.org": "200"}
         rows = {r["capability"].split(" (")[0].split(":")[0]: r for r in C.assess(ALL_TOOLS, hosts, {})}
@@ -37,7 +65,11 @@ class DoctorTest(unittest.TestCase):
         self.assertEqual(rows["Transcription"]["missing"], ["openaipublic.azureedge.net or huggingface.co"])
         self.assertEqual(rows["ElevenLabs voice and SFX"]["missing"], ["api.elevenlabs.io", "$ELEVENLABS_API_KEY not set"])
         open_hosts = {h: "200" for h in C.HOSTS}
-        self.assertTrue(all(r["ready"] for r in C.assess(ALL_TOOLS, open_hosts, {"ELEVENLABS_API_KEY": True})))
+        everything = {"ELEVENLABS_API_KEY": True, C.NPX_ENV: True}
+        self.assertTrue(all(r["ready"] for r in C.assess(ALL_TOOLS, open_hosts, everything)))
+        npx_rows = [r for r in C.assess(ALL_TOOLS, open_hosts, {"ELEVENLABS_API_KEY": True}) if not r["ready"]]
+        self.assertEqual(sorted(r["capability"].split(" ")[0] for r in npx_rows), ["HyperFrames", "Remotion"])
+        self.assertTrue(all("permission" in r["missing"][0] for r in npx_rows))
         whisper_via_hf = open_hosts | {"openaipublic.azureedge.net": "000"}
         row = [r for r in C.assess(ALL_TOOLS, whisper_via_hf, {}) if r["capability"].startswith("Transcription")][0]
         self.assertTrue(row["ready"])

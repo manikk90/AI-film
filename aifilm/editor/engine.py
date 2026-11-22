@@ -12,7 +12,7 @@ import subprocess
 from array import array
 from pathlib import Path
 
-from ..core import inside, now, read_json, require, write_json
+from ..core import inside, now, project_lock, read_json, require, write_json
 from . import edl as E
 from . import media
 
@@ -74,6 +74,9 @@ def transcript_for(root, rel):
     return read_json(path) if path.exists() else None
 
 
+DOC_EXT = {".txt", ".md", ".json", ".pdf", ".docx", ".csv"}
+
+
 def kind_of(rel, info):
     ext = Path(rel).suffix.lower()
     if ext in (".srt", ".vtt"):
@@ -82,6 +85,8 @@ def kind_of(rel, info):
         return "lut"
     if ext in IMAGE_EXT:
         return "image"
+    if ext in DOC_EXT:
+        return "document"
     if not info.get("has_video"):
         return "music" if info.get("duration", 0) >= 15 else "sfx"
     if info.get("pix_fmt", "").startswith(("yuva", "rgba", "argb", "bgra", "abgr", "gbrap")):
@@ -97,7 +102,7 @@ def analyze_file(root, rel):
     if cache.exists():
         return read_json(cache)
     path = inside(root, rel)
-    if Path(rel).suffix.lower() in (".srt", ".vtt", ".cube", ".txt", ".md", ".json"):
+    if Path(rel).suffix.lower() in {".srt", ".vtt", ".cube"} | DOC_EXT:
         result = {"file": rel, "sha256": sha, "kind": kind_of(rel, {})}
         write_json(cache, result)
         return result
@@ -154,6 +159,11 @@ def label(a):
 def assets(root):
     """Analyse every ingested file; write assets.json grouped by kind with footage guesses."""
     root = Path(root)
+    with project_lock(root):
+        return _assets(root)
+
+
+def _assets(root):
     log = read_json(root / "media.json")["files"] if (root / "media.json").exists() else {}
     files = sorted(set(log) | {"raw/" + p.name for p in (root / "raw").glob("*") if p.is_file()})
     items = []
@@ -219,7 +229,7 @@ def beats(path, rate=8000, hop=256):
 def profile(root):
     root = Path(root)
     analyses = [analyze_file(root, a["file"]) for a in read_json(root / "assets.json")["assets"]] if (root / "assets.json").exists() \
-        else [analyze_file(root, a["file"]) for a in assets(root)]
+        else [analyze_file(root, a["file"]) for a in _assets(root)]
     videos = [a for a in analyses if a["kind"] == "video"]
     require(videos, "No video footage found in raw/; ingest the owner's clips first")
     total = sum(v["probe"]["duration"] for v in videos)
@@ -299,6 +309,11 @@ GENERIC_IDEAS = [
 def suggest(root, aspect=None):
     """Rank the catalog against this footage; write SUGGESTIONS.md and suggestions.json."""
     root = Path(root)
+    with project_lock(root):
+        return _suggest(root, aspect)
+
+
+def _suggest(root, aspect):
     prof = profile(root)
     words = brief_words(root)
     ranked = sorted(((score_style(s, prof, words, aspect), s) for s in catalog()), key=lambda x: -x[0][0])
@@ -349,7 +364,7 @@ def suggest(root, aspect=None):
               "experiment": experiment, "ranking": [{"slug": s["slug"], "score": sc} for (sc, _), s in ranked],
               "unique_ideas": ideas, "hook_candidates": hooks[:8], "problems": problems}
     write_json(root / "suggestions.json", result)
-    (root / "SUGGESTIONS.md").write_text(suggestions_markdown(result), encoding="utf-8")
+    _atomic_text(root / "SUGGESTIONS.md", suggestions_markdown(result))
     return result
 
 
@@ -429,6 +444,11 @@ def autocut(root, slug, seconds=None, aspect=None, title=None):
     """Draft edl.json in a style from the analysed footage. It is a draft for the storyboard,
     never approved by itself; Mann reviews and refines it before showing the owner."""
     root = Path(root)
+    with project_lock(root):
+        return _autocut(root, slug, seconds, aspect, title)
+
+
+def _autocut(root, slug, seconds, aspect, title):
     s = style(slug)
     cfg = s["edl"]
     prof = profile(root)
@@ -562,6 +582,13 @@ def autocut(root, slug, seconds=None, aspect=None, title=None):
     return {"edl": str(root / "edl.json"), "clips": len(clips), "seconds": E.timeline(edl)[1], "notes": edl["notes"]}
 
 
+def _atomic_text(path, text):
+    """Write a text file whole or not at all (temp file + rename), like core.write_json."""
+    tmp = Path(path).with_name("." + Path(path).name + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
+
+
 def brief_title(root):
     path = Path(root) / "BRIEF.md"
     if path.exists():
@@ -590,7 +617,7 @@ def write_captions(root, edl, words_by_source, caps):
     if not cues:
         return 0
     body = "\n".join("{}\n{} --> {}\n{}\n".format(i, srt_time(a), srt_time(b), t) for i, (a, b, t) in enumerate(cues, 1))
-    (Path(root) / "captions.srt").write_text(body, encoding="utf-8")
+    _atomic_text(Path(root) / "captions.srt", body)
     write_json(Path(root) / "captions.words.json", timeline_words)
     return len(cues)
 

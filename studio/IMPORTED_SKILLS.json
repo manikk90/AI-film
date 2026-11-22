@@ -84,7 +84,7 @@
   "title": "Beat transition edit",
   "group": "Trend edits",
   "input": "your model video, 3+ photos, the song MP3 and the reference reel",
-  "kind": "clip",
+  "kind": "song",
   "flags": [],
   "source": "studio/skill_sources/beat-transition-edit/SKILL.md",
   "commit": "owner-spec-2026-11-08"
@@ -237,7 +237,7 @@
   "title": "Flicker edit",
   "group": "Trend edits",
   "input": "a shot (or photo) of the model, the same frame without her, and the song MP3",
-  "kind": "clip",
+  "kind": "song",
   "flags": [],
   "source": "studio/skill_sources/flicker-edit/SKILL.md",
   "commit": "owner-spec-2026-11-08"
@@ -855,7 +855,7 @@
   "title": "Scribble edit",
   "group": "Trend edits",
   "input": "a 9:16 clip of you moving (a plain wall behind you works best) and the song MP3",
-  "kind": "clip",
+  "kind": "song",
   "flags": [],
   "source": "studio/skill_sources/scribble-edit/SKILL.md",
   "commit": "owner-spec-2026-11-08"
@@ -885,7 +885,7 @@
   "title": "Sketch doodle edit",
   "group": "Trend edits",
   "input": "one photo (people against an open sky works best), its pencil-sketch version from Gemini, and the song MP3",
-  "kind": "clip",
+  "kind": "song",
   "flags": [
    "generated-media"
   ],

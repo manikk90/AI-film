@@ -72,11 +72,21 @@ def cover_size(w: int, h: int) -> tuple[int, int, int, int]:
     return nw, nh, (nw - W) // 2, (nh - H) // 2
 
 
+def displayed_size(path) -> tuple[int, int]:
+    """(width, height) as decoded: phones store portrait video as landscape pixels plus a rotation tag, and FFmpeg
+    rotates on decode, so the stored size is sideways for those clips (same logic as studio/media_probe.py)."""
+    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                          "stream=width,height:stream_side_data=rotation:stream_tags=rotate", "-of", "json", str(path)],
+                         capture_output=True, text=True, check=True).stdout
+    s = json.loads(out)["streams"][0]
+    rot = next((float(d["rotation"]) for d in s.get("side_data_list") or [] if "rotation" in d),
+               float((s.get("tags") or {}).get("rotate") or 0))
+    w, h = int(s["width"]), int(s["height"])
+    return (h, w) if int(round(rot)) % 180 == 90 else (w, h)
+
+
 def probe(path: Path) -> tuple[int, int]:
-    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height",
-                          "-of", "csv=p=0:s=x", str(path)], capture_output=True, text=True, check=True).stdout
-    w, h = out.strip().split("x")[:2]
-    return int(w), int(h)
+    return displayed_size(path)
 
 
 class Source:

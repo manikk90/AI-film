@@ -30,11 +30,22 @@ REPO = Path(__file__).resolve().parents[4]
 STUDIO = REPO / "studio"
 
 
+def displayed_size(path) -> tuple[int, int]:
+    """(width, height) as decoded: phones store portrait video as landscape pixels plus a rotation tag, and FFmpeg
+    rotates on decode, so the stored size is sideways for those clips (same logic as studio/media_probe.py)."""
+    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                          "stream=width,height:stream_side_data=rotation:stream_tags=rotate", "-of", "json", str(path)],
+                         capture_output=True, text=True, check=True).stdout
+    s = json.loads(out)["streams"][0]
+    rot = next((float(d["rotation"]) for d in s.get("side_data_list") or [] if "rotation" in d),
+               float((s.get("tags") or {}).get("rotate") or 0))
+    w, h = int(s["width"]), int(s["height"])
+    return (h, w) if int(round(rot)) % 180 == 90 else (w, h)
+
+
 def _frames(video: str, step: float, w: int = 320):
     """Yield sampled frames one at a time (float32 RGB), so a long video never sits in memory whole."""
-    info = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height",
-                           "-of", "csv=p=0", video], capture_output=True, text=True, check=True).stdout
-    vw, vh = map(int, info.strip().split(",")[:2])
+    vw, vh = displayed_size(video)  # rotation-aware: phone clips are stored sideways
     h = int(round(vh * w / vw / 2) * 2)
     proc = subprocess.Popen(["ffmpeg", "-v", "error", "-i", video, "-vf", f"fps={1 / step},scale={w}:{h}", "-f",
                              "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)

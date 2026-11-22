@@ -87,7 +87,9 @@ class StudioTest(unittest.TestCase):
         for slug in [p.parent.name for p in (REPO / "styles").glob("*/style.json")]:
             self.assertIn(f"`{slug}`", menu)
 
-    def test_mann_storyboard_gate_and_learning(self):
+    def test_mann_doc_names_storyboard_gate_and_learning(self):
+        # Doc wiring only: the gate itself is enforced in code and exercised in tests/test_editor.py
+        # (test_storyboard_gate_render_and_qc, test_only_latest_whole_approval_counts, test_part_approval_needs_the_same_whole_look).
         mann = (AGENTS / "mann.md").read_text(encoding="utf-8")
         for needle in ["storyboard (gate, mandatory)", "approve --clips", "approve-style", "lock-script", "approve --words", "editor/rules.json", "mann-style-lab", "/studio-learn",
                        "Never post", "experiment"]:

@@ -176,7 +176,17 @@ def probe_media(path):
     streams = [s for s in info.get("streams", []) if s.get("codec_type") == "video"]
     require(bool(streams), "No video/image stream found")
     stream = streams[0]
-    return {"width": int(stream.get("width", 0)), "height": int(stream.get("height", 0)),
+    width, height = int(stream.get("width", 0)), int(stream.get("height", 0))
+    deg = (stream.get("tags") or {}).get("rotate")
+    for side in stream.get("side_data_list") or []:
+        deg = side.get("rotation", deg)
+    try:
+        deg = int(round(float(deg or 0))) % 360
+    except (TypeError, ValueError):
+        deg = 0
+    if deg in (90, 270):  # displayed size, as the player shows it
+        width, height = height, width
+    return {"width": width, "height": height,
             "duration_seconds": float(info.get("format", {}).get("duration", stream.get("duration", 0))),
             "codec": stream.get("codec_name", "unknown")}
 
