@@ -319,10 +319,14 @@ def place(cues: list[dict], dur: float | None = None, engine: str = "auto", repo
         rendered.append((float(c["t"]), x))
         if report is not None:
             report.append({"t": float(c["t"]), **info})
-    end = max([t + len(x) / SR for t, x in rendered] + [dur or 0])
+    end = max([max(0.0, t + len(x) / SR) for t, x in rendered] + [dur or 0])
     bed = np.zeros((int(np.ceil(end * SR)) + 1, 2))
     for t, x in rendered:
         s = int(round(t * SR))
+        if s < 0:  # a lead-in cue that starts before 0:00 (a whoosh into the first cut): keep only its tail
+            x, s = x[-s:], 0
+            if not len(x):
+                continue
         bed[s:s + len(x)] += x
     if dur:
         bed = bed[:int(dur * SR)]

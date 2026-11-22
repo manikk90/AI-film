@@ -14,6 +14,9 @@ import os
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # studio/, for media_probe
 
 AUDIO_KBPS = 128
 
@@ -25,9 +28,9 @@ def duration(path: str) -> float:
 
 
 def is_portrait(path: str) -> bool:
-    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height",
-                          "-of", "csv=p=0", path], capture_output=True, text=True, check=True).stdout.strip()
-    w, h = map(int, out.split(",")[:2])
+    """Portrait as displayed: a phone clip stored 1920x1080 with a 90 degree rotation tag is portrait."""
+    from media_probe import displayed_size
+    w, h, _ = displayed_size(path)
     return h > w
 
 

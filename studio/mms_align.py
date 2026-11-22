@@ -27,6 +27,15 @@ import sys
 SR = 16000
 
 
+UNSPOKEN = re.compile(r"[0-9०-९₹$€£%@&#]")
+
+
+def unspoken(lines: list[dict]) -> list[str]:
+    """Words written as digits, currency or symbols. The aligner hears "paanch sau rupaye" but would see "₹500" as
+    one letter, so those words get wrong times: they must be written the way they are spoken."""
+    return [w["text"] for ln in lines for w in ln["words"] if UNSPOKEN.search(w["text"])]
+
+
 def romanise(words: list[str]) -> list[str]:
     try:
         import uroman as ur
@@ -94,6 +103,11 @@ def main(argv=None) -> int:
     ap.add_argument("--windows")
     ap.add_argument("--max-word", type=float, default=1.2)
     a = ap.parse_args(argv)
+    lines = parse_lines(a.text)  # checked first: no model download for a script that cannot align
+    bad = unspoken(lines)
+    if bad:
+        sys.exit("write these the way they are spoken before aligning (the screen text can keep the digits): "
+                 + ", ".join(dict.fromkeys(bad)) + "  e.g. ₹500 → paanch sau rupaye, 2024 → do hazaar chaubees")
     try:
         import torch  # noqa: F401
         import torchaudio
@@ -103,7 +117,6 @@ def main(argv=None) -> int:
     model = bundle.get_model(with_star=False)
     tokenizer, aligner = bundle.get_tokenizer(), bundle.get_aligner()
     wav = load(a.audio)
-    lines = parse_lines(a.text)
     for ln in lines:
         ln["roman"] = romanise([w["clean"] for w in ln["words"]])
     timed: list[tuple] = []
