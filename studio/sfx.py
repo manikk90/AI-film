@@ -1,22 +1,39 @@
 #!/usr/bin/env python3
-"""Sound effects made in code: whoosh, ding, pop, boom, shutter, typing, bell, damru, riser, impact, swoosh-up.
-No samples, no downloads, no licence to check: every sound is synthesised here, the same on every run.
+"""Sound effects for the format skills, from two sources:
+  - code:    11 sounds synthesised here (whoosh, swoosh_up, ding, bell, pop, boom, impact, shutter, typing, damru, riser),
+             the same on every run, nothing to download
+  - earshot: real-sounding effects rendered by earshot (github.com/Leonxlnx/earshot, MIT; every sound it renders is free
+             to use, commercial too; its learned sounds come from public-domain recordings). Asked for in words
+             ("footstep on gravel", "a fast whoosh for a cut") or by a catalogue id ("whoosh/fast").
 
     python3 studio/sfx.py list
     python3 studio/sfx.py make whoosh out/whoosh.wav [--seed 3] [--len 0.6] [--gain -6]
-    python3 studio/sfx.py all out/sfx/                         # one WAV per sound, for a project's sfx/ folder
-    python3 studio/sfx.py place cues.json bed.wav [--dur 30]   # mix cues onto one track at their times
+    python3 studio/sfx.py want "footstep on gravel" out/step.wav [--seed 2] [--allow-guess]   # earshot
+    python3 studio/sfx.py all out/sfx/                         # one WAV per code sound, for a project's sfx/ folder
+    python3 studio/sfx.py place cues.json bed.wav [--dur 30] [--engine auto|code|earshot] [--report bed.json]
 
-cues.json: [{"t": 1.20, "sfx": "whoosh", "gain": -6}, {"t": 2.05, "sfx": "ding"}]  (t in seconds; gain in dB)
+cues.json: [{"t": 1.20, "sfx": "whoosh", "gain": -6}, {"t": 2.05, "want": "footstep on gravel", "sfx": "impact"},
+            {"t": 3.1, "sound": "whoosh/deep"}]   (t in seconds; gain in dB)
+  sfx    a code sound (also the fallback when earshot cannot make a cue)
+  want   words for earshot          sound  an exact earshot catalogue id (`earshot sounds`)
+  file   a recording fetched with studio/openverse_audio.py (CC0/PD; credited in that folder's CREDITS.md),
+         trimmed to `len` seconds from `from` (default 0) when given
+--engine auto (default): earshot for cues with want/sound when it is installed, code otherwise. code: never earshot.
+earshot: require it. A request earshot only half understood (it answers with its nearest guess, e.g. a bicycle bell
+for "temple bell") is refused unless the cue says "allow_guess": true; the cue then falls back to its code `sfx`, or
+fails if it has none. --report writes where every cue's sound came from: put it in the film's CREDITS / 06-qc.md.
 Cue times come from the alignment (a word's start) or beats.json (a kick), never guessed.
 The bed is 48 kHz stereo 16-bit WAV, peaks kept under -1 dBFS; mix it under the voice with FFmpeg's amix.
-Needs numpy. Sounds are short and dry; reverb or EQ, if wanted, belongs in the final mix.
+Needs numpy, and FFmpeg to read earshot's files. Sounds are dry; reverb or EQ, if wanted, belongs in the final mix.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import shutil
+import subprocess
 import sys
+import tempfile
 import wave
 from pathlib import Path
 
@@ -204,10 +221,93 @@ def write(path: str | Path, stereo: np.ndarray) -> None:
         w.writeframes(data.tobytes())
 
 
-def place(cues: list[dict], dur: float | None = None) -> np.ndarray:
-    """Mix cues [{t, sfx, gain?, seed?, len?}] onto one stereo bed."""
-    rendered = [(float(c["t"]), make(c["sfx"], int(c.get("seed", i + 1)), c.get("len"), float(c.get("gain", -6))))
-                for i, c in enumerate(cues)]
+class EarshotMiss(Exception):
+    """earshot is missing, failed, or only guessed at the request."""
+
+
+def earshot_available() -> bool:
+    return shutil.which("earshot") is not None
+
+
+def _read_any(path: str) -> np.ndarray:
+    """Any audio file as float stereo (n, 2) at SR, through FFmpeg."""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-ac", "2", "-ar", str(SR), "-f", "f32le", "-"],
+                         capture_output=True, check=True).stdout
+    return np.frombuffer(raw, np.float32).reshape(-1, 2).astype(float)
+
+
+def earshot(want: str | None = None, sound: str | None = None, seed: int = 0, allow_guess: bool = False,
+            gain_db: float = -3.0) -> tuple[np.ndarray, dict]:
+    """Render one take with earshot. Returns (stereo float (n, 2) peaked at gain_db, info)."""
+    if not earshot_available():
+        raise EarshotMiss("earshot is not installed (bash studio/setup_env.sh)")
+    if not (want or sound):
+        raise EarshotMiss("an earshot cue needs `want` (words) or `sound` (a catalogue id)")
+    with tempfile.TemporaryDirectory() as tmp:
+        out = str(Path(tmp) / "take.wav")
+        cmd = ["earshot", "make", "-o", out, "--json", "--seed", str(seed)]
+        if sound:
+            cmd += ["--sound", sound]
+        if want:
+            cmd.append(want)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        try:
+            info = json.loads(r.stdout)
+        except json.JSONDecodeError:
+            raise EarshotMiss(f"earshot failed: {(r.stderr or r.stdout).strip()[:300]}")
+        if r.returncode or not Path(out).exists():
+            raise EarshotMiss(f"earshot failed: {info.get('summary', '')[:300]}")
+        if info.get("unknown") and not sound and not allow_guess:
+            raise EarshotMiss(f"earshot did not understand {', '.join(info['unknown'])!s} in {want!r}; its nearest "
+                              f"guess was {info.get('sound')} (pass allow_guess, name a catalogue id, or use a code sfx)")
+        x = _read_any(out)
+    peak = np.max(np.abs(x)) or 1.0
+    x = x / peak * 10 ** (gain_db / 20)
+    fade = min(len(x), int(0.012 * SR))
+    x[-fade:] *= np.linspace(1, 0, fade)[:, None]
+    take = (info.get("takes") or [{}])[0]
+    return x, {"source": "earshot", "id": info.get("sound"), "want": want, "seed": seed,
+               "guess": bool(info.get("unknown")), "dur_s": take.get("dur_s")}
+
+
+def render_cue(c: dict, i: int = 0, engine: str = "auto") -> tuple[np.ndarray, dict]:
+    """One cue as (stereo float, provenance). See the module doc for the cue fields and engines."""
+    seed, gain = int(c.get("seed", i + 1)), float(c.get("gain", -6))
+    if c.get("file"):
+        x = _read_any(c["file"])
+        start = int(float(c.get("from", 0)) * SR)
+        x = x[start:start + int(float(c["len"]) * SR)] if c.get("len") else x[start:]
+        if not len(x):
+            raise SystemExit(f"cue {i}: {c['file']} has no audio after {c.get('from', 0)} s")
+        x = x / (np.max(np.abs(x)) or 1.0) * 10 ** (gain / 20)
+        fade = min(len(x), int(0.02 * SR))
+        x[-fade:] *= np.linspace(1, 0, fade)[:, None]
+        return x, {"source": "file", "id": Path(c["file"]).name, "want": c.get("want"), "seed": None}
+    wants_earshot = bool(c.get("want") or c.get("sound"))
+    why = None
+    if wants_earshot and engine != "code" and (engine == "earshot" or earshot_available()):
+        try:
+            return earshot(c.get("want"), c.get("sound"), seed, bool(c.get("allow_guess")), gain)
+        except EarshotMiss as e:
+            why = str(e)
+            if engine == "earshot" and not c.get("sfx"):
+                raise
+    if not c.get("sfx"):
+        raise SystemExit(f"cue {i} at {c.get('t')} s has no code `sfx` to fall back to"
+                         + (f": {why}" if why else " (earshot not used)"))
+    x = make(c["sfx"], seed, c.get("len"), gain)
+    return x, {"source": "code", "id": c["sfx"], "want": c.get("want"), "seed": seed, "fallback_reason": why}
+
+
+def place(cues: list[dict], dur: float | None = None, engine: str = "auto", report: list | None = None) -> np.ndarray:
+    """Mix cues [{t, sfx?, want?, sound?, gain?, seed?, len?, allow_guess?}] onto one stereo bed. When a list is
+    given as `report`, one provenance row per cue is appended to it."""
+    rendered = []
+    for i, c in enumerate(cues):
+        x, info = render_cue(c, i, engine)
+        rendered.append((float(c["t"]), x))
+        if report is not None:
+            report.append({"t": float(c["t"]), **info})
     end = max([t + len(x) / SR for t, x in rendered] + [dur or 0])
     bed = np.zeros((int(np.ceil(end * SR)) + 1, 2))
     for t, x in rendered:
@@ -228,12 +328,21 @@ def main(argv=None) -> int:
     m.add_argument("--seed", type=int, default=1)
     m.add_argument("--len", type=float)
     m.add_argument("--gain", type=float, default=-3.0)
+    w = sub.add_parser("want")
+    w.add_argument("words")
+    w.add_argument("out")
+    w.add_argument("--seed", type=int, default=0)
+    w.add_argument("--sound", help="an earshot catalogue id instead of words")
+    w.add_argument("--allow-guess", action="store_true")
+    w.add_argument("--gain", type=float, default=-3.0)
     al = sub.add_parser("all")
     al.add_argument("outdir")
     p = sub.add_parser("place")
     p.add_argument("cues")
     p.add_argument("out")
     p.add_argument("--dur", type=float)
+    p.add_argument("--engine", choices=["auto", "code", "earshot"], default="auto")
+    p.add_argument("--report", help="write where each cue's sound came from (JSON)")
     a = ap.parse_args(argv)
     if a.cmd == "list":
         for k, (_, what) in SOUNDS.items():
@@ -241,14 +350,25 @@ def main(argv=None) -> int:
     elif a.cmd == "make":
         write(a.out, make(a.name, a.seed, a.len, a.gain))
         print(a.out)
+    elif a.cmd == "want":
+        try:
+            x, info = earshot(a.words or None, a.sound, a.seed, a.allow_guess, a.gain)
+        except EarshotMiss as e:
+            raise SystemExit(str(e))
+        write(a.out, x)
+        print(f"{a.out}: earshot {info['id']}" + (" (a guess)" if info["guess"] else ""))
     elif a.cmd == "all":
         for k in SOUNDS:
             write(Path(a.outdir) / f"{k}.wav", make(k))
         print(f"{a.outdir}: {len(SOUNDS)} sounds")
     else:
         cues = json.load(open(a.cues, encoding="utf-8"))
-        write(a.out, place(cues, a.dur))
-        print(f"{a.out}: {len(cues)} cues")
+        rows: list = []
+        write(a.out, place(cues, a.dur, a.engine, rows))
+        if a.report:
+            Path(a.report).write_text(json.dumps(rows, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        count = {k: sum(r["source"] == k for r in rows) for k in ("earshot", "file", "code")}
+        print(f"{a.out}: {len(cues)} cues (" + ", ".join(f"{v} {k}" for k, v in count.items()) + ")")
     return 0
 
 

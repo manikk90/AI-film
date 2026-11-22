@@ -33,6 +33,9 @@ for mod in demucs uroman whisper mediapipe librosa soundfile; do
   have_py "$mod" || python3 -m pip install -q "$pkg"
 done
 
+say "earshot: real-sounding effects in words (MIT; github.com/Leonxlnx/earshot, not the PyPI name)"
+command -v earshot >/dev/null || python3 -m pip install -q "earshot @ git+https://github.com/Leonxlnx/earshot"
+
 say "Blender (LTS) for 3d-explainer"
 if ! command -v blender >/dev/null; then
   ver=4.5
