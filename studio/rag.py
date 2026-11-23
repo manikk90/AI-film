@@ -30,7 +30,7 @@ STUDIO_DB = REPO / ".rag" / "studio.db"
 RECIPES = REPO / "studio" / "rag_recipes.json"
 GOLDEN = REPO / "studio" / "rag_golden.jsonl"
 LEARNINGS = "studio/LEARNINGS.md"
-SCHEMA = 5  # bump when chunking or metadata changes: forces a rebuild
+SCHEMA = 6  # bump when chunking or metadata changes: forces a rebuild
 
 # ---------------------------------------------------------------- corpus
 
@@ -311,12 +311,27 @@ def chunk_json(rel, text):
             ln = _line_of(text, f'"{k}"')
             out.append({"line_start": ln, "line_end": ln, "heading": f"editor/rules.json › {k}",
                         "text": f"Mann QC rule {k.replace('_', ' ')} = {json.dumps(v)}", "scope": "editor"})
-        for h in data.get("history", []):
-            s = json.dumps(h, ensure_ascii=False)
-            ln = _line_of(text, s[:30].split('"')[1] if '"' in s[:30] else s[:10])
-            out.append({"line_start": ln, "line_end": ln, "heading": "editor/rules.json › history", "text": s,
-                        "date": str(h.get("date", ""))[:10], "scope": "editor"})
+        for (a, b), h in zip(_history_spans(text), data.get("history", [])):
+            out.append({"line_start": a, "line_end": b, "heading": "editor/rules.json › history",
+                        "text": json.dumps(h, ensure_ascii=False), "date": str(h.get("date", ""))[:10],
+                        "scope": "editor"})
     return out
+
+
+def _history_spans(text):
+    """(first line, last line) of each object in the top-level "history" array, by decoding them in place."""
+    k = text.find('"history"')
+    k = text.find("[", k) if k >= 0 else -1
+    spans, dec = [], json.JSONDecoder()
+    while k >= 0:
+        k = text.find("{", k + 1)
+        close = text.find("]", k if k >= 0 else 0)
+        if k < 0 or (0 <= close < k):
+            break
+        _, end = dec.raw_decode(text, k)
+        spans.append((text.count("\n", 0, k) + 1, text.count("\n", 0, end) + 1))
+        k = end
+    return spans
 
 
 def _line_of(text, needle):
@@ -332,11 +347,13 @@ def chunk_facts(text):
             header = None
             continue
         if header is None:
-            header = ln
+            header, header_line = ln, i + 1
             continue
         if re.fullmatch(r"\s*\|[\s:|-]+\|\s*", ln):
             continue
-        out.append({"line_start": i + 1, "line_end": i + 1, "heading": "FACTS.md › claim", "text": f"{header}\n{ln}"})
+        # the text repeats the header row so the columns stay labelled; the heading says where that row is
+        head = f"FACTS.md › claim (columns: line {header_line})"
+        out.append({"line_start": i + 1, "line_end": i + 1, "heading": head, "text": f"{header}\n{ln}"})
     rest = chunk(text) if not out else []
     return out + rest
 
@@ -418,7 +435,7 @@ def git_head():
 
 
 def index(db=STUDIO_DB, film=None, rebuild=False, quiet=False):
-    """Build or update an index incrementally: only files whose content hash changed are re-chunked."""
+    """Build or update an index incrementally: every file is hashed, and only those whose content changed are re-chunked."""
     files = film_files(film) if film else studio_files()
     con = connect(db)
     old_schema = con.execute("SELECT value FROM meta WHERE key='schema'").fetchone()
@@ -433,15 +450,17 @@ def index(db=STUDIO_DB, film=None, rebuild=False, quiet=False):
         for rel in files:
             f = REPO / rel
             st = f.stat()
-            if st.st_size > MAX_BYTES:
-                continue
             k = known.get(rel)
-            if k and k[1] == st.st_mtime and k[2] == st.st_size:
+            if st.st_size > MAX_BYTES:  # grew past the limit: its old chunks must not keep answering
+                if k:
+                    _drop(con, rel)
+                    removed += 1
                 continue
-            raw = f.read_bytes()
+            raw = f.read_bytes()  # hashed every time: a same-size copy that keeps the mtime is still a change
             sha = _sha(raw)
             if k and k[0] == sha:
-                con.execute("UPDATE files SET mtime=?, size=? WHERE path=?", (st.st_mtime, st.st_size, rel))
+                if (k[1], k[2]) != (st.st_mtime, st.st_size):
+                    con.execute("UPDATE files SET mtime=?, size=? WHERE path=?", (st.st_mtime, st.st_size, rel))
                 continue
             _drop(con, rel)
             _add(con, rel, raw.decode("utf-8", "replace"), film)
@@ -670,7 +689,7 @@ def label(r):
 
 
 def fresh(film=None):
-    """Re-index changed files before answering (cheap: unchanged files are skipped on mtime and size)."""
+    """Re-index changed files before answering (cheap: hashing the whole studio corpus takes a few milliseconds)."""
     index(STUDIO_DB, quiet=True)
     if film:
         index(REPO / "projects" / film / ".rag" / "film.db", film=film, quiet=True)

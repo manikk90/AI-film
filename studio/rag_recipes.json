@@ -13,6 +13,11 @@
       "publish-kit": [
         {"q": "publishing kit titles captions hashtags cover text posting slot pinned comment", "tier": ["R2"], "k": 3},
         {"q": "{topic} script title", "film": true, "k": 2}
+      ],
+      "performance-review": [
+        {"q": "performance review views retention drop-off keep revise stop", "scope": ["social"], "k": 2},
+        {"q": "{topic} hypothesis publish kit posting slot A/B test", "film": true, "k": 4},
+        {"q": "performance numbers result learnings", "tier": ["R1"], "k": 2}
       ]
     }
   },

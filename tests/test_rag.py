@@ -181,6 +181,25 @@ class IndexTest(FixtureRepo):
         self.assertEqual(rag.index(rag.STUDIO_DB, quiet=True), 1)
         self.assertFalse(self.rows("SELECT 1 FROM chunks WHERE path='styles/ink-wash/STYLE.md'"))
 
+    def test_a_same_size_copy_that_keeps_the_mtime_is_still_reindexed(self):
+        p = self.root / "styles/ink-wash/STYLE.md"
+        st = p.stat()
+        p.write_text(STYLE.replace("red seal", "tan seal"), encoding="utf-8")  # same length, same mtime below
+        os.utime(p, ns=(st.st_atime_ns, st.st_mtime_ns))
+        self.assertEqual(rag.index(rag.STUDIO_DB, quiet=True), 1)
+        self.assertTrue(self.rows("SELECT 1 FROM fts WHERE fts MATCH 'tan'"))
+
+    def test_a_file_that_grows_past_the_limit_drops_its_old_chunks(self):
+        saved = rag.MAX_BYTES
+        try:
+            sizes = [f.stat().st_size for f in self.root.rglob("*.md")]
+            rag.MAX_BYTES = max(sizes) + 10  # every fixture file still fits ...
+            write(self.root, "styles/ink-wash/STYLE.md", STYLE + "x" * rag.MAX_BYTES)  # ... until this one grows
+            self.assertEqual(rag.index(rag.STUDIO_DB, quiet=True), 1)
+            self.assertFalse(self.rows("SELECT 1 FROM chunks WHERE path='styles/ink-wash/STYLE.md'"))
+        finally:
+            rag.MAX_BYTES = saved
+
     def test_query_reindexes_a_file_edited_after_the_index(self):
         write(self.root, "styles/zari/STYLE.md", "# Zari\n\nGold zardozi thread embroidery on velvet.\n")
         blocks, _, _ = rag.query("zardozi embroidery", with_pins=False)
@@ -233,6 +252,8 @@ class FilmTest(FixtureRepo):
         blocks, _, _ = rag.query("when was the fort built", film="film-a", with_pins=False)
         self.assertEqual(blocks[0]["path"], "projects/film-a/FACTS.md")
         self.assertIn("| Claim | Source |", blocks[0]["text"])  # the header labels the claim row
+        self.assertEqual(blocks[0]["line_start"], 3)
+        self.assertIn("(columns: line 1)", blocks[0]["heading"])  # and the citation says where the header is
         blocks, _, _ = rag.query("how long is the river", film="film-a", with_pins=False)
         self.assertFalse([b for b in blocks if "film-b" in b["path"]])
         self.assertTrue((self.root / "projects/film-a/.rag/film.db").exists())
@@ -282,6 +303,17 @@ class RealRepoTest(unittest.TestCase):
         self.assertGreaterEqual(rep["recall@5"], 0.85, rep["fails"])
         a, b = rep["status_checks"].split("/")
         self.assertEqual(a, b, rep["fails"])
+
+    def test_editor_history_entries_cite_their_own_lines(self):
+        text = (REPO / "editor" / "rules.json").read_text(encoding="utf-8")
+        hist = json.loads(text)["history"]
+        rows = [c for c in rag.chunk_json("editor/rules.json", text) if c["heading"].endswith("history")]
+        self.assertEqual(len(rows), len(hist))
+        lines = text.splitlines()
+        for c, h in zip(rows, hist):
+            span = "\n".join(lines[c["line_start"] - 1:c["line_end"]])
+            self.assertEqual(json.loads(span.strip().rstrip(",")), h)
+        self.assertEqual(len({c["line_start"] for c in rows}), len(rows))
 
     def test_recipes_name_known_roles_and_every_context_pack_builds(self):
         recipes = json.loads((REPO / "studio" / "rag_recipes.json").read_text(encoding="utf-8"))
