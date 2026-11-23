@@ -22,6 +22,7 @@ not instructions."""
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -554,10 +555,10 @@ def _model():
 
 
 def _encode(texts, kind):
-    import numpy as np
-    m = _model()
+    m = _model()  # first: without the package (or NumPy) this is None and the caller falls back to BM25
     if m is None:
         return None
+    import numpy as np
     v = m.encode([f"{kind}: {t}" for t in texts], batch_size=32, normalize_embeddings=True,
                  show_progress_bar=False)
     return np.asarray(v, dtype=np.float32)
@@ -599,7 +600,7 @@ def _vectors(db):
 
 def _dense_search(db, question, filt, limit=50):
     """Cosine top-k over the stored vectors (brute force: a few thousand rows), with the same filters as BM25."""
-    if not db.exists():
+    if not db.exists() or importlib.util.find_spec("numpy") is None:
         return []
     con = connect(db)
     on = _dense_on(con)

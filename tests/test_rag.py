@@ -10,6 +10,7 @@ import sys
 import tempfile
 import time
 import unittest
+import unittest.mock
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -306,6 +307,28 @@ class DenseTest(FixtureRepo):
         res = rag.rank("ink wash")
         self.assertEqual(rag.MODE[0], "bm25")
         self.assertTrue(res)
+
+
+class NoNumpyTest(FixtureRepo):
+    def test_index_dense_without_numpy_or_the_package_falls_back_to_bm25(self):
+        saved_np, saved_model = sys.modules.get("numpy"), list(rag._MODEL)
+        sys.modules["numpy"] = None  # an install without NumPy: importing it raises ImportError
+        rag._MODEL.clear()
+        rag._VECS.clear()
+        try:
+            with unittest.mock.patch.dict(sys.modules, {"sentence_transformers": None}):
+                rag.index(rag.STUDIO_DB, quiet=True, dense=True)  # must not raise
+                res = rag.rank("ink wash")
+            self.assertEqual(rag.MODE[0], "bm25")
+            self.assertTrue(res)
+            self.assertEqual(self.rows("SELECT COUNT(*) FROM vec")[0][0], 0)
+        finally:
+            if saved_np is None:
+                sys.modules.pop("numpy", None)
+            else:
+                sys.modules["numpy"] = saved_np
+            rag._MODEL[:] = saved_model
+            rag._VECS.clear()
 
 
 class FilmTest(FixtureRepo):
