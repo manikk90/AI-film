@@ -33,9 +33,13 @@ def npx_allowed(env=None) -> bool:
     if env.get(NPX_ENV) == "1":
         return True
     try:
-        return bool(json.loads(PERMISSIONS.read_text(encoding="utf-8")).get("npx", {}).get("allowed"))
+        perms = json.loads(PERMISSIONS.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return False
+    npx = perms.get("npx") if isinstance(perms, dict) else None
+    return isinstance(npx, dict) and npx.get("allowed") is True  # fail closed: only a literal true grants it
+
+
 HOSTS = {
     "dl.fbaipublicfiles.com": "https://dl.fbaipublicfiles.com/mms/torchaudio/ctc_alignment_mling_uroman/model.pt",
     "openaipublic.azureedge.net": "https://openaipublic.azureedge.net/main/whisper/models/"
@@ -81,9 +85,9 @@ CAPABILITIES = [
     ("WhatsApp copy and render QC (studio/whatsapp_copy.py, studio/frame_check.py)", ["ffmpeg", "ffprobe"], [], [],
      [], "every finished video"),
     ("ElevenLabs voice and SFX", [], ["api.elevenlabs.io"], [], ["ELEVENLABS_API_KEY"], "the director's voice and SFX"),
-    ("HyperFrames render (npm)", ["node"], ["registry.npmjs.org"], [], [NPX_ENV],
+    ("HyperFrames render (npm)", ["node", "npx"], ["registry.npmjs.org"], [], [NPX_ENV],
      "daksh-ai's own renderer; runs through npx (allowed by the owner 2026-11-23, studio/permissions.json)"),
-    ("Remotion render (npm: remotion, d3-geo, topojson-client, world-atlas)", ["node"], ["registry.npmjs.org"], [],
+    ("Remotion render (npm: remotion, d3-geo, topojson-client, world-atlas)", ["node", "npx"], ["registry.npmjs.org"], [],
      [NPX_ENV], "watercolor-map; runs through npx (allowed by the owner 2026-11-23, studio/permissions.json)"),
 ]
 

@@ -67,6 +67,9 @@ class DoctorTest(unittest.TestCase):
         open_hosts = {h: "200" for h in C.HOSTS}
         everything = {"ELEVENLABS_API_KEY": True, C.NPX_ENV: True}
         self.assertTrue(all(r["ready"] for r in C.assess(ALL_TOOLS, open_hosts, everything)))
+        no_npx = [r for r in C.assess(ALL_TOOLS | {"npx": False}, open_hosts, everything) if not r["ready"]]
+        self.assertEqual(sorted(r["capability"].split(" ")[0] for r in no_npx), ["HyperFrames", "Remotion"])
+        self.assertTrue(all("npx" in r["missing"] for r in no_npx))  # node alone is not enough
         npx_rows = [r for r in C.assess(ALL_TOOLS, open_hosts, {"ELEVENLABS_API_KEY": True}) if not r["ready"]]
         self.assertEqual(sorted(r["capability"].split(" ")[0] for r in npx_rows), ["HyperFrames", "Remotion"])
         self.assertTrue(all("permission" in r["missing"][0] for r in npx_rows))
@@ -91,6 +94,10 @@ class DoctorTest(unittest.TestCase):
                 self.assertFalse(C.npx_allowed({}))
                 C.PERMISSIONS.write_text("not json")
                 self.assertFalse(C.npx_allowed({}))
+                for shape in ('{"npx": {"allowed": "false"}}', '{"npx": {"allowed": 1}}', '{"npx": false}', '[]',
+                              '{"npx": ["allowed"]}'):
+                    C.PERMISSIONS.write_text(shape)  # anything but a literal true fails closed, never crashes
+                    self.assertFalse(C.npx_allowed({}), shape)
         finally:
             C.PERMISSIONS = saved
 
