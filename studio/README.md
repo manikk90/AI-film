@@ -44,6 +44,7 @@ owner's ask ─► social: trend board + 3 pitches ─► [Gate 1: pick, or "khu
 - `/viral-studio khud chuno`: the team picks the top pitch and goes as far as the script gate.
 - Call one agent directly when you need only that job ("social se trending topics nikalo", "director se is script ka flow check karao").
 - Feedback of any kind ("ye hook weak hai", "aisa SFX mat lagana") is recorded by `/studio-learn` in `studio/LEARNINGS.md`, and every agent reads it before it works.
+- Ask the studio's knowledge instead of reading whole files: `python3 studio/rag.py query "kitne frames preview bhejne"` returns cited passages (`path:lines › heading`) plus the rules that never bend; `rag.py context <role> <step> --film <slug>` is an agent's standard pack. Design and limits: `docs/RAG_DESIGN.md`.
 
 ## Editor package (NLE corrections)
 

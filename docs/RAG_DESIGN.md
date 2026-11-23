@@ -1,7 +1,9 @@
 # Studio RAG: retrieval for the agents (design)
 
-Status: design, 2026-11-22. Nothing here is built yet. A BM25 prototype measured the numbers below; the
-implementation plan is at the end.
+Status, 2026-11-23: **phase 1 is built** (`studio/rag.py`, `tests/test_rag.py`), with the `context` recipes and
+agent wiring of phase 3 (`studio/rag_recipes.json`, the caveman block, `/viral-studio`). **Not built:** dense retrieval
+(phase 2), the token measurement on a real film (phase 3) and the MCP server (phase 4). What was built, and where it
+differs from the plan, is in §11.
 
 ## 1. Why
 
@@ -197,3 +199,38 @@ CI runs the BM25-only eval on the repo, since the model is not in CI.
 - Hinglish spelling varies (mein/me, kya/kia). Dense retrieval covers most of it, and phase 1 can add a small
   spelling-variant expansion.
 - An index left stale after an edit. Hash checks before every query prevent it.
+
+## 11. Built (2026-11-23)
+
+**Commands:** as in §7. `query` and `context` re-index changed files first (the whole studio corpus indexes in about
+0.1 s; an unchanged one is checked in 0.07 s). The index is `.rag/studio.db` (git-ignored); a film gets
+`projects/<slug>/.rag/film.db`.
+
+**Measured on the repo (BM25 only, golden set of 44 checks in `studio/rag_golden.jsonl`):**
+- recall@5 0.976 (41 of 42 questions) against the 0.85 target; MRR 0.689; about 870 tokens per answer.
+- Superseded-rule checks 2 of 2: struck-out rules come back marked `superseded <date>`.
+- The miss is Hinglish: "kitne frames preview owner ko bhejne" finds the Director's preview rule and the harness
+  preview section but not the Global "3 frames at 3 different timecodes" rule, which says "show the owner how it will
+  look", not "preview". That is the gap dense retrieval (phase 2) is for.
+- Pinned tier: about 1.4k tokens (9 AGENTS.md rules with never/do not, the README and harness never-bend sections),
+  plus a skill's or agent's own never-bend section when that skill or role is in play.
+- A director format-brief pack is about 6.6k tokens (rules about 3.2k, pinned about 1.4k, passages about 2k). The files
+  it replaces are 15 KB of rules plus the 56 KB `STYLE_MENU.md` plus the style and skill files. The per-film saving
+  against the `CAVEMAN.md` baseline is **not measured yet**; it needs the next comparable film.
+
+**Differences from the plan above:**
+- `docs/DIRECTOR_RULES.md` is ranked as R2 (procedure), not R3: AGENTS.md makes it a rule source.
+- The 91 format skills repeat the generated harness block; it is blanked before chunking (line numbers kept), so the
+  harness is retrieved once, from `studio/SKILL_HARNESS.md`.
+- Without dense vectors, "same topic" between two current owner rules is word overlap (Jaccard ≥ 0.3 in one
+  LEARNINGS section). The older one is labelled `older: a newer related rule (<date>, line N) wins on conflict`, not
+  `superseded`: overlap shows they are related, not that they conflict. Only rules struck through in LEARNINGS.md are
+  called superseded.
+- A `context` pack does not rank owner rules. It carries every current rule of the role's LEARNINGS sections (the
+  `caveman.py` ROLES map) in full and leaves the superseded ones out, so retrieval can never drop a rule an agent must
+  follow. Ranked passages fill the budget around them.
+- Hinglish: a stop-word list and a small Hinglish→English word map (`HINGLISH` in `rag.py`), labelled as a stopgap.
+
+**Agent wiring:** the caveman block (identical in every agent file and `CAVEMAN.md`) now says to start from
+`rag.py context`; `/viral-studio` names each agent's step, builds the researcher's pack (it has no Bash) and re-indexes
+the film after each stage. Agents still write whole files; the index picks them up.
