@@ -50,7 +50,8 @@ function args(argv) {
   // file:// pages count as their own origin, so a local image would taint the canvas and block export; this flag lets
   // a page draw the project's own images and frames (it reads only files the page itself names).
   const opts = launchOptions();
-  const browser = await chromium.launch({ ...opts, args: [...(opts.args || []), '--allow-file-access-from-files'] });
+  // --enable-unsafe-swiftshader: WebGL pages (studio/voxel_kit.js) fall back to software GL on GPU-less runners
+  const browser = await chromium.launch({ ...opts, args: [...(opts.args || []), '--allow-file-access-from-files', '--enable-unsafe-swiftshader'] });
   const page = await browser.newPage({ viewport: { width: a.w, height: a.h } });
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));

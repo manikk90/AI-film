@@ -1,0 +1,84 @@
+<!doctype html>
+<!--
+  living-painting voxel template (studio, 2026-11-23). A working example: a voxel island with a small boat circling it
+  and cube waves, a 6 s seamless loop at 1080x1920. Copy it with
+  `python3 .claude/skills/living-painting/scripts/new_painting.py <slug> <preset> --style voxel_3d`, then replace the
+  build*() functions with the scene. Keep the structure:
+    1. BUILD ONCE: every model is built in init() from seeded randomness (K.rng, K.noise), as voxel groups.
+    2. ANIMATE: render(ctx, t) only moves groups and the camera; whole cycles of DUR, so t = DUR looks like t = 0.
+    3. A shared subject path: when the page sets window.MOTION (from /style-montage's motion.js), the subject follows
+       MOTION.subject(t) so every style of a montage moves in step.
+-->
+<meta charset="utf-8">
+<link rel="stylesheet" href="__STUDIO__/fonts/fonts.css">
+<style>html,body{margin:0;background:#000}canvas{display:block;max-width:100vw;max-height:100vh;margin:auto}</style>
+<canvas width="1080" height="1920"></canvas>
+<script src="__STUDIO__/canvas_kit.js"></script>
+<script src="__STUDIO__/../third_party/three/three.min.js"></script>
+<script src="__STUDIO__/voxel_kit.js"></script>
+<script>
+const K = STUDIO, SEED = 7, TAU = Math.PI * 2;
+const M = window.MOTION || null;                     // /style-montage's shared motion.js, when this page is one style of a montage
+const DUR = (M && M.DUR) || 6;
+let V, boat, waves = [];
+
+// ---------- 1. build once ---------------------------------------------------------------------------------------
+function buildIsland() {
+  const R = 14;
+  return V.terrain(36, 36, (x, z) => {
+    const d = Math.hypot(x - 18, z - 18) / R;
+    return d > 1 ? 0 : 1 + (1 - d) * 7 + 2 * K.noise(x / 6, z / 6, SEED);
+  }, (x, y, z, h) => (y === h - 1 ? (h > 6 ? '#5f8f3e' : '#d9c48a') : '#8a6a42'));
+}
+function buildBoat() {
+  const v = [];
+  for (let x = -3; x <= 3; x++) for (let z = -1; z <= 1; z++) v.push([x, 0, z, '#7a4a2a']);
+  for (let x = -2; x <= 2; x++) for (let z = -1; z <= 1; z++) v.push([x, 1, z, '#a8693a']);
+  for (let y = 2; y <= 6; y++) v.push([0, y, 0, '#5a3a22']);
+  for (let y = 3; y <= 6; y++) for (let x = 1; x <= 3 - (y - 3) * 0.5; x++) v.push([x, y, 0, '#f4f1e6']);
+  return V.model(v);
+}
+function buildWaves() {                                   // a ring of cube crests that rise and sink in whole cycles
+  const r = K.rng(SEED + 5), out = [];
+  for (let i = 0; i < 90; i++) {
+    const a = r() * TAU, d = 17 + r() * 22;
+    const g = V.model([[0, 0, 0, r() < 0.5 ? '#ffffff' : '#bfe6f2']]);
+    g.position.set(Math.cos(a) * d, 0, Math.sin(a) * d);
+    out.push({ g, phase: r(), cycles: 1 + Math.floor(r() * 2) });
+  }
+  return out;
+}
+
+window.FILM = {
+  DUR,
+  setSize(w, h) { document.querySelector('canvas').width = w; document.querySelector('canvas').height = h; if (V) V.setSize(w, h); },
+  init() {
+    const c = document.querySelector('canvas');
+    V = K.voxel.create({ w: c.width, h: c.height, bg: '#9fd6f2', fov: 32, light: [0.5, 1.0, 0.3] });
+    V.model((() => { const s = []; for (let x = -45; x <= 45; x += 1) for (let z = -45; z <= 45; z += 1) s.push([x, -1, z, '#2f8fb8']); return s; })());
+    buildIsland();
+    boat = buildBoat();
+    waves = buildWaves();
+  },
+  // ---------- 2. animate ----------------------------------------------------------------------------------------
+  render(ctx, t) {
+    const u = (t % DUR) / DUR;                              // 0..1 over the loop
+    for (const w of waves) w.g.position.y = -0.6 + 0.9 * Math.max(0, Math.sin((u * w.cycles + w.phase) * TAU));
+    const orbit = 0.6, sway = M ? 0 : 0.08 * Math.sin(u * TAU);   // a montage takes its camera from MOTION instead
+    V.camera.position.set(Math.cos(orbit + sway) * 70, 52, Math.sin(orbit + sway) * 70);
+    V.camera.lookAt(0, 2, 0);
+    if (M) {                                   // montage: shared camera, and the boat sits on MOTION's screen point
+      V.setCamera(M.camera(t));
+      const s = M.subject(t);
+      boat.position.copy(V.groundAt(s.x, s.y, 0.4));
+      boat.position.y += 0.4 * Math.sin(s.phase * TAU);
+      boat.rotation.y = -s.angle;
+    } else {
+      const a = u * TAU;                                    // one full circle per loop
+      boat.position.set(Math.cos(a) * 24, 0.4 + 0.4 * Math.sin(u * TAU * 3), Math.sin(a) * 24);
+      boat.rotation.y = -a;                                 // bow along the circle
+    }
+    V.draw(ctx);
+  }
+};
+</script>
