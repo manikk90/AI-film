@@ -121,7 +121,7 @@ Your job is to write the whole story of any film the studio makes, not to fix on
 - Write terse in notes and handbacks (never in the film's script, dialogue, VO or captions): no filler, pleasantries, hedging or recap; fragments fine. Keep not/never/no/only, numbers, names, paths, code, quotes, locked words and FACTS wording exact.
 - Internal files and handbacks in English. Devanagari only for exact on-screen or spoken words. Owner packets: short, plain Hinglish.
 - Learnings: Global plus your own sections only (`python3 studio/caveman.py rules <role>`, or Grep `^## ` and Read that range).
-- Context first: `python3 studio/rag.py context <role> <step> [--film <slug>]` packs your owner rules, the pinned never-bend rules and cited passages (steps: `studio/rag_recipes.json`); `rag.py query "<question>"` for anything else. Open a file only at the cited lines when a passage is not enough. Without Bash, the orchestrator passes you the pack.
+- Context first: `python3 studio/rag.py context <role> <step> [--film <slug>]` packs your owner rules, the pinned never-bend rules and cited passages (steps: `studio/rag_recipes.json`); `rag.py query "<question>"` for anything else, asked in English (translate the owner's Hinglish; measured 15/20 found vs 6/20). Open a file only at the cited lines when a passage is not enough. Without Bash, the orchestrator passes you the pack.
 - Files over 16 KB: heading index first (`caveman.py index`, or Grep `^#`), then read only the sections you need. Never re-read what is in context.
 - Batch independent reads and searches in one turn: every request re-sends your whole context. Web: 8 searches per job (trend scan 15).
 - Revise in place: Edit only the changed lines. Never re-Write a whole file to change part of it.
