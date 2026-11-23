@@ -1,0 +1,9 @@
+{
+ "_about": "Standing permissions the owner gave, read by studio/check_env.py. Each entry quotes the owner and the date; the matching rule is in studio/LEARNINGS.md. An environment variable (e.g. AIFILM_NPX_ALLOWED=1) still works on top of this file.",
+ "npx": {
+  "allowed": true,
+  "date": "2026-11-23",
+  "scope": "HyperFrames and Remotion renders through npx, pinned versions, only when a skill needs them",
+  "source": "ha sahi plan h krdo"
+ }
+}

@@ -23,7 +23,19 @@ REPO = Path(__file__).resolve().parents[1]
 # the offline Kokoro voice for studio/word_timing.py: only where the owner points KOKORO_DIR (never a path outside the
 # repo by default; AGENTS.md: no code or data from unrelated workspaces)
 KOKORO = Path(os.environ["KOKORO_DIR"]) if os.environ.get("KOKORO_DIR") else None
-NPX_ENV = "AIFILM_NPX_ALLOWED"   # the owner sets it to 1 once they allow npx packages in their permission settings
+NPX_ENV = "AIFILM_NPX_ALLOWED"   # set to 1, or recorded in studio/permissions.json, once the owner allows npx packages
+PERMISSIONS = Path(__file__).resolve().parent / "permissions.json"
+
+
+def npx_allowed(env=None) -> bool:
+    """The owner's npx permission: the environment variable, or the standing permission in studio/permissions.json."""
+    env = os.environ if env is None else env
+    if env.get(NPX_ENV) == "1":
+        return True
+    try:
+        return bool(json.loads(PERMISSIONS.read_text(encoding="utf-8")).get("npx", {}).get("allowed"))
+    except (OSError, ValueError):
+        return False
 HOSTS = {
     "dl.fbaipublicfiles.com": "https://dl.fbaipublicfiles.com/mms/torchaudio/ctc_alignment_mling_uroman/model.pt",
     "openaipublic.azureedge.net": "https://openaipublic.azureedge.net/main/whisper/models/"
@@ -70,9 +82,9 @@ CAPABILITIES = [
      [], "every finished video"),
     ("ElevenLabs voice and SFX", [], ["api.elevenlabs.io"], [], ["ELEVENLABS_API_KEY"], "the director's voice and SFX"),
     ("HyperFrames render (npm)", ["node"], ["registry.npmjs.org"], [], [NPX_ENV],
-     "daksh-ai's own renderer; runs through npx, which needs the owner's permission"),
+     "daksh-ai's own renderer; runs through npx (allowed by the owner 2026-11-23, studio/permissions.json)"),
     ("Remotion render (npm: remotion, d3-geo, topojson-client, world-atlas)", ["node"], ["registry.npmjs.org"], [],
-     [NPX_ENV], "watercolor-map; runs through npx, which needs the owner's permission"),
+     [NPX_ENV], "watercolor-map; runs through npx (allowed by the owner 2026-11-23, studio/permissions.json)"),
 ]
 
 
@@ -143,7 +155,7 @@ def main(argv=None) -> int:
     with ThreadPoolExecutor(len(HOSTS)) as pool:
         hosts = dict(zip(HOSTS, pool.map(probe_host, HOSTS.values())))
     env = {"ELEVENLABS_API_KEY": bool(os.environ.get("ELEVENLABS_API_KEY")),
-           NPX_ENV: os.environ.get(NPX_ENV) == "1"}
+           NPX_ENV: npx_allowed()}
     rows = assess(tools, hosts, env)
     if a.json:
         print(json.dumps({"tools": tools, "hosts": hosts, "env": env, "capabilities": rows}, indent=1))

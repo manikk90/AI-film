@@ -76,6 +76,24 @@ class DoctorTest(unittest.TestCase):
         no_ffmpeg = ALL_TOOLS | {"ffmpeg": False}
         self.assertFalse(C.assess(no_ffmpeg, open_hosts, {})[0]["ready"])
 
+    def test_npx_permission_comes_from_the_env_or_the_owners_recorded_permission(self):
+        perms = json.loads(C.PERMISSIONS.read_text(encoding="utf-8"))
+        self.assertTrue(perms["npx"]["allowed"])  # owner, 2026-11-23: "ha sahi plan h krdo"
+        self.assertEqual(perms["npx"]["date"], "2026-11-23")
+        self.assertTrue(C.npx_allowed({}))
+        saved = C.PERMISSIONS
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                C.PERMISSIONS = Path(tmp) / "permissions.json"  # no recorded permission
+                self.assertFalse(C.npx_allowed({}))
+                self.assertTrue(C.npx_allowed({C.NPX_ENV: "1"}))
+                C.PERMISSIONS.write_text('{"npx": {"allowed": false}}')
+                self.assertFalse(C.npx_allowed({}))
+                C.PERMISSIONS.write_text("not json")
+                self.assertFalse(C.npx_allowed({}))
+        finally:
+            C.PERMISSIONS = saved
+
 
 @unittest.skipUnless(has_playwright() and shutil.which("ffprobe"), "the renderer needs Node, Playwright and FFmpeg")
 class CanvasRenderTest(unittest.TestCase):

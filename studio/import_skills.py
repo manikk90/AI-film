@@ -190,7 +190,7 @@ def render_settings(name: str, text: str, scripts: tuple = ()) -> str:
                   + (" --abitrate 256k`" if song else "`"))
         own_footage = kind_of(name) in ("clip", "assets") or re.search(r"\bmy (?:own )?(?:clip|video|footage)|your own clip", text, re.I)
         engine = ("Blender EEVEE (`blender -b`) frames, encoded with FFmpeg" if name == "3d-explainer" else
-                  "Remotion (`npx remotion render`; needs the owner's permission to run npx here)"
+                  "Remotion (`npx remotion render`; npx allowed by the owner 2026-11-23, `studio/permissions.json`)"
                   if name == "watercolor-map" else
                   "this skill's own " + ", ".join(f"`scripts/{x}`" for x in scripts) + " (see its Helper scripts)"
                   if scripts else

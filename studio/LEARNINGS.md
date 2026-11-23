@@ -20,7 +20,9 @@ Format: `- YYYY-MM-DD · kind · rule. Why: … Source: "<owner's words>" (proje
   - Also blocked: openaipublic.azureedge.net (Whisper weights), download.pytorch.org, alphacephei.com (Vosk) and cdn.jsdelivr.net.
   - Reachable: pypi.org, registry.npmjs.org and raw.githubusercontent.com.
   - Run `python3 studio/check_env.py` for the current state before a production. (studio)
-- 2026-11-02 · observed · The session's auto-mode classifier refuses to run npm packages with `npx` ("Code from External"), for example HyperFrames. Render canvas pages with `node studio/render_canvas.cjs` instead: local Chromium and FFmpeg. The `daksh-ai` template rendered end to end with it. (studio)
+- ~~superseded 2026-11-23~~ 2026-11-02 · observed · The session's auto-mode classifier refuses to run npm packages with `npx` ("Code from External"), for example HyperFrames. Render canvas pages with `node studio/render_canvas.cjs` instead: local Chromium and FFmpeg. The `daksh-ai` template rendered end to end with it. (studio)
+- 2026-11-23 · owner · npx is allowed: run HyperFrames (`npx hyperframes`) and Remotion through npx when a skill needs them, and set `AIFILM_NPX_ALLOWED=1` for `studio/check_env.py`. Still pin a version, and never run an npx package the job does not need. Why: Mann's motion graphics and the Remotion skills need them. Source: "ha sahi plan h krdo" (reply to "npx allow bolo to HyperFrames on kar dunga") (studio)
+- 2026-11-23 · observed · With that permission, `npx --yes hyperframes --version` ran in the cloud session (0.9.84). (studio)
 - 2026-11-02 · observed · Known words (a script, lyrics, the locked dialogue) can now be timed offline with `studio/word_timing.py`, with no model download.
   - On Kokoro speech: line starts on the Ramayana VO were within 20 ms, and 90 % of word starts in the other-voice tests were within 17 ms.
   - Not yet measured on human recordings or sung vocals.
