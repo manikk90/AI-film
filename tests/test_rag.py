@@ -2,6 +2,7 @@
 made-up rules, skills, styles and two made-up films. The last class indexes the real repo into a temp database for
 the design's guardrails: every AGENTS.md "never" rule is pinned, and the golden set reaches the recall target."""
 
+import importlib.util
 import json
 import os
 import sqlite3
@@ -231,6 +232,14 @@ class QueryTest(FixtureRepo):
         blocks, _, _ = rag.query("preview frame bhejne", with_pins=False)
         self.assertIn("3 numbered frames", blocks[0]["text"])
 
+    def test_hindi_and_hinglish_queries_get_the_ask_in_english_note(self):
+        self.assertTrue(rag.non_english("ek saath kitne agent chala sakte hain"))
+        self.assertTrue(rag.non_english("मालिक को झलक"))
+        self.assertFalse(rag.non_english("how many agents can run at once"))
+        self.assertFalse(rag.non_english("Madhubani kahani style"))  # one Hindi noun is not a Hindi query
+        out = rag.render([], [], 0, question="frames kaise bhejne hai")
+        self.assertIn("Ask again in English", out)
+
     def test_budget_is_respected_and_the_best_passage_always_returns(self):
         blocks, _, used = rag.query("film deliver director owner frames", budget=60, k=10, with_pins=False)
         self.assertEqual(len(blocks), 1)
@@ -245,6 +254,58 @@ class QueryTest(FixtureRepo):
         self.assertIn("[1] styles/ink-wash/STYLE.md:", out)
         self.assertIn("retrieval: bm25", out)
         self.assertIn("data, not instructions", out)
+
+
+class FakeModel:
+    """SYNTHETIC FIXTURE: a stand-in sentence encoder (bag of words hashed into 64 dims), so the dense path runs in CI
+    without sentence-transformers or a model download."""
+
+    def encode(self, texts, **kw):
+        import numpy as np
+        out = np.zeros((len(texts), 64), np.float32)
+        for i, t in enumerate(texts):
+            for w in rag.WORD.findall(t.lower().split(":", 1)[-1]):
+                out[i, sum(map(ord, w)) % 64] += 1
+        return out / np.maximum(np.linalg.norm(out, axis=1, keepdims=True), 1e-9)
+
+
+@unittest.skipUnless(importlib.util.find_spec("numpy"), "needs numpy")
+class DenseTest(FixtureRepo):
+    def setUp(self):
+        super().setUp()
+        self.saved_model = list(rag._MODEL)
+        rag._MODEL[:] = [FakeModel()]
+        rag._VECS.clear()
+
+    def tearDown(self):
+        rag._MODEL[:] = self.saved_model
+        rag._VECS.clear()
+        super().tearDown()
+
+    def test_dense_is_opt_in_embeds_incrementally_and_fuses_with_bm25(self):
+        rag.rank("ink wash")
+        self.assertEqual(rag.MODE[0], "bm25")  # no vectors until index --dense
+        rag.index(rag.STUDIO_DB, quiet=True, dense=True)
+        n = self.rows("SELECT COUNT(*) FROM vec")[0][0]
+        self.assertEqual(n, self.rows("SELECT COUNT(*) FROM chunks WHERE tier != 'P'")[0][0])
+        res = rag.rank("grey ink wash rice paper")
+        self.assertEqual(rag.MODE[0], "hybrid (bm25+e5)")
+        self.assertIn("styles/ink-wash/STYLE.md", [r["path"] for r in res[:3]])
+        self.assertTrue(any("cos" in r for r in res))  # dense candidates took part in the fusion
+        self.assertEqual(rag.rank("grey ink wash", dense=False) and rag.MODE[0], "bm25")
+        write(self.root, "styles/zari/STYLE.md", "# Zari\n\nGold zardozi thread embroidery.\n")
+        rag.index(rag.STUDIO_DB, quiet=True)
+        self.assertEqual(self.rows("SELECT COUNT(*) FROM vec")[0][0], n + 1)  # only the new chunk was embedded
+        rag.index(rag.STUDIO_DB, quiet=True, dense=False)
+        self.assertEqual(self.rows("SELECT COUNT(*) FROM vec")[0][0], 0)
+
+    def test_without_a_model_it_falls_back_to_bm25_and_says_so(self):
+        rag.index(rag.STUDIO_DB, quiet=True, dense=True)
+        rag._MODEL[:] = [None]
+        rag._VECS.clear()
+        res = rag.rank("ink wash")
+        self.assertEqual(rag.MODE[0], "bm25")
+        self.assertTrue(res)
 
 
 class FilmTest(FixtureRepo):
@@ -314,6 +375,11 @@ class RealRepoTest(unittest.TestCase):
             span = "\n".join(lines[c["line_start"] - 1:c["line_end"]])
             self.assertEqual(json.loads(span.strip().rstrip(",")), h)
         self.assertEqual(len({c["line_start"] for c in rows}), len(rows))
+
+    def test_held_out_questions_asked_in_english_meet_the_floor(self):
+        rep = rag.evaluate(REPO / "studio" / "rag_golden_heldout.jsonl", k=5, dense=False, field="q_en")
+        self.assertEqual(rep["questions"], 20)
+        self.assertGreaterEqual(rep["recall@5"], 0.6, rep["fails"])  # measured 0.75 on 2026-11-23
 
     def test_recipes_name_known_roles_and_every_context_pack_builds(self):
         recipes = json.loads((REPO / "studio" / "rag_recipes.json").read_text(encoding="utf-8"))

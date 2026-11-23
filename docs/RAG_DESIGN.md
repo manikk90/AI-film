@@ -1,9 +1,10 @@
 # Studio RAG: retrieval for the agents (design)
 
 Status, 2026-11-23: **phase 1 is built** (`studio/rag.py`, `tests/test_rag.py`), with the `context` recipes and
-agent wiring of phase 3 (`studio/rag_recipes.json`, the caveman block, `/viral-studio`). **Not built:** dense retrieval
-(phase 2), the token measurement on a real film (phase 3) and the MCP server (phase 4). What was built, and where it
-differs from the plan, is in §11.
+agent wiring of phase 3 (`studio/rag_recipes.json`, the caveman block, `/viral-studio`). **Phase 2 is measured**
+(§12): dense retrieval is built as an opt-in but stays off, because it did not raise recall; the Hinglish gap is closed
+by asking in English instead. **Not built:** the token measurement on a real film (phase 3) and the MCP server
+(phase 4). §11 lists where the build differs from the plan.
 
 ## 1. Why
 
@@ -207,7 +208,8 @@ CI runs the BM25-only eval on the repo, since the model is not in CI.
 `projects/<slug>/.rag/film.db`.
 
 **Measured on the repo (BM25 only, golden set of 44 checks in `studio/rag_golden.jsonl`):**
-- recall@5 0.976 (41 of 42 questions) against the 0.85 target; MRR 0.689; about 870 tokens per answer.
+- recall@5 0.976 (41 of 42 questions) against the 0.85 target; MRR 0.782 (0.689 before the RRF fix in §12); about
+  980 tokens per answer.
 - Superseded-rule checks 2 of 2: struck-out rules come back marked `superseded <date>`.
 - The miss is Hinglish: "kitne frames preview owner ko bhejne" finds the Director's preview rule and the harness
   preview section but not the Global "3 frames at 3 different timecodes" rule, which says "show the owner how it will
@@ -234,3 +236,45 @@ CI runs the BM25-only eval on the repo, since the model is not in CI.
 **Agent wiring:** the caveman block (identical in every agent file and `CAVEMAN.md`) now says to start from
 `rag.py context`; `/viral-studio` names each agent's step, builds the researcher's pack (it has no Bash) and re-indexes
 the film after each stage. Agents still write whole files; the index picks them up.
+
+## 12. Phase 2: dense retrieval and Hinglish (measured 2026-11-23)
+
+**A held-out set first.** The 42-question golden set was written while phase 1 was being built, so it flatters BM25.
+`studio/rag_golden_heldout.jsonl` has 20 new questions, written before any run: owner-style Hinglish, Hindi
+(Devanagari) and paraphrases that share few words with the answer. Each also has an English version (`q_en`), as an
+agent would translate it.
+
+**Embedding models on romanized Hinglish.** Same 656-chunk subset (rules, harness, agents, README, docs), top 5:
+
+| Model | Size | Held-out (as asked) | Main set |
+|---|---|---|---|
+| multilingual-e5-small | ~470 MB | 4/20 | 26/29 |
+| multilingual-e5-base | ~1.1 GB | 4/20 | 28/29 |
+| bge-m3 | ~2.2 GB | 5/20 | 26/29 |
+| paraphrase-multilingual-mpnet-base-v2 | ~1.1 GB | 3/20 | 25/29 |
+
+None of them understands romanized Hindi well enough. A bigger model is not the fix.
+
+**Asking in English is.** The full index, recall@5:
+
+| Mode | Main set (42) | Held-out as asked (20) | Held-out in English (20) |
+|---|---|---|---|
+| BM25 | 0.976, MRR 0.782 | 0.30 | 0.75 |
+| Hybrid (BM25 + e5-small) | 0.952, MRR 0.802 | 0.30 | 0.75 |
+
+Fusing the Hinglish question with its English version did worse than English alone (BM25, measured before the k fix below: 10/20 vs 14/20).
+
+**Decisions:**
+- **Agents ask in English.** They translate the owner's Hinglish into an English query and keep the owner's words for
+  quoting. The caveman block says so, and `query` adds a note when a question is Hindi or Hinglish.
+- **Dense stays an opt-in, off by default.** It raised MRR a little but not recall, which was the bar in §10. Turn it
+  on with `pip install sentence-transformers` and `python3 studio/rag.py index --dense` (one ~470 MB download, about
+  3 minutes to embed the studio corpus on 4 CPUs, then about 8 s to load the model per query process). `--no-dense`
+  turns it off; `RAG_DENSE=0` skips it for one run. CI tests the dense code with a synthetic stand-in encoder.
+- **Ranking fix found on the way.** Reciprocal-rank fusion used k = 60, which flattened ranks so much that the tier
+  priors decided the order: an owner rule ranked 15th beat the best procedure passage. k = 10 keeps rank first. It
+  raised main-set MRR from 0.689 to 0.782 and held-out English recall from 0.70 to 0.75, with the same main-set recall.
+
+**Still open:** 5 held-out English questions miss. Two of them return sources that are also right (`/viral-studio`'s
+"at most 3 agents"; the social agent's "never publish"), so the real recall is higher than the strict count. They
+stay counted as misses: the set's answers were fixed before the runs.
