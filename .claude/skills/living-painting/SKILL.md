@@ -10,8 +10,12 @@ A still painting drawn entirely in code, then brought to life as a seamless loop
 Made for reel openers, painted backgrounds under lyrics, story breaks and standalone art posts.
 
 **Input:** a preset (`python3 .claude/skills/living-painting/scripts/new_painting.py --list`) or a scene plus a medium
-in the owner's words. Optional: length (default 6 s), aspect (default 9:16), a song to lay under it.
-**Run it:** `/living-painting diwali_gouache` or `/living-painting "a tiger drinking at a forest pool" in "Kalighat painting"`.
+in the owner's words. Style and scene are separate: any scene can take any look from `--list-styles` (`styles.json`:
+pop art, voxel 3D, risograph, storybook gouache, X-ray, candy world, VHS glitch, ceramic tiles, chalkboard,
+embroidery; and every preset's look). Optional: length (default 6 s), aspect (default 9:16), a song to lay under it.
+**Run it:** `/living-painting diwali_gouache`, `/living-painting golden_hour --style risograph`, or
+`/living-painting "a tiger drinking at a forest pool" in "Kalighat painting"`. One scene in many styles, cut into one
+reel: `/style-montage`.
 
 Method credit: the three-round method (paint, animate, polish) follows Skale Out's public tutorial
 ([learn.skaleout.com/animation-styles](https://learn.skaleout.com/animation-styles), read 2026-11-14). The presets,
@@ -20,8 +24,12 @@ scenes, template and checks here are the studio's own; their prompt text is not 
 
 ## Before you start
 - Read `studio/LEARNINGS.md`. Make `projects/<slug>/` with `STATUS.md` from `studio/templates/` and log each step.
-- `python3 .claude/skills/living-painting/scripts/new_painting.py <slug> <preset>` (or `custom --scene ... --medium ...`)
-  writes `projects/<slug>/painting.html` from the template, with the brief at the top. It never overwrites without `--force`.
+- `python3 .claude/skills/living-painting/scripts/new_painting.py <slug> <preset> [--style <style>]` (or
+  `custom --scene ... --medium ...`) writes `projects/<slug>/painting.html` from the style's template, with the brief
+  at the top. It never overwrites without `--force`.
+- The `voxel_3d` style uses `template_voxel.html`: a 3D diorama of unit cubes built with `STUDIO.voxel`
+  (`studio/voxel_kit.js` on the vendored three.js r159), drawn offscreen and copied onto the film canvas. Same rules:
+  build once, move groups and the camera from t only, whole cycles of the loop.
 - The template already loads `studio/fonts/fonts.css` and `studio/canvas_kit.js` and renders end to end; replace its
   `paint*()` functions and the subject with the new scene.
 

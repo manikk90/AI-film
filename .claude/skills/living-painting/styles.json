@@ -1,0 +1,63 @@
+{
+ "_note": "Style-only looks for /living-painting and /style-montage, written by the studio (2026-11-23). A style says how the picture must look (medium) and how that medium may move (motion); the scene comes from a preset or the owner. Every preset in presets.json also works as a style. Method credit: the 'one scene, only the style line changes' idea follows Skale Out's public one-prompt-ten-styles page (read 2026-11-22); these descriptions are the studio's own words. engine: canvas = canvas_kit 2D painting, voxel = studio/voxel_kit.js (three.js).",
+ "pop_art": {
+  "name": "Pop art",
+  "engine": "canvas",
+  "medium": "A comic-print pop painting: thick black ink outlines, three or four flat primaries (cherry red, lemon yellow, cyan) and white, Ben-Day dot fields for every half-tone, one bold diagonal speed burst behind the subject, slight misregistration where a colour slips off its outline.",
+  "motion": "Shapes move as clean outlined pieces; the dot fields stay locked inside their shapes. Speed is drawn, not blurred: action lines and a jittering burst, re-drawn on twos."
+ },
+ "voxel_3d": {
+  "name": "Voxel 3D",
+  "engine": "voxel",
+  "medium": "A world built of small cubes like a toy diorama: every object, road, rock and wave stepped out of unit voxels, a limited palette of 8 to 12 flat colours, soft sun from one side so each cube face reads as a different shade, a pale sky.",
+  "motion": "Objects move as whole rigid voxel groups; nothing bends smoothly. Water and smoke are cubes that pop in, rise and pop out. The camera orbits slowly around the diorama."
+ },
+ "risograph": {
+  "name": "Two-colour risograph",
+  "engine": "canvas",
+  "medium": "A two-ink risograph print on off-white recycled paper: fluorescent pink and teal only, overlapping into a dark violet where both inks meet, coarse grain in every flat, layers offset by a few pixels from each other, a few ink-starved patches.",
+  "motion": "Each ink is its own layer moving with the object, keeping its small offset. The paper grain and the print noise stay fixed to the frame."
+ },
+ "storybook_gouache": {
+  "name": "Storybook gouache",
+  "engine": "canvas",
+  "medium": "A children's picture-book painting in opaque gouache and coloured pencil: soft rounded shapes, warm muted colours, pencil hatching over the paint, chalky dry-brush edges, cosy light, the paper tooth showing in the thin areas.",
+  "motion": "Gentle, bouncy motion like a page come alive: soft squash and stretch, slow drifting clouds and leaves. Brush and pencil marks travel with each object; paper grain stays fixed."
+ },
+ "xray": {
+  "name": "X-ray",
+  "engine": "canvas",
+  "medium": "A medical X-ray film: glowing cyan-white structure on deep blue-black, every object shown as its inner skeleton, frame and parts in translucent overlapping densities, a soft glow at the densest overlaps, faint scan lines and film grain.",
+  "motion": "Inner parts move with their objects and show their mechanics (wheels turning, joints bending). Density, not colour, carries the light. Scan noise drifts slowly and stays fixed to the frame."
+ },
+ "candy_world": {
+  "name": "Candy world",
+  "engine": "canvas",
+  "medium": "Everything made of sweets: glossy hard-candy shells with a bright highlight, sugar-sprinkle textures, pastel icing ground, lollipop trees, a wafer road, marshmallow clouds; saturated pastel palette, soft subsurface glow at the edges.",
+  "motion": "Soft jelly wobble on contact and at the end of each move; sprinkles bounce and settle; glossy highlights stay where the light is while the objects move under them."
+ },
+ "vhs_glitch": {
+  "name": "VHS glitch",
+  "engine": "canvas",
+  "medium": "A worn home-video tape: soft low-resolution picture, colour bleeding sideways, red and blue channels split a little, horizontal tracking bands, tape noise and dropouts, crushed blacks, a warm washed-out cast. No on-screen date, logo or channel name.",
+  "motion": "The scene moves normally underneath; glitches are rare and short (a tracking roll, a band tear) and land on a whole-cycle timing so the loop stays seamless."
+ },
+ "ceramic_mosaic": {
+  "name": "Ceramic tile mosaic",
+  "engine": "canvas",
+  "medium": "Glazed ceramic tiles: irregular broken pieces (larger than stone mosaic, about 30 px), each with a glossy glaze highlight and a slightly different tone, wide cream grout lines, cobalt, turquoise, terracotta and white, outlines of the forms in rows of dark tiles.",
+  "motion": "Moving objects are their own sheets of tiles over a fixed tiled ground; tiles never bend or melt. Light slides across as a glaze glint on successive tiles."
+ },
+ "chalkboard": {
+  "name": "Chalkboard",
+  "engine": "canvas",
+  "medium": "Chalk on a dark green school board: dusty white and a few coloured chalks, side-of-chalk fills with streaky texture, smudged edges, faint ghosts of earlier erased drawings, chalk dust in the corners.",
+  "motion": "Drawn motion: objects step between hand-drawn poses on twos; trails are quick chalk strokes that fade like a wiped smear. The board and its ghosts stay fixed."
+ },
+ "embroidery": {
+  "name": "Embroidery",
+  "engine": "canvas",
+  "medium": "Hand embroidery on natural linen: satin-stitch fills whose thread direction follows each form, split-stitch outlines, French-knot dots, a few loose thread ends, the linen weave visible between stitches, soft thread sheen.",
+  "motion": "Stitched shapes move as stitched patches; stitches never stretch. Movement lines are running stitches that appear stitch by stitch. The linen stays fixed to the frame."
+ }
+}
