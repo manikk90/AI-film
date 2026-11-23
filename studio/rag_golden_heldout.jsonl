@@ -1,0 +1,20 @@
+{"q": "awaaz kis service se banwani hai", "path": "studio/LEARNINGS.md", "heading": "Use ElevenLabs for voice", "alt": [{"path": "studio/SKILL_HARNESS.md", "heading": "ElevenLabs"}]}
+{"q": "itihaas ya puraan ki video mein har baat ka saboot chahiye", "path": "studio/LEARNINGS.md", "heading": "Real-event and myth videos need every"}
+{"q": "मिथक वाली वीडियो में हर दावे का स्रोत चाहिए", "path": "studio/LEARNINGS.md", "heading": "Real-event and myth videos need every"}
+{"q": "kisi asli insaan ka chehra nakli video mein daal sakte hain kya", "path": "studio/SKILL_HARNESS.md", "heading": "real person's likeness"}
+{"q": "gaane se gayak ki awaaz alag kaise karein", "path": "studio/SKILL_HARNESS.md", "heading": "separate_vocals.py"}
+{"q": "Hindi bolne wali recording ka text kaise nikale", "path": "studio/SKILL_HARNESS.md", "heading": "transcribes Hindi"}
+{"q": "ek post ke numbers dekh ke jeet ka faisla kar sakte hain", "path": ".claude/agents/social.md", "heading": "Never call a winner"}
+{"q": "caption mein lambe dash mat lagao", "path": ".claude/agents/writer.md", "heading": "em dash", "alt": [{"path": ".claude/agents/social.md", "heading": "em dash"}]}
+{"q": "free bina copyright wali asli awaazein kahan se laayein", "path": "studio/SKILL_HARNESS.md", "heading": "Openverse"}
+{"q": "music bhi AI se banwa sakte hain kya", "path": "studio/LEARNINGS.md", "heading": "ElevenLabs covers music generation"}
+{"q": "kahani wali film kitni lambi honi chahiye", "path": "studio/LEARNINGS.md", "heading": "at least 2 minutes"}
+{"q": "मालिक को झलक में कितने फ्रेम भेजें", "path": "studio/LEARNINGS.md", "heading": "3 frames at 3 different timecodes", "alt": [{"path": "studio/SKILL_HARNESS.md", "heading": "3 numbered frames"}]}
+{"q": "naya session kab shuru karna chahiye", "path": "studio/LEARNINGS.md", "heading": "Start a fresh session"}
+{"q": "ek saath kitne agent chala sakte hain", "path": "studio/LEARNINGS.md", "heading": "at most 3 agents"}
+{"q": "kya hum khud kisi platform pe video daal sakte hain", "path": "studio/README.md", "heading": "No posting"}
+{"q": "Mann ko galti batayi to wo kahan yaad rakhega", "path": ".claude/agents/mann.md", "heading": "Auto-improve", "alt": [{"path": "studio/LEARNINGS.md", "heading": "Auto-improve"}]}
+{"q": "manzoor hone ke baad script ke shabd badal sakte hain", "path": "AGENTS.md", "heading": "Approved words are locked", "alt": [{"path": "studio/SKILL_HARNESS.md", "heading": "Words and the script gate"}]}
+{"q": "camera angle sochne se pehle scene ka matlab samjho", "path": "docs/DIRECTOR_RULES.md", "heading": "Planning before camera", "alt": [{"path": "studio/LEARNINGS.md", "heading": "Understand the scene before planning camera"}]}
+{"q": "video ke cover ke liye sabse accha frame chunna", "path": ".claude/skills/thumbnail-cover/SKILL.md"}
+{"q": "pura maal ek zip mein aur video alag bhejo", "path": "studio/LEARNINGS.md", "heading": "exactly 2 files"}
