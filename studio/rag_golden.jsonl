@@ -1,0 +1,44 @@
+{"q": "how many frames does the preview before a full render show", "path": "studio/SKILL_HARNESS.md", "heading": "Preview (Gate 3)"}
+{"q": "kitne frames preview owner ko bhejne", "path": "studio/LEARNINGS.md", "heading": "3 frames at 3 different timecodes", "alt": [{"path": "studio/SKILL_HARNESS.md", "heading": "3 numbered frames"}]}
+{"q": "owner rule PR auto merge", "path": "AGENTS.md", "heading": "PR auto-merge"}
+{"q": "Mann full render needs storyboard approval of the exact EDL", "path": "AGENTS.md", "heading": "Editor"}
+{"q": "how are finished films delivered to the owner, how many files", "path": "studio/LEARNINGS.md", "heading": "exactly 2 files"}
+{"q": "final video aur baaki files alag 2 files", "path": "studio/LEARNINGS.md", "heading": "exactly 2 files"}
+{"q": "maximum file size sent from a cloud session", "path": "studio/LEARNINGS.md", "heading": "400 MiB"}
+{"q": "what does auto mode skip and what does it never skip", "path": "studio/README.md", "heading": "Auto mode", "alt": [{"path": "AGENTS.md", "heading": "Auto mode"}]}
+{"q": "hamesha auto standing gate approval", "path": "studio/README.md", "heading": "Auto mode", "alt": [{"path": "AGENTS.md", "heading": "Auto mode"}]}
+{"q": "Madhubani double outline border fish motif", "path": "styles/madhubani/STYLE.md"}
+{"q": "comic halftone speech bubble hindi caption", "path": ".claude/skills/comic-halftone/SKILL.md"}
+{"q": "which skill makes a lyric video with neon glow", "path": ".claude/skills/neon-lyrics/SKILL.md"}
+{"q": "shadow puppet leather style video skill", "path": ".claude/skills/shadow-puppet/SKILL.md"}
+{"q": "Warli stick figure tribal painting style", "path": "styles/warli/STYLE.md"}
+{"q": "film noir black and white hard shadows style", "path": "styles/film-noir/STYLE.md"}
+{"q": "true crime series edit style", "path": "editor/styles/true-crime-series/"}
+{"q": "wedding cinematic edit style", "path": "editor/styles/wedding-cinematic/"}
+{"q": "Devanagari text mis-shaped by ffmpeg drawtext matra", "path": "studio/LEARNINGS.md", "heading": "shaping=complex"}
+{"q": "OpenCV version for face reframing Haar cascade", "path": "studio/LEARNINGS.md", "heading": "OpenCV 4"}
+{"q": "how many agents may run in parallel", "path": "studio/LEARNINGS.md", "heading": "at most 3 agents"}
+{"q": "who writes the script, can the director write it", "path": "studio/LEARNINGS.md", "heading": "never writes the script"}
+{"q": "story film minimum duration 2 minutes", "path": "studio/LEARNINGS.md", "heading": "at least 2 minutes"}
+{"q": "story atleast 2 mint ki video", "path": "studio/LEARNINGS.md", "heading": "at least 2 minutes"}
+{"q": "script storytelling flow not 1-2 word lines entertainment", "path": "studio/LEARNINGS.md", "heading": "flowing piece of storytelling"}
+{"q": "NLE editor package Premiere Resolve timeline stems", "path": "studio/README.md", "heading": "Editor package"}
+{"q": "blocking stays stable across reverse shots", "path": "docs/DIRECTOR_RULES.md", "heading": "Blocking remains stable"}
+{"q": "every shot prompt is an individual shot only visible tags", "path": "docs/DIRECTOR_RULES.md", "heading": "individual shot"}
+{"q": "explore composition and motivated lighting", "path": "docs/DIRECTOR_RULES.md", "heading": "composition"}
+{"q": "Daksh Gate R1 breakdown approval before rebuild", "path": ".claude/skills/daksh/SKILL.md", "heading": "Gate R1"}
+{"q": "copy karo replicate reel style reverse engineer", "path": ".claude/skills/daksh/SKILL.md"}
+{"q": "Marich limits never copy protected assets", "path": ".claude/agents/marich.md", "heading": "Limits"}
+{"q": "file size budget per project file caveman", "path": "studio/CAVEMAN.md", "heading": "budgets"}
+{"q": "token diet read less heading index before reading big files", "path": "studio/CAVEMAN.md", "heading": "Read less"}
+{"q": "loudness target LUFS for Mann QC", "path": "editor/rules.json", "heading": "loudness_lufs"}
+{"q": "maximum dead air seconds in an edit", "path": "editor/rules.json", "heading": "max_dead_air_seconds"}
+{"q": "record owner feedback as a learning studio-learn", "path": ".claude/skills/studio-learn/SKILL.md", "alt": [{"path": "studio/LEARNINGS.md", "heading": "Record every piece of owner feedback"}, {"path": "AGENTS.md", "heading": "Self-learning"}]}
+{"q": "rights licence real people likeness sourced facts in format skills", "path": "studio/SKILL_HARNESS.md", "heading": "Rights, facts and people"}
+{"q": "no posting or scheduling on any platform, owner publishes", "path": "studio/README.md", "heading": "Rules that never bend"}
+{"q": "nightly trending topics suggestion 10:40 PM", "path": "studio/README.md"}
+{"q": "researcher FACTS.md one row per claim with source and confidence", "path": ".claude/agents/researcher.md", "heading": "FACTS.md"}
+{"q": "living painting loop seamless check", "path": ".claude/skills/living-painting/SKILL.md"}
+{"q": "thumbnail cover frame pick", "path": ".claude/skills/thumbnail-cover/SKILL.md"}
+{"q": "ElevenLabs Hugging Face blocked in the cloud environment", "path": "studio/LEARNINGS.md", "heading": "api.elevenlabs.io", "expect_status": "superseded"}
+{"q": "forced alignment model MMS_FA cannot be downloaded", "path": "studio/LEARNINGS.md", "heading": "forced-alignment model", "expect_status": "superseded"}

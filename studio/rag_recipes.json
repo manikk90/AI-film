@@ -1,0 +1,88 @@
+{
+  "_about": "Query recipes for `python3 studio/rag.py context <role> <step>`. Each step lists queries; {topic} comes from --topic or the film's 00-brief.md, {format} from --format. kind/tier/scope filter the studio index; film:true queries read only the film's own index (projects/<slug>/.rag/film.db). Owner rules (Global + the role's LEARNINGS.md sections) and the pinned never-bend rules are always added in full, outside the budget. Roles match studio/caveman.py ROLES.",
+  "social": {
+    "steps": {
+      "trend-board": [
+        {"q": "trend scan pitches virality score topic {topic}", "tier": ["R2"], "k": 3},
+        {"q": "{topic} style format hook", "kind": ["style", "skill"], "k": 3}
+      ],
+      "hook-critique": [
+        {"q": "hook scroll stop first frame critique retention", "tier": ["R2"], "k": 3},
+        {"q": "{topic} script hook", "film": true, "k": 3}
+      ],
+      "publish-kit": [
+        {"q": "publishing kit titles captions hashtags cover text posting slot pinned comment", "tier": ["R2"], "k": 3},
+        {"q": "{topic} script title", "film": true, "k": 2}
+      ]
+    }
+  },
+  "researcher": {
+    "steps": {
+      "research": [
+        {"q": "research unique angle verified facts sources confidence FACTS.md myth", "tier": ["R2"], "k": 3},
+        {"q": "{topic}", "film": true, "k": 3}
+      ]
+    }
+  },
+  "writer": {
+    "steps": {
+      "script": [
+        {"q": "script packet hooks retention open loops cliffhanger A/B hook", "tier": ["R2"], "scope": ["writer", "ai-writer"], "k": 3},
+        {"q": "{topic} research angle detail", "film": true, "k": 4},
+        {"q": "{topic} format duration aspect", "film": true, "k": 2}
+      ],
+      "revision": [
+        {"q": "{topic} critique fix", "film": true, "k": 4},
+        {"q": "script revision locked words dialogue lock", "tier": ["R2"], "k": 2}
+      ]
+    }
+  },
+  "director": {
+    "pin_scopes": [],
+    "steps": {
+      "format-brief": [
+        {"q": "{topic} {format} style", "kind": ["style", "skill"], "k": 4},
+        {"q": "format brief style aspect duration pacing first frame hook cover", "scope": ["director"], "k": 2},
+        {"q": "{topic} research angle visual detail", "film": true, "k": 3}
+      ],
+      "script-review": [
+        {"q": "script flow retention visual feasibility critique", "scope": ["director"], "k": 2},
+        {"q": "{topic} script", "film": true, "k": 3}
+      ],
+      "shots": [
+        {"q": "blocking composition lighting individual shot prompt tags detailed panel", "tier": ["R2"], "k": 4},
+        {"q": "{format} {topic} style frame", "kind": ["style", "skill"], "k": 2}
+      ],
+      "production": [
+        {"q": "preview gate 3 frames music sketch render delivery deliver.py", "tier": ["R2"], "k": 3},
+        {"q": "{format} steps render settings", "kind": ["procedure", "skill"], "k": 3},
+        {"q": "{topic} locked dialogue", "film": true, "k": 2}
+      ],
+      "qc": [
+        {"q": "QC check frame_check loudness subtitles credits delivery", "tier": ["R2"], "k": 4}
+      ]
+    }
+  },
+  "mann": {
+    "steps": {
+      "edit": [
+        {"q": "{format} edit style cuts pacing", "kind": ["style"], "k": 3},
+        {"q": "Mann process storyboard approval corrections scope", "scope": ["mann", "mann-edit"], "k": 3}
+      ],
+      "storyboard": [
+        {"q": "storyboard frames approve EDL craft-check", "tier": ["R2"], "k": 3}
+      ],
+      "qc": [
+        {"q": "Mann QC loudness dead air black frames shot length", "tier": ["R1", "R2"], "k": 4}
+      ]
+    }
+  },
+  "marich": {
+    "steps": {
+      "breakdown": [
+        {"q": "breakdown evidence replica spec measure contact sheet", "scope": ["marich", "daksh"], "k": 4},
+        {"q": "{format} {topic} style", "kind": ["style", "skill"], "k": 2}
+      ]
+    }
+  }
+}
