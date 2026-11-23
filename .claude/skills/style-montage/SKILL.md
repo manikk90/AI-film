@@ -47,13 +47,20 @@ prompt text and their car are not used. Daksh job and gate record: `projects/sty
      lands on the music).
    - `--hook "..."`: the opening card (default `1 PROMPT` / `N STYLES`; Hindi is shaped correctly, e.g.
      `"एक scene, दस अंदाज़"`); `--hook ""` for none. `--hook-dur 1.2`, `--grid-dur 1.6`.
-   - Writes `montage.mp4` and `montage.json` (every segment: style, start, length, source loop and offset).
+   - Writes `montage.mp4` and `montage.json` (every segment: style, start, length, source loop and offset). An
+     existing montage is never replaced without `--force` (ask the owner first). `plan` and `assemble` hold the
+     project lock, so two runs on one project never mix their files.
 8. Show the owner 3 numbered frames (the hook, a cut, the grid) and wait for their OK before delivery.
 
 ## How the cut stays continuous
-Segment k shows style k from source time = global time mod the loop length. Because every style moves its subject by
-the same `MOTION`, the frame after a cut has the subject exactly where the frame before it had it. A loop shorter than
-its segment simply wraps (it is seamless).
+`motion.js` is the contract. `MOTION.subject(t)` gives the subject's **screen** point (`x`, `y` as 0..1 of the frame),
+its heading `angle` and its action `phase`; `MOTION.camera(t)` gives `zoom` and `panX`/`panY`; `MOTION.DUR` is the
+loop length every page uses. Both templates already obey it: the 2D template inverts its camera so the subject is drawn
+on that screen point, and the voxel template uses the shared camera (`V.setCamera`) and puts the subject where that
+screen point meets the ground (`V.groundAt`). When you repaint a style, keep those lines. Assembly then shows segment
+k from source time = global time mod the loop length, so the frame after a cut has the subject exactly where the frame
+before it had it. `tests/test_style_montage.py` checks both engines land on the same screen point within 1 % of the
+frame.
 
 ## Render settings (studio)
 - **Output:** `9:16 1080×1920` (or `16:9 1920×1080`), 30 fps, H.264 High, yuv420p, CRF 18, `-movflags +faststart`.

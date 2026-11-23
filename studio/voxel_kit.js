@@ -70,13 +70,33 @@
       ctx.drawImage(glCanvas, 0, 0, ctx.canvas.width, ctx.canvas.height);
     }
 
+    // the world point on the plane y = planeY that the camera sees at screen point (x, y), both 0..1 of the frame:
+    // how a 3D page puts its subject exactly where a shared 2D motion path says
+    const ray = new T.Raycaster(), ndc = new T.Vector2();
+    function groundAt(x, y, planeY = 0) {
+      camera.updateMatrixWorld();
+      ndc.set(x * 2 - 1, 1 - y * 2);
+      ray.setFromCamera(ndc, camera);
+      const plane = new T.Plane(new T.Vector3(0, 1, 0), -planeY);
+      const hit = new T.Vector3();
+      return ray.ray.intersectPlane(plane, hit) ? hit : ray.ray.at(100, hit);
+    }
+
+    // a shared 2D camera ({zoom, panX, panY}, frame fractions) applied to the 3D camera after it is placed
+    function setCamera(cam) {
+      camera.zoom = cam.zoom || 1;
+      const w = glCanvas.width, h = glCanvas.height;
+      camera.setViewOffset(w, h, -(cam.panX || 0) * w, -(cam.panY || 0) * h, w, h);
+      camera.updateProjectionMatrix();
+    }
+
     function setSize(w, h) {
       glCanvas.width = w; glCanvas.height = h;
       renderer.setSize(w, h, false);
       camera.aspect = w / h; camera.updateProjectionMatrix();
     }
 
-    return { THREE: T, scene, camera, renderer, sun, model, terrain, draw, setSize, canvas: glCanvas };
+    return { THREE: T, scene, camera, renderer, sun, model, terrain, draw, setSize, groundAt, setCamera, canvas: glCanvas };
   }
 
   K.voxel = { create };

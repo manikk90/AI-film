@@ -17,7 +17,9 @@
 <script src="__STUDIO__/../third_party/three/three.min.js"></script>
 <script src="__STUDIO__/voxel_kit.js"></script>
 <script>
-const K = STUDIO, DUR = 6, SEED = 7, TAU = Math.PI * 2;
+const K = STUDIO, SEED = 7, TAU = Math.PI * 2;
+const M = window.MOTION || null;                     // /style-montage's shared motion.js, when this page is one style of a montage
+const DUR = (M && M.DUR) || 6;
 let V, boat, waves = [];
 
 // ---------- 1. build once ---------------------------------------------------------------------------------------
@@ -61,15 +63,21 @@ window.FILM = {
   // ---------- 2. animate ----------------------------------------------------------------------------------------
   render(ctx, t) {
     const u = (t % DUR) / DUR;                              // 0..1 over the loop
-    const s = window.MOTION ? window.MOTION.subject(t) : null;
-    const a = s ? s.angle : u * TAU;                        // one full circle per loop
-    boat.position.set(Math.cos(a) * 24, 0.4 + 0.4 * Math.sin(u * TAU * 3), Math.sin(a) * 20);
-    boat.rotation.y = -a;                                   // bow along the circle
     for (const w of waves) w.g.position.y = -0.6 + 0.9 * Math.max(0, Math.sin((u * w.cycles + w.phase) * TAU));
-    const cam = 0.6;                                        // fixed orbit angle plus a whole-cycle sway
-    const sway = 0.08 * Math.sin(u * TAU);
-    V.camera.position.set(Math.cos(cam + sway) * 70, 52, Math.sin(cam + sway) * 70);
+    const orbit = 0.6, sway = M ? 0 : 0.08 * Math.sin(u * TAU);   // a montage takes its camera from MOTION instead
+    V.camera.position.set(Math.cos(orbit + sway) * 70, 52, Math.sin(orbit + sway) * 70);
     V.camera.lookAt(0, 2, 0);
+    if (M) {                                   // montage: shared camera, and the boat sits on MOTION's screen point
+      V.setCamera(M.camera(t));
+      const s = M.subject(t);
+      boat.position.copy(V.groundAt(s.x, s.y, 0.4));
+      boat.position.y += 0.4 * Math.sin(s.phase * TAU);
+      boat.rotation.y = -s.angle;
+    } else {
+      const a = u * TAU;                                    // one full circle per loop
+      boat.position.set(Math.cos(a) * 24, 0.4 + 0.4 * Math.sin(u * TAU * 3), Math.sin(a) * 24);
+      boat.rotation.y = -a;                                 // bow along the circle
+    }
     V.draw(ctx);
   }
 };

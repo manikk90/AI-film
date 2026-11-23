@@ -193,11 +193,120 @@ class MontageTest(unittest.TestCase):
         self.assertIn("01  POP ART", ass)
         self.assertNotIn(",HookDeva,", self.m.ass_file(180, 320, "1 PROMPT", 1.0, [], 2.0, 1.0, []))
 
+    def test_audio_lands_in_the_montage_and_an_existing_montage_needs_force(self):
+        self.plan_with_loops()
+        song = Path(self.tmp.name) / "song.wav"  # SYNTHETIC FIXTURE: a sine tone standing in for a song
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "sine=f=330:d=12", str(song)], check=True)
+        rep = self.m.assemble("mt", audio=str(song), size="180x320", fps=15)
+        out = Path(self.tmp.name) / "mt" / "montage.mp4"
+        kinds = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type", "-of", "csv=p=0",
+                                str(out)], capture_output=True, text=True).stdout.split()
+        self.assertEqual(sorted(kinds), ["audio", "video"])
+        self.assertEqual(rep["audio"], str(song))
+        with self.assertRaises(SystemExit) as e:
+            self.m.assemble("mt", size="180x320", fps=15)
+        self.assertIn("--force", str(e.exception))
+        before = out.stat().st_mtime_ns
+        self.m.assemble("mt", size="180x320", fps=15, force=True)
+        self.assertNotEqual(out.stat().st_mtime_ns, before)
+        self.assertFalse(list(out.parent.glob(".montage.part*")))
+
+    def test_duration_and_multiline_briefs_reach_a_valid_motion_js(self):
+        self.m.plan("md", ["pop_art", "voxel_3d"], scene="a kite\nover a field", action="it dips\nand climbs", dur=4)
+        root = Path(self.tmp.name) / "md"
+        js = (root / "motion.js").read_text()
+        self.assertIn("DUR: 4,", js)
+        self.assertIn("// Scene: a kite over a field", js)
+        for e in json.loads((root / "plan.json").read_text())["styles"]:
+            self.assertIn("const DUR = (M && M.DUR) || 6;", (root / e["page"]).read_text())  # the page takes MOTION.DUR
+        if shutil.which("node"):
+            r = subprocess.run(["node", "-e", "global.window={};eval(require('fs').readFileSync(process.argv[1],'utf8'));"
+                                "console.log(window.MOTION.DUR, window.MOTION.subject(1).x.toFixed(3))",
+                                str(root / "motion.js")],
+                               capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertTrue(r.stdout.startswith("4 "))
+
+    def test_a_busy_project_is_refused(self):
+        root = Path(self.tmp.name) / "mb"
+        root.mkdir()
+        (root / ".production.lock").write_text("12345")  # another plan or assemble holds the project
+        with self.assertRaises(SystemExit) as e:
+            self.m.plan("mb", ["pop_art", "xray"], preset="golden_hour")
+        self.assertIn("busy", str(e.exception))
+        self.assertFalse((root / "motion.js").exists())
+
     def test_skill_points_at_real_files(self):
         md = (SM / "SKILL.md").read_text(encoding="utf-8")
         self.assertTrue(md.startswith("---\nname: style-montage\n"))
         for path in re.findall(r"(?:studio|\.claude/skills/[\w-]+|third_party/three)/[\w/.-]+\.(?:py|cjs|js|json)", md):
             self.assertTrue((REPO / path).exists(), path)
+
+
+SYNC_JS = r"""
+const { chromium } = require('playwright');
+(async () => {
+  const [page2d, pageVox] = process.argv.slice(2);
+  const browser = await chromium.launch({ args: ['--allow-file-access-from-files', '--enable-unsafe-swiftshader'] });
+  const out = {};
+  for (const [name, file] of [['canvas', page2d], ['voxel', pageVox]]) {
+    const page = await browser.newPage();
+    await page.goto('file://' + file);
+    await page.waitForFunction(() => window.READY === true, null, { timeout: 60000 });
+    out[name] = await page.evaluate((kind) => {
+      const c = document.querySelector('canvas'), ctx = c.getContext('2d'), rows = [];
+      FILM.init && FILM.init();
+      let seen = null;
+      if (kind === 'canvas') {   // where the subject lands on screen: its draw point through the canvas transform
+        const real = window.heron;
+        window.heron = (cx, x, y, ...rest) => {
+          seen = cx.getTransform().transformPoint({ x, y });
+          return real(cx, x, y, ...rest);
+        };
+      }
+      for (const t of [0.3, 1.1, 2.6, 3.7]) {
+        FILM.render(ctx, t);
+        const s = MOTION.subject(t);
+        let px, py;
+        if (kind === 'canvas') { px = seen.x / c.width; py = seen.y / c.height; }
+        else { const v = boat.position.clone(); v.y -= 0.4 * Math.sin(s.phase * Math.PI * 2);
+               v.project(V.camera); px = (v.x + 1) / 2; py = (1 - v.y) / 2; }
+        rows.push([t, s.x, s.y, px, py]);
+      }
+      return rows;
+    }, name);
+  }
+  console.log(JSON.stringify(out));
+  await browser.close();
+})().catch(e => { console.error(e); process.exit(1); });
+"""
+
+
+@unittest.skipUnless(has_playwright(), "needs Node and Playwright")
+class MontageSyncTest(unittest.TestCase):
+    def test_every_engine_puts_the_subject_on_the_shared_screen_point(self):
+        import montage
+        projects = REPO / "projects"
+        projects.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=projects) as tmp:
+            saved = montage.projects
+            montage.projects = lambda: Path(tmp)
+            try:
+                p = montage.plan("sync", ["sumi_e", "voxel_3d"], preset="sumi_e", dur=4)
+            finally:
+                montage.projects = saved
+            root = Path(tmp) / "sync"
+            pages = [str(root / e["page"]) for e in p["styles"]]
+            script = Path(tmp) / "sync.cjs"
+            script.write_text(SYNC_JS)
+            r = subprocess.run(["node", str(script), *pages], capture_output=True, text=True, timeout=300,
+                               env={**__import__("os").environ, "NODE_PATH": __import__("os").environ.get("NODE_PATH", "")})
+            self.assertEqual(r.returncode, 0, r.stderr[-800:])
+            got = json.loads(r.stdout)
+            for engine, rows in got.items():
+                for t, sx, sy, px, py in rows:
+                    self.assertAlmostEqual(px, sx, delta=0.01, msg=(engine, t))
+                    self.assertAlmostEqual(py, sy, delta=0.01, msg=(engine, t))
 
 
 if __name__ == "__main__":

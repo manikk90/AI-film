@@ -6,7 +6,7 @@
     python3 .claude/skills/style-montage/scripts/montage.py check <slug>
     python3 .claude/skills/style-montage/scripts/montage.py assemble <slug> [--seg 0.9 | --beats beats.json --every 2]
                     [--audio song.mp3] [--hook "1 PROMPT\\N10 STYLES"] [--hook-dur 1.2] [--grid-dur 1.6]
-                    [--size 1080x1920] [--fps 30] [--out montage.mp4]
+                    [--size 1080x1920] [--fps 30] [--out montage.mp4] [--force]
 
 plan      writes projects/<slug>/motion.js (the one shared subject path and camera, a pure function of t) and one
           living-painting page per style in projects/<slug>/styles/NN-<style>/painting.html, each loading motion.js,
@@ -22,8 +22,10 @@ Needs FFmpeg with libass, numpy and Pillow.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import math
+import os
 import re
 import shutil
 import subprocess
@@ -66,6 +68,43 @@ def projects() -> Path:
     return REPO / "projects"
 
 
+def one_line(text: str) -> str:
+    """Scene and action go into // comments in motion.js: a line break would end the comment and break the script."""
+    return " ".join((text or "").split())
+
+
+def write_atomic(path: Path, text: str):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix=".write-", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+
+
+@contextlib.contextmanager
+def locked(root: Path):
+    """The repo's single-writer project lock (aifilm.core.project_lock): one plan or assemble per project at a time."""
+    if str(REPO) not in sys.path:
+        sys.path.insert(0, str(REPO))
+    from aifilm.core import ProductionError, project_lock
+    root.mkdir(parents=True, exist_ok=True)
+    try:
+        lock = project_lock(root)
+        lock.__enter__()
+    except ProductionError as e:
+        raise SystemExit(f"{root.name}: {e}")
+    try:
+        yield
+    finally:
+        lock.__exit__(None, None, None)
+
+
 def style_dirs(slug: str) -> list[Path]:
     d = projects() / slug / "styles"
     return sorted(p for p in d.iterdir() if p.is_dir() and re.match(r"\d\d-", p.name)) if d.is_dir() else []
@@ -88,11 +127,15 @@ def plan(slug, styles, preset=None, scene=None, action=None, dur=6, force=False)
     if not scene:
         raise SystemExit("give --preset, or --scene (and --action)")
     root = projects() / slug
+    with locked(root):
+        return _plan(root, slug, styles, allst, scene, action, dur, force)
+
+
+def _plan(root, slug, styles, allst, scene, action, dur, force) -> dict:
     motion = root / "motion.js"
     if motion.exists() and not force:
         raise SystemExit(f"{motion} exists; ask the owner, then pass --force")
-    root.mkdir(parents=True, exist_ok=True)
-    motion.write_text(MOTION_JS.format(slug=slug, scene=scene, action=action or "", dur=dur, seed=11), encoding="utf-8")
+    write_atomic(motion, MOTION_JS.format(slug=slug, scene=one_line(scene), action=one_line(action), dur=dur, seed=11))
     entries = []
     for i, key in enumerate(styles, 1):
         name = f"{i:02d}-{key}"
@@ -113,7 +156,7 @@ def plan(slug, styles, preset=None, scene=None, action=None, dur=6, force=False)
         entries.append({"n": i, "style": key, "name": st["name"], "engine": st.get("engine", "canvas"),
                         "dir": f"styles/{name}", "page": f"styles/{name}/painting.html", "loop": f"styles/{name}/loop.mp4"})
     out = {"slug": slug, "scene": scene, "action": action or "", "dur": dur, "styles": entries}
-    (root / "plan.json").write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    write_atomic(root / "plan.json", json.dumps(out, ensure_ascii=False, indent=1) + "\n")  # last: readers see a whole plan
     return out
 
 
@@ -228,9 +271,17 @@ def grid_image(stills: list[Path], w, h, out: Path, gap=12, bg=(14, 14, 16)):
 
 
 def assemble(slug, seg=0.9, beats=None, every=1, audio=None, hook=None, hook_dur=1.2, grid_dur=1.6,
-             size="1080x1920", fps=30, out=None, crf=18) -> dict:
-    p = load_plan(slug)
+             size="1080x1920", fps=30, out=None, crf=18, force=False) -> dict:
     root = projects() / slug
+    out = Path(out) if out else root / "montage.mp4"
+    if out.exists() and not force:
+        raise SystemExit(f"{out} exists; ask the owner, then pass --force")
+    with locked(root):
+        return _assemble(root, slug, seg, beats, every, audio, hook, hook_dur, grid_dur, size, fps, out, crf)
+
+
+def _assemble(root, slug, seg, beats, every, audio, hook, hook_dur, grid_dur, size, fps, out, crf) -> dict:
+    p = load_plan(slug)
     rows = check(slug)
     bad = [r for r in rows if r["fails"]]
     if bad:
@@ -259,7 +310,6 @@ def assemble(slug, seg=0.9, beats=None, every=1, audio=None, hook=None, hook_dur
                      "source": e["loop"], "source_offset": round(t0 % durs[k], 4)})
     grid_t0 = pts[-1]
     total = round(grid_t0 + grid_dur, 4)
-    out = Path(out) if out else root / "montage.mp4"
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         stills = []
@@ -281,6 +331,8 @@ def assemble(slug, seg=0.9, beats=None, every=1, audio=None, hook=None, hook_dur
             parts.append(len(parts))
         cmd += ["-loop", "1", "-t", f"{grid_dur:.4f}", "-framerate", str(fps), "-i", str(tmp / "grid.png")]
         parts.append(len(parts))
+        if audio:  # every input before any output option (-map, codecs): FFmpeg's rule
+            cmd += ["-i", str(audio)]
         fit = f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},fps={fps},setsar=1,format=yuv420p"
         chains = [f"[{i}:v]{fit},setpts=PTS-STARTPTS[v{i}]" for i in parts]
         fonts = str(FONTS).replace(":", "\\:")
@@ -289,21 +341,22 @@ def assemble(slug, seg=0.9, beats=None, every=1, audio=None, hook=None, hook_dur
         chains.append(f"[cat]ass=filename='{assf}':fontsdir='{fonts}':shaping=complex[vout]")
         cmd += ["-filter_complex", ";".join(chains), "-map", "[vout]"]
         if audio:
-            ai = len(parts)
-            cmd += ["-i", str(audio)]
-            cmd += ["-map", f"{ai}:a", "-af", f"afade=t=out:st={max(0, total - 0.6):.3f}:d=0.6", "-c:a", "aac", "-b:a", "256k"]
+            cmd += ["-map", f"{len(parts)}:a", "-af", f"afade=t=out:st={max(0, total - 0.6):.3f}:d=0.6", "-c:a", "aac", "-b:a", "256k"]
         cmd += ["-t", f"{total:.4f}", "-r", str(fps), "-c:v", "libx264", "-profile:v", "high", "-pix_fmt", "yuv420p",
-                "-crf", str(crf), "-movflags", "+faststart", str(out)]
+                "-crf", str(crf), "-movflags", "+faststart"]
         out.parent.mkdir(parents=True, exist_ok=True)
-        r = subprocess.run(cmd, capture_output=True, text=True)
+        part = out.parent / f".{out.stem}.part{out.suffix}"  # encode aside, then replace in one step
+        r = subprocess.run(cmd + [str(part)], capture_output=True, text=True)
         if r.returncode:
+            part.unlink(missing_ok=True)
             raise SystemExit("ffmpeg failed:\n" + r.stderr[-2000:])
+        os.replace(part, out)
     report = {"slug": slug, "video": str(out.relative_to(REPO) if out.is_relative_to(REPO) else out), "size": size,
               "fps": fps, "total": total, "hook": hook, "hook_dur": hd, "grid_dur": grid_dur,
               "cuts": "beats" if beats else f"every {seg} s", "segments": segs,
               "loop_checks": [{"style": r["style"], "fails": r["fails"], "seam_ratio": r.get("seam_ratio")} for r in rows],
               "audio": str(audio) if audio else None}
-    (root / "montage.json").write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    write_atomic(root / "montage.json", json.dumps(report, ensure_ascii=False, indent=1) + "\n")
     return report
 
 
@@ -332,6 +385,7 @@ def main(argv=None) -> int:
     a.add_argument("--size", default="1080x1920")
     a.add_argument("--fps", type=int, default=30)
     a.add_argument("--out")
+    a.add_argument("--force", action="store_true", help="replace an existing montage (ask the owner first)")
     x = ap.parse_args(argv)
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", x.slug):
         raise SystemExit(f"bad slug {x.slug!r}")
@@ -347,7 +401,8 @@ def main(argv=None) -> int:
         return 1 if any(r["fails"] for r in rows) else 0
     if shutil.which("ffmpeg") is None:
         raise SystemExit("needs FFmpeg")
-    rep = assemble(x.slug, x.seg, x.beats, x.every, x.audio, x.hook, x.hook_dur, x.grid_dur, x.size, x.fps, x.out)
+    rep = assemble(x.slug, x.seg, x.beats, x.every, x.audio, x.hook, x.hook_dur, x.grid_dur, x.size, x.fps, x.out,
+                   force=x.force)
     print(f"{rep['video']}: {rep['total']} s, {len(rep['segments'])} styles, cuts {rep['cuts']}")
     return 0
 
