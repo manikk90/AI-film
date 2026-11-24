@@ -465,20 +465,45 @@ def _autocut(root, slug, seconds, aspect, title):
     speech_led = s["fit"]["speech"] == "high" or (s["fit"]["speech"] == "any" and prof["audio_activity"] > 0.5)
     notes, clips, words_by_source = [], [], {}
     gap = float(cfg.get("silence_cut") or 0.35)
+    takes_rec = None
     if speech_led:
-        aroll = max(videos, key=lambda v: v.get("audio_activity", 0))
-        spans, words = speech_segments(root, aroll, gap)
-        words_by_source[sid[aroll["file"]]] = words
-        if not words:
-            notes.append("Cuts follow audio-activity islands, not words: run `transcribe` for word-accurate cuts and captions.")
-        pad = 0.06
-        spans = chunk([{"start": max(sp["start"] - pad, 0), "end": min(sp["end"] + pad, aroll["probe"]["duration"])} for sp in spans], avg * 1.6)
-        used = 0.0
-        for sp in spans:
-            if used >= seconds:
-                break
-            clips.append({"source": sid[aroll["file"]], "in": round(sp["start"], 3), "out": round(sp["end"], 3), "beat": "A-roll"})
-            used += sp["end"] - sp["start"]
+        from . import takes as TK
+        takes_rec, stale = TK.load(root)
+        if takes_rec and stale:
+            notes.append(stale + "; this draft ignores it.")
+            takes_rec = None
+        by_file = {v["file"]: v for v in videos}
+        if takes_rec and takes_rec["source"] not in by_file:
+            notes.append("analysis/takes.json is for {}, which is not ingested video; ignored.".format(takes_rec["source"]))
+            takes_rec = None
+        aroll = by_file[takes_rec["source"]] if takes_rec else max(videos, key=lambda v: v.get("audio_activity", 0))
+    if takes_rec:
+        # Cleaner cut: word-accurate keep pieces from `takes` (retakes resolved, fillers out). Every piece is kept,
+        # in source order; none is chunked, since each cut already sits on word times and the frame grid.
+        words_by_source[sid[aroll["file"]]] = takes_rec["kept_words"]
+        for p in takes_rec["pieces"]:
+            clips.append({"source": sid[aroll["file"]], "in": p["in"], "out": p["out"],
+                          "beat": "A-roll {}".format(p["id"]) if p["kind"] == "speech" else "{} {} (protected sound)".format(p["kind"], p["id"])})
+        st = takes_rec["stats"]
+        notes.append("A-roll from analysis/takes.json: {} pieces, {} retake group(s) and {} false start(s) resolved (last fluent take kept), "
+                     "{} filler(s) removed, {} flagged for the owner; retake groups are listed on the storyboard.".format(
+                         st["pieces"], st["retake_groups"], st["false_starts"], st["fillers_removed"], st["fillers_flagged"]))
+        if sum(p["out"] - p["in"] for p in takes_rec["pieces"]) > seconds * 1.2:
+            notes.append("The cleaned read is longer than the {:.0f}s target; nothing was dropped, trim story beats by hand.".format(seconds))
+    if speech_led:
+        if not takes_rec:
+            spans, words = speech_segments(root, aroll, gap)
+            words_by_source[sid[aroll["file"]]] = words
+            if not words:
+                notes.append("Cuts follow audio-activity islands, not words: run `transcribe` (or `takes`) for word-accurate cuts and captions.")
+            pad = 0.06
+            spans = chunk([{"start": max(sp["start"] - pad, 0), "end": min(sp["end"] + pad, aroll["probe"]["duration"])} for sp in spans], avg * 1.6)
+            used = 0.0
+            for sp in spans:
+                if used >= seconds:
+                    break
+                clips.append({"source": sid[aroll["file"]], "in": round(sp["start"], 3), "out": round(sp["end"], 3), "beat": "A-roll"})
+                used += sp["end"] - sp["start"]
         broll = [v for v in videos if v is not aroll]
         every = int(cfg.get("broll_every") or (3 if broll else 0))
         if broll and every:
@@ -506,7 +531,9 @@ def _autocut(root, slug, seconds, aspect, title):
             used += dur
         notes.append("Montage: one segment per shot at its strongest motion, the strongest shot first as the hook.")
     require(clips, "The footage gave no usable segments for this style")
-    if cfg.get("beat_sync") and music and (music.get("beats") or {}).get("bpm"):
+    if cfg.get("beat_sync") and takes_rec:
+        notes.append("Beat sync skipped: the A-roll cuts sit on word times from analysis/takes.json.")
+    elif cfg.get("beat_sync") and music and (music.get("beats") or {}).get("bpm"):
         beat = 60.0 / music["beats"]["bpm"]
         n = max(1, round(avg / beat))
         for c in clips:
@@ -566,6 +593,8 @@ def _autocut(root, slug, seconds, aspect, title):
     script = Path(root) / "SCRIPT.md"
     if script.exists():
         edl["script"] = "SCRIPT.md"
+    if takes_rec:
+        edl["takes"] = "analysis/takes.json"
     caps = cfg.get("captions")
     cue_count = write_captions(root, edl, words_by_source, caps) if caps else 0
     if caps and cue_count:

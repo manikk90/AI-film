@@ -88,18 +88,20 @@ def write_srt(segments, path, max_words=None):
     return len(cues)
 
 
-def transcribe(media_path, out_dir, model="small", language=None, max_words=4):
-    """Transcribe with faster-whisper (preferred) or openai-whisper. Writes <stem>.json, <stem>.srt
-    (full lines) and <stem>.captions.srt (max_words per cue, for burned-in phone captions)."""
-    media_path, out_dir = Path(media_path), Path(out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+_WHISPER = {}
+
+
+def whisper_segments(media_path, model="small", language=None, vad=True):
+    """Run Whisper on one file and return (engine, language, segments with word timings).
+    faster-whisper is preferred; its model is loaded once per process (`takes` calls this per island)."""
     segments = []
     try:
         if importlib.util.find_spec("faster_whisper"):
             from faster_whisper import WhisperModel
             engine = "faster-whisper"
-            wm = WhisperModel(model, device="auto", compute_type="int8")
-            segs, info = wm.transcribe(str(media_path), language=language, word_timestamps=True, vad_filter=True)
+            if ("fw", model) not in _WHISPER:
+                _WHISPER[("fw", model)] = WhisperModel(model, device="auto", compute_type="int8")
+            segs, info = _WHISPER[("fw", model)].transcribe(str(media_path), language=language, word_timestamps=True, vad_filter=vad)
             for s in segs:
                 segments.append({"start": s.start, "end": s.end, "text": s.text,
                                  "words": [{"start": w.start, "end": w.end, "word": w.word} for w in (s.words or [])]})
@@ -107,7 +109,9 @@ def transcribe(media_path, out_dir, model="small", language=None, max_words=4):
         elif importlib.util.find_spec("whisper"):
             import whisper
             engine = "openai-whisper"
-            result = whisper.load_model(model).transcribe(str(media_path), language=language, word_timestamps=True)
+            if ("ow", model) not in _WHISPER:
+                _WHISPER[("ow", model)] = whisper.load_model(model)
+            result = _WHISPER[("ow", model)].transcribe(str(media_path), language=language, word_timestamps=True)
             segments = [{"start": s["start"], "end": s["end"], "text": s["text"], "words": s.get("words", [])} for s in result["segments"]]
             lang = result.get("language")
         else:
@@ -118,6 +122,15 @@ def transcribe(media_path, out_dir, model="small", language=None, max_words=4):
         raise ProductionError("Whisper could not run ({}: {}). If the model download was refused, allow huggingface.co "
                               "(faster-whisper) or openaipublic.azureedge.net (openai-whisper) in the network settings, or run "
                               "on a machine that has the model cached.".format(type(exc).__name__, str(exc)[:200])) from exc
+    return engine, lang, segments
+
+
+def transcribe(media_path, out_dir, model="small", language=None, max_words=4):
+    """Transcribe with faster-whisper (preferred) or openai-whisper. Writes <stem>.json, <stem>.srt
+    (full lines) and <stem>.captions.srt (max_words per cue, for burned-in phone captions)."""
+    media_path, out_dir = Path(media_path), Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    engine, lang, segments = whisper_segments(media_path, model, language)
     stem = media_path.stem
     write_json(out_dir / (stem + ".json"), {"engine": engine, "model": model, "language": lang, "segments": segments, "created": now()})
     write_srt(segments, out_dir / (stem + ".srt"))

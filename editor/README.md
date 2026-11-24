@@ -43,6 +43,7 @@ Canvas and motion-template rendering also need Node, the `playwright` module and
 | `suggest <edit> [--aspect 9:16]` | Smart engine: rank the 50 styles for this footage, 1 `experiment` mashup, unique ideas, hook candidates, problems → `SUGGESTIONS.md` |
 | `styles [--family music]` | List the catalog |
 | `approve-style`, `lock-script` | Record the owner's decisions 1 and 2 |
+| `takes <edit> [--script SCRIPT.md] [--tone aggressive\|balanced\|documentary] [--keep G01=L02]` | Cleaner cut: speech islands on a floor-relative threshold (low-range guard), per-island Whisper, retake groups (last fluent take kept), fillers removed, Hindi starters flagged, laughs kept, word-time pads, pause shrink, frame snap, `subcheck`; writes `analysis/takes.json`, which `autocut` uses and the storyboard lists for the owner. Method from ghost-editor and cut-video (MIT); thresholds in `rules.json` → `takes` (external calibrations) |
 | `autocut <edit> --style <slug> [--seconds 30] [--aspect 9:16]` | Draft `edl.json`: speech-led A-roll with B-roll inserts, or motion-ranked montage; the style's grade, transitions, zooms, FX, captions, beat sync |
 | `beats <audio>` | Tempo (BPM), beat times and a confidence score |
 | `library-scan <folder>` | Index a reusable music/SFX/LUT/overlay library (`mann-library.json`) |
@@ -120,4 +121,4 @@ See `edl.example.json`. Fields:
 
 Speed: analysis is cached by file hash; a storyboard decodes the edit once (about real time on this machine for 1080x1920), and part corrections re-show only the changed clips.
 
-Not built yet: automatic best-take selection between repeated takes, and audio judged by ear. Footage labels and style scores are heuristics; catalog pace numbers are estimates until measured from a reference. In this cloud environment `youtube.com`, `huggingface.co` / `openaipublic.azureedge.net` (Whisper models) and `cdn.jsdelivr.net` are blocked; `mg-new` and `mg-render` copy GSAP from npm instead of the CDN.
+Best-take selection (`takes`) is mechanical: n-gram matching on transcribed words, tested on synthetic fixtures only, not yet on the owner's footage; it does not judge performance. Not built yet: audio judged by ear. Footage labels and style scores are heuristics; catalog pace numbers are estimates until measured from a reference. In this cloud environment `youtube.com`, `huggingface.co` / `openaipublic.azureedge.net` (Whisper models) and `cdn.jsdelivr.net` are blocked; `mg-new` and `mg-render` copy GSAP from npm instead of the CDN.
