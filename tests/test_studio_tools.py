@@ -67,6 +67,9 @@ class DoctorTest(unittest.TestCase):
         open_hosts = {h: "200" for h in C.HOSTS}
         everything = {"ELEVENLABS_API_KEY": True, C.NPX_ENV: True}
         self.assertTrue(all(r["ready"] for r in C.assess(ALL_TOOLS, open_hosts, everything)))
+        no_npx = [r for r in C.assess(ALL_TOOLS | {"npx": False}, open_hosts, everything) if not r["ready"]]
+        self.assertEqual(sorted(r["capability"].split(" ")[0] for r in no_npx), ["HyperFrames", "Remotion"])
+        self.assertTrue(all("npx" in r["missing"] for r in no_npx))  # node alone is not enough
         npx_rows = [r for r in C.assess(ALL_TOOLS, open_hosts, {"ELEVENLABS_API_KEY": True}) if not r["ready"]]
         self.assertEqual(sorted(r["capability"].split(" ")[0] for r in npx_rows), ["HyperFrames", "Remotion"])
         self.assertTrue(all("permission" in r["missing"][0] for r in npx_rows))
@@ -75,6 +78,28 @@ class DoctorTest(unittest.TestCase):
         self.assertTrue(row["ready"])
         no_ffmpeg = ALL_TOOLS | {"ffmpeg": False}
         self.assertFalse(C.assess(no_ffmpeg, open_hosts, {})[0]["ready"])
+
+    def test_npx_permission_comes_from_the_env_or_the_owners_recorded_permission(self):
+        perms = json.loads(C.PERMISSIONS.read_text(encoding="utf-8"))
+        self.assertTrue(perms["npx"]["allowed"])  # owner, 2026-11-23: "ha sahi plan h krdo"
+        self.assertEqual(perms["npx"]["date"], "2026-11-23")
+        self.assertTrue(C.npx_allowed({}))
+        saved = C.PERMISSIONS
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                C.PERMISSIONS = Path(tmp) / "permissions.json"  # no recorded permission
+                self.assertFalse(C.npx_allowed({}))
+                self.assertTrue(C.npx_allowed({C.NPX_ENV: "1"}))
+                C.PERMISSIONS.write_text('{"npx": {"allowed": false}}')
+                self.assertFalse(C.npx_allowed({}))
+                C.PERMISSIONS.write_text("not json")
+                self.assertFalse(C.npx_allowed({}))
+                for shape in ('{"npx": {"allowed": "false"}}', '{"npx": {"allowed": 1}}', '{"npx": false}', '[]',
+                              '{"npx": ["allowed"]}'):
+                    C.PERMISSIONS.write_text(shape)  # anything but a literal true fails closed, never crashes
+                    self.assertFalse(C.npx_allowed({}), shape)
+        finally:
+            C.PERMISSIONS = saved
 
 
 @unittest.skipUnless(has_playwright() and shutil.which("ffprobe"), "the renderer needs Node, Playwright and FFmpeg")

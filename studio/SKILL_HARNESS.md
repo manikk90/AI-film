@@ -79,7 +79,7 @@ Run `python3 studio/check_env.py` at the start of every production, and put its 
 - **`daksh-ai`:**
   - Its stub-canvas harness passes on the template.
   - The template renders end to end with `studio/render_canvas.cjs`: 360 frames, 12.0 s, 1920×1080 at 30 fps (2026-11-02).
-- **HyperFrames:** npm is reachable, but the session's auto-mode classifier refuses to run npm packages with `npx` ("Code from External"). Use `studio/render_canvas.cjs`. If the owner wants HyperFrames itself, they can allow that command in their permission settings.
+- **HyperFrames and Remotion:** npx is allowed (owner, 2026-11-23; `studio/permissions.json`, rule in `studio/LEARNINGS.md`). Run them through npx only when a skill needs them, always with a pinned version (`npx --yes hyperframes@<version>`, `npx --yes remotion@<version>`). Canvas pages still render with `studio/render_canvas.cjs`, which needs no npx. (Until 2026-11-23 the session refused npx; that note is superseded.)
 - **Reachability (checked 2026-11-02):**
   - Blocked: huggingface.co, dl.fbaipublicfiles.com, openaipublic.azureedge.net, download.pytorch.org, alphacephei.com (Vosk models), cdn.jsdelivr.net and api.elevenlabs.io.
   - Reachable: pypi.org, registry.npmjs.org and raw.githubusercontent.com.
