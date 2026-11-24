@@ -8,7 +8,7 @@
 const MOTION = {
 defaults: JSON.parse(document.getElementById('meta').textContent).vars,
 render(ctx, t, v, W, H) {
-  const s = M.safe(W, H, v), base = Math.min(W, H), e = M.env(t, v.duration, 0.6, 0.4);
+  const s = M.safe(W, H, v), base = Math.min(W, H), e = M.env(t, v.duration, 0.6);
   const size = M.fit(ctx, v.title, s.w * 0.92, base * 0.13, v, 'display');
   const cx = (s.x0 + s.x1) / 2, cy = M.cy(s, H, v, 0.42), reveal = M.outCubic(M.prog(t, 0, 0.6));
   ctx.save(); ctx.globalAlpha = e; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';

@@ -8,7 +8,7 @@
 const MOTION = {
 defaults: JSON.parse(document.getElementById('meta').textContent).vars,
 render(ctx, t, v, W, H) {
-  const s = M.safe(W, H, v), base = Math.min(W, H), e = M.env(t, v.duration, 0.25, 0.35);
+  const s = M.safe(W, H, v), base = Math.min(W, H), e = M.env(t, v.duration, 0.25);
   const px = v.x * W, py = v.y * H, r = v.radius * base, lw = base * 0.012;
   const draw = M.outCubic(M.prog(t, 0, 0.55)), pulse = 1 + 0.05 * Math.sin(Math.max(0, t - 0.6) * 6);
   ctx.save(); ctx.globalAlpha = e; M.shadow(ctx, true);

@@ -214,6 +214,87 @@ def background(root, edl, clip, local_t, band, size=(90, 160)):
     return tuple(sum(p[i] for p in px) / n for i in range(3))
 
 
+def alpha_bbox(root, edl, ov, duration):
+    """Box (output pixels) of what an alpha overlay draws: the union of its alpha mask at a
+    quarter, half and three quarters of its run. None when it has no alpha or FFmpeg is missing."""
+    import shutil
+    if not shutil.which("ffmpeg"):
+        return None
+    W, H = edl["format"]["width"], edl["format"]["height"]
+    w, h = max(W // 4, 2), max(H // 4, 2)
+    box = None
+    for k in (0.25, 0.5, 0.75):
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", "{:.3f}".format(duration * k), "-i", str(inside(root, ov["file"])),
+                              "-frames:v", "1", "-vf", "alphaextract,scale={}:{}".format(w, h), "-f", "rawvideo", "-pix_fmt", "gray", "-"],
+                             capture_output=True, timeout=120).stdout
+        if len(raw) < w * h:
+            return None
+        rows = [y for y in range(h) if max(raw[y * w:(y + 1) * w]) > 16]
+        if not rows:
+            continue
+        cols = [x for x in range(w) if any(raw[y * w + x] > 16 for y in rows)]
+        b = {"x0": cols[0] * W / w, "x1": (cols[-1] + 1) * W / w, "y0": rows[0] * H / h, "y1": (rows[-1] + 1) * H / h}
+        box = b if box is None else {"x0": min(box["x0"], b["x0"]), "x1": max(box["x1"], b["x1"]),
+                                     "y0": min(box["y0"], b["y0"]), "y1": max(box["y1"], b["y1"])}
+    return box
+
+
+def overlay_items(root, edl):
+    """Global overlays as {name, start, end, box} on the timeline. The box is the overlay's
+    `bbox` ([x0, y0, x1, y1], fractions of the frame) when given, else measured from its alpha."""
+    W, H = edl["format"]["width"], edl["format"]["height"]
+    out, unmeasured = [], []
+    for ov in edl.get("overlays", []):
+        at = float(ov.get("at", 0))
+        dur = ov.get("duration")
+        if dur is None:
+            from . import media
+            dur = media.probe(inside(root, ov["file"]))["duration"]
+        if ov.get("bbox"):
+            x0, y0, x1, y1 = [float(v) for v in ov["bbox"]]
+            box = {"x0": x0 * W, "x1": x1 * W, "y0": y0 * H, "y1": y1 * H}
+        else:
+            box = alpha_bbox(root, edl, ov, float(dur))
+        if box is None:
+            unmeasured.append(ov["file"])
+            continue
+        out.append({"name": "overlay " + ov["file"], "start": at, "end": at + float(dur), "box": box})
+    return out, unmeasured
+
+
+def timeline_faces(root, edl, rows):
+    """Tracked face samples {t, x, y, size} on the final timeline, for clips where the speaker
+    is on screen (not `cover`, outside inserts). Reframed clips use the reframe plan; other clips
+    map the same face track through the frame's fit (cover crop or contain pad) and zoom."""
+    from . import reframe as RF
+    fmt = edl["format"]
+    W, H = fmt["width"], fmt["height"]
+    out = []
+    for row, clip in zip(rows, edl["clips"]):
+        if clip.get("treatment") == "cover":
+            continue
+        hidden = [(float(i.get("at", 0)), float(i.get("at", 0)) + float(i["out"]) - float(i["in"])) for i in clip.get("inserts", [])]
+        if clip.get("reframe", fmt.get("reframe")) == "auto" and fmt.get("fit", "cover") == "cover":
+            pts = RF.framing(root, edl, clip, row["duration"])
+        else:
+            tr = RF.track(root, edl["sources"][clip["source"]])
+            sw, sh = tr["width"], tr["height"]
+            scale = (max if fmt.get("fit", "cover") == "cover" else min)(W / float(sw), H / float(sh))
+            ox, oy = (W - sw * scale) / 2, (H - sh * scale) / 2
+            speed = clip.get("speed", 1.0)
+            pts = [{"t": (s["t"] - clip["in"]) / speed, "x": (s["face"][0] * sw * scale + ox) / W,
+                    "y": (s["face"][1] * sh * scale + oy) / H, "size": s["face"][2] * sh * scale / H}
+                   for s in tr["samples"] if s["face"] and clip["in"] <= s["t"] <= clip["out"]]
+        zoom = clip.get("zoom") or {}
+        z0, z1 = float(zoom.get("from", 1.0)), float(zoom.get("to", 1.0))
+        for p in pts:
+            if any(a <= p["t"] <= b for a, b in hidden):
+                continue
+            z = z0 + (z1 - z0) * min(1.0, p["t"] / max(row["duration"], 1e-6))
+            out.append({"t": row["start"] + p["t"], "x": 0.5 + (p["x"] - 0.5) * z, "y": 0.5 + (p["y"] - 0.5) * z, "size": p["size"] * z})
+    return out
+
+
 def parse_srt(text):
     cues = []
     for block in re.split(r"\n\s*\n", text.strip()):
@@ -274,8 +355,11 @@ def check(root, edl, sample_contrast=True):
         ratios = [b / float(a) for a, b in zip(sizes, sizes[1:])]
         add("type hierarchy", "type-scale", min(ratios) >= R["type_scale_min_ratio"],
             "sizes {} px, closest step x{:.2f} (min x{})".format(sizes, min(ratios), R["type_scale_min_ratio"]))
+    drawn = []  # text boxes on the timeline, for the face-clear check
     for row, clip, item, size, file, family in texts:
         bb = rendered_bbox(edl, item) or text_bbox(fmt, item["value"], size, item.get("position", "bottom"), file)
+        drawn.append({"name": "text {} '{}'".format(clip["id"], item["value"][:16]), "start": row["start"] + float(item.get("start", 0)),
+                      "end": row["start"] + float(item.get("end", row["duration"])), "box": bb})
         add("text safe zone {}".format(clip["id"]), "vertical-safe" if aspect == "9:16" else "title-safe", inside_box(bb, box),
             "'{}' spans y {:.0%}-{:.0%}, x {:.0%}-{:.0%}".format(item["value"][:24], bb["y0"] / H, bb["y1"] / H, bb["x0"] / W, bb["x1"] / W), "fail")
         start = float(item.get("start", 0))
@@ -333,6 +417,22 @@ def check(root, edl, sample_contrast=True):
         add("subject in frame", "subject-in-frame", not bad, "face off-position in {}".format(", ".join(bad)) if bad else "face placed well in every reframed clip")
         if lost:
             add("face found", "subject-in-frame", False, "no face tracked in {} (crop stays centred)".format(", ".join(lost)))
+    # Speaker / overlay / cover: rhythm (opt-in: the EDL declares `treatment` on its beats) and
+    # nothing drawn over the tracked face (reframed or treatment-planned edits).
+    from . import treatment as TR
+    tr_rules = TR.rules()
+    for name, ok, detail in TR.rhythm_findings(edl, rows, tr_rules):
+        add(name, "speaker-overlay-cover", ok, detail, "fail")
+    planned = any("treatment" in c for c in edl["clips"])
+    if (drawn or edl.get("overlays")) and RF.usable() and (reframed or planned):
+        items, unmeasured = overlay_items(root, edl)
+        items += drawn
+        hits = TR.faces_over(items, timeline_faces(root, edl, rows), W, H, tr_rules)
+        add("nothing over the face", "face-clear", not hits,
+            "; ".join("{} covers {:.0%} of the face at {}".format(n, s, E.tc(t)) for n, t, s in hits) if hits
+            else "{} text/overlay item(s) clear of the tracked face".format(len(items)), "fail")
+        if unmeasured:
+            add("overlay box measured", "face-clear", False, "no alpha to measure in {}: give the overlay a `bbox`".format(", ".join(unmeasured)))
     # Cuts and continuity.
     clips = edl["clips"]
     style_jump = False

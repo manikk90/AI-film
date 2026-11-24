@@ -15,6 +15,7 @@ from pathlib import Path
 from ..core import inside, now, project_lock, read_json, require, write_json
 from . import edl as E
 from . import media
+from .treatment import rank_clips, score_clip, snap_clip  # noqa: F401  (engine.snap_clip / score_clip / rank_clips)
 
 REPO = Path(__file__).resolve().parents[2]
 CATALOG = REPO / "editor" / "styles" / "catalog.json"
@@ -358,14 +359,45 @@ def _suggest(root, aspect):
     for _, _, s in top:
         ideas += [{"style": s["slug"], "idea": t} for t in s["twists"]]
     ideas += [{"style": None, "idea": "{}: {}".format(n, d)} for n, d in GENERIC_IDEAS]
+    plan = treatment_plan(root, prof)
     result = {"created": now(), "profile": {k: v for k, v in prof.items() if k not in ("videos", "music", "sfx", "images", "overlays")},
               "target_aspect": target,
               "recommended": [{"slug": s["slug"], "name": s["name"], "score": sc, "why": why} for sc, why, s in top],
               "experiment": experiment, "ranking": [{"slug": s["slug"], "score": sc} for (sc, _), s in ranked],
-              "unique_ideas": ideas, "hook_candidates": hooks[:8], "problems": problems}
+              "unique_ideas": ideas, "hook_candidates": hooks[:8], "problems": problems, "treatment_plan": plan}
     write_json(root / "suggestions.json", result)
     _atomic_text(root / "SUGGESTIONS.md", suggestions_markdown(result))
     return result
+
+
+def treatment_plan(root, prof, fps=30):
+    """Speaker / overlay / cover draft for the first transcribed video (method: iart-ai/motion-skills,
+    MIT; see aifilm/editor/treatment.py). None without a Whisper transcript."""
+    from . import treatment as TR
+    for v in prof["videos"]:
+        t = transcript_for(root, v["file"])
+        words = [w for s in (t or {}).get("segments", []) for w in s.get("words", [])]
+        if words:
+            return {"file": v["file"], "rows": TR.plan(TR.sentences(words), fps)}
+    return None
+
+
+def clip_candidates(root, candidates):
+    """Long video to shorts (method: agricidaniel/claude-shorts, MIT): snap each candidate
+    ({source, start, end, scores}) to the source's Whisper words, take its text from the snapped
+    words, score it with the weighted rubric and red flags, rank, and write analysis/clips.json."""
+    root = Path(root)
+    with project_lock(root):
+        out = []
+        for c in candidates:
+            t = transcript_for(root, c["source"])
+            words = [w for s in (t or {}).get("segments", []) for w in s.get("words", [])]
+            snapped = snap_clip(words, float(c["start"]), float(c["end"]))
+            text = " ".join(w["word"].strip() for w in words if snapped["start"] - 0.01 <= w["start"] and w["end"] <= snapped["end"] + 0.01)
+            out.append(dict(c, **snapped, text=text or c.get("text", ""), transcript=bool(words)))
+        ranked = rank_clips(out)
+        write_json(root / "analysis" / "clips.json", {"created": now(), "clips": ranked})
+        return ranked
 
 
 def suggestions_markdown(r):
@@ -382,6 +414,15 @@ def suggestions_markdown(r):
     lines += ["- {}{}".format("[{}] ".format(i["style"]) if i["style"] else "", i["idea"]) for i in r["unique_ideas"]]
     lines += ["", "## Hook candidates", ""] + ["- `{}` at {}: {}".format(h["file"], E.tc(h["at"]), h["why"]) for h in r["hook_candidates"]]
     lines += ["", "## Problems found", ""] + (["- " + x for x in r["problems"]] or ["- none measured"])
+    plan = r.get("treatment_plan")
+    lines += ["", "## Speaker / overlay / cover (draft per line)", ""]
+    if plan:
+        from .treatment import table_markdown
+        lines += ["From `{}`'s transcript. A draft: covers need B-roll that shows what the line says, and on-screen words come only "
+                  "from what is said. Put the chosen `treatment`/`timing` on the EDL beats; craft-check holds the rhythm.".format(plan["file"]), "",
+                  table_markdown(plan["rows"]).rstrip("\n")]
+    else:
+        lines.append("- needs a transcript (`transcribe`) to plan per line")
     lines += ["", "Next: the owner finalises a style (`approve-style`), then `autocut --style <slug>` drafts the cut for the storyboard.", ""]
     return "\n".join(lines)
 

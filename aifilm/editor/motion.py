@@ -67,10 +67,47 @@ def roles(colours):
     return {"bg": bg, "ink": ink, "accent": accent, "accent2": accent2, "muted": muted}
 
 
+def timing():
+    """Motion timing from editor/rules.json, passed to every template as `v.timing`.
+    Method from hughminhphan/motion-kit (MIT, adopted 2026-11-23; our own code): an exit takes
+    about 0.65x its entrance and accelerates away; followers start on uneven offsets
+    (0, 4, 9, 15, 22, 30 frames) instead of an even stagger; every tween is a pure function of
+    time from fixed start and end values, so seeking to any frame draws the same picture."""
+    from .craft import RULES
+    r = read_json(RULES)["rules"]
+    return {"exit_ratio": float(r.get("motion_exit_to_entrance", 0.65)),
+            "follower_frames": [int(f) for f in r.get("motion_follower_offsets_frames", [0, 4, 9, 15, 22, 30])]}
+
+
+def exit_seconds(entrance, ratio=None, floor=0.12):
+    """Exit length for an entrance of `entrance` seconds (never shorter than `floor`)."""
+    return round(max(float(entrance) * (timing()["exit_ratio"] if ratio is None else ratio), floor), 4)
+
+
+def follower_offset(i, fps=30, frames=None):
+    """Start offset (seconds) of follower `i` (0 = leader). Past the listed offsets the last gap
+    keeps growing by one frame per follower, so the rhythm never turns even."""
+    frames = frames or timing()["follower_frames"]
+    if i < len(frames):
+        f = frames[i]
+    else:
+        gap = frames[-1] - frames[-2] if len(frames) > 1 else 4
+        extra = i - len(frames) + 1
+        f = frames[-1] + extra * gap + extra * (extra + 1) // 2
+    return f / float(fps)
+
+
+def tween(t, start, end, a, b, ease=None):
+    """Seek-safe from-to tween: the value at time `t` from `a` (at `start`) to `b` (at `end`)
+    depends only on t, never on the previous frame."""
+    k = min(max((t - start) / max(end - start, 1e-6), 0.0), 1.0)
+    return a + (b - a) * (ease(k) if ease else k)
+
+
 def design(theme=None, pairing=None):
-    """Theme colours and font files for the templates' variables."""
+    """Theme colours, font files and motion timing for the templates' variables."""
     from . import craft, fonts
-    v = {}
+    v = {"timing": timing()}
     if theme:
         v.update(roles(craft.theme(theme)["colours"]))
     if pairing:
@@ -158,4 +195,5 @@ def add(edit_root, name, at, duration=None, variables=None, label=None):
         return entry
 
 
-__all__ = ["templates", "template", "available", "design", "render", "add", "inside"]
+__all__ = ["templates", "template", "available", "design", "render", "add", "inside", "timing", "exit_seconds",
+           "follower_offset", "tween"]

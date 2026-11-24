@@ -143,8 +143,11 @@ def validate(root, edl):
             require(isinstance(zoom, dict), cid + ": zoom must be an object like {\"from\": 1.0, \"to\": 1.2}")
             num(zoom.get("from", 1.0), cid + ".zoom.from", 1.0, 3.0)
             num(zoom.get("to", 1.0), cid + ".zoom.to", 1.0, 3.0)
+        require(clip.get("treatment") in (None, "speaker", "overlay", "cover"), cid + ": treatment must be speaker, overlay or cover")
+        require(clip.get("timing") in (None, "lead", "sync", "wait"), cid + ": timing must be lead, sync or wait")
         for text in as_list(clip.get("text")):
             require(isinstance(text, dict), cid + ": each text item must be an object with a value")
+            require(text.get("timing") in (None, "lead", "sync", "wait"), cid + ": text timing must be lead, sync or wait")
             require(isinstance(text.get("value"), str) and text["value"].strip(), cid + ": text needs a value")
             require(text.get("position", "bottom") in TEXT_POSITIONS, cid + ": text position must be top/center/bottom")
             require(text.get("role") in (None, "title", "headline", "body", "caption", "label"), cid + ": text role must be title/headline/body/caption/label")
@@ -172,6 +175,12 @@ def validate(root, edl):
         require(isinstance(ov, dict) and isinstance(ov.get("file"), str), "each overlay needs a \"file\"")
         media.probe(inside(root, ov["file"]))
         num(ov.get("at", 0), "overlay.at", 0)
+        if ov.get("bbox") is not None:
+            b = ov["bbox"]
+            require(isinstance(b, list) and len(b) == 4 and all(isinstance(v, (int, float)) and 0 <= v <= 1 for v in b)
+                    and b[0] < b[2] and b[1] < b[3], "overlay.bbox must be [x0, y0, x1, y1] as fractions of the frame")
+        if ov.get("duration") is not None:
+            num(ov["duration"], "overlay.duration", 0.04)
     subs = edl.get("subtitles")
     if subs:
         require(isinstance(subs, dict) and isinstance(subs.get("file"), str), "subtitles needs a \"file\"")
@@ -631,7 +640,8 @@ def clip_summary(edl, row, clip):
             "start": row["start"], "duration": row["duration"], "transition": kind if kind == "cut" else "{} {:.2f}s".format(kind, tdur),
             "grade": clip.get("grade") or edl.get("grade", {}).get("preset", "neutral"),
             "text": " | ".join(t["value"] for t in as_list(clip.get("text"))), "beat": clip.get("beat", ""), "zoom": clip.get("zoom"),
-            "fx": as_list(clip.get("fx")), "freeze": clip.get("freeze", 0), "inserts": len(clip.get("inserts", []))}
+            "fx": as_list(clip.get("fx")), "freeze": clip.get("freeze", 0), "inserts": len(clip.get("inserts", [])),
+            "treatment": clip.get("treatment"), "timing": clip.get("timing")}
 
 
 def diff(old, new):
@@ -641,8 +651,8 @@ def diff(old, new):
     lines += ["- removed {}".format(i) for i in before if i not in after]
     for i in after:
         if i in before:
-            changed = [k for k in ("source", "in", "out", "speed", "transition", "grade", "text", "beat", "zoom", "fx", "freeze", "inserts")
-                       if before[i].get(k) != after[i].get(k)]
+            changed = [k for k in ("source", "in", "out", "speed", "transition", "grade", "text", "beat", "zoom", "fx", "freeze", "inserts",
+                                    "treatment", "timing") if before[i].get(k) != after[i].get(k)]
             if changed:
                 lines.append("- changed {}: {}".format(i, ", ".join("{} {!r} -> {!r}".format(k, before[i].get(k), after[i].get(k)) for k in changed)))
     if [c["id"] for c in old if c["id"] in after] != [c["id"] for c in new if c["id"] in before]:
@@ -791,7 +801,8 @@ def storyboard_markdown(edl, rec, total):
         lines.append("| {} | `{}` | {} | {} | {} {:.2f}-{:.2f}s{} | {:.2f}s | {} | {} | {} | {} | {} |".format(
             i, f["file"], tc(f["timeline"]), c["id"], c["source"], c["in"], c["out"],
             " x{}".format(c["speed"]) if c["speed"] != 1.0 else "", c["duration"], c["transition"], c["grade"],
-            ", ".join(extras) or "-", c["text"].replace("|", "/") or "-", c["beat"].replace("|", "/") or "-"))
+            ", ".join(extras) or "-", c["text"].replace("|", "/") or "-", ("[{}{}] ".format(c["treatment"], " " + c["timing"] if c.get("timing") else "") if c.get("treatment") else "")
+            + (c["beat"].replace("|", "/") or "-")))
     audio = edl.get("audio", {})
     lines += ["", "## Sound plan", ""]
     music = audio.get("music")

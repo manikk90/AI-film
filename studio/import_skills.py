@@ -177,6 +177,20 @@ TOOLS = [  # (pattern in the skill text, tool line)
     (r"reference reel|[Aa]nalyze the reference|[Aa]nalyze each reference",
      "`python3 studio/ref_analyze.py ref.mp4 ref/`: frames at 2 fps, cut times, shot lengths, levels"),
 ]
+# Per-skill studio notes: methods the studio adds to one skill's steps (our words), shown under its render settings.
+NOTES = {
+    "youtube-clips": [
+        "**Scoring (step 1):** give each of 8-12 candidates a 0-100 mark for hook, standalone, emotion, value and payoff; "
+        "the total is weighted 0.30 / 0.25 / 0.20 / 0.15 / 0.10 (`editor/rules.json` `clip_score_weights`). A clip that "
+        "points back to earlier in the video, opens on a pronoun with nothing to refer to, or stops mid-sentence loses "
+        "standalone points; heavy filler lowers value. Method from agricidaniel/claude-shorts (MIT), our own code.",
+        "**Clip edges:** `python3 -m aifilm.editor clips <edit> candidates.json` snaps each start to a sentence start "
+        "within 1.5 s (else the nearest word), extends each end to a sentence end within 3 s plus 300 ms, then scores "
+        "and ranks the clips into `analysis/clips.json`.",
+        "**Per line:** `python3 -m aifilm.editor treatments <edit>` drafts speaker / overlay / cover for each beat; "
+        "`craft-check` holds the rhythm and keeps text off the face.",
+    ],
+}
 
 
 def render_settings(name: str, text: str, scripts: tuple = ()) -> str:
@@ -211,6 +225,9 @@ def render_settings(name: str, text: str, scripts: tuple = ()) -> str:
     if tools:
         lines.append("- **Studio tools for these steps:**")
         lines += [f"  - {t}" for t in tools]
+    if NOTES.get(name):
+        lines.append("- **Studio method:**")
+        lines += [f"  - {n}" for n in NOTES[name]]
     return "\n".join(lines) + "\n"
 
 

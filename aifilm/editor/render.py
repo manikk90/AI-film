@@ -361,6 +361,17 @@ def _qc(root):
               "{} dBTP (max {})".format(loud["true_peak"], target.get("true_peak", rules["true_peak_max_db"])))
     blacks = [b for b in media.black_segments(master, rules["max_black_seconds"]) if not edl.get("allow_black")]
     check("black frames", not blacks, ", ".join("{}-{}".format(E.tc(b["start"]), E.tc(b["end"])) for b in blacks) or "none")
+    # A/V lengths and a black tail (method: kurbaitaev/ghost-editor QC, MIT; thresholds `observed` in rules.json).
+    if info["has_audio"]:
+        lengths = media.stream_durations(master)
+        if lengths["video"] is not None and lengths["audio"] is not None:
+            delta = abs(lengths["video"] - lengths["audio"])
+            limit = rules["av_length_delta_max_frames"] * frame
+            check("A/V length", delta <= limit + 1e-3, "video {:.3f}s, audio {:.3f}s, delta {:.0f} ms (max {:.0f} ms)".format(
+                lengths["video"], lengths["audio"], delta * 1000, limit * 1000))
+    window = rules["tail_not_black_seconds"]
+    tail = media.tail_black(media.black_segments(master, 0.1), info["duration"], window) and not edl.get("allow_black")
+    check("tail not black", not tail, "last {}s {}".format(window, "goes black (hold the last frame: tpad=stop_mode=clone)" if tail else "has picture"))
     dead = [s for s in media.silences(master, rules["dead_air_noise_db"], rules["max_dead_air_seconds"])
             if not any(abs((s["start"] or 0) - float(d)) < 0.5 for d in edl.get("deliberate_silences", []))]
     check("dead air", not dead, ", ".join("{}-{}".format(E.tc(s["start"]), E.tc(s["end"] if s["end"] is not None else total)) for s in dead) or "none")

@@ -17,12 +17,28 @@ const M = {
   inOutCubic: k => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2),
   outBack: k => { const c = 1.70158; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); },
   outElastic: k => (k === 0 || k === 1 ? k : Math.pow(2, -10 * k) * Math.sin((k * 10 - 0.75) * (2 * Math.PI) / 3) + 1),
-  /* 0 -> 1 entrance over `inLen`, hold, 1 -> 0 exit over the last `outLen` seconds of `dur`. */
-  env(t, dur, inLen = 0.45, outLen = 0.35) {
+  /* Timing (method: hughminhphan/motion-kit, MIT, adopted 2026-11-23; our own code). Values come from
+     editor/rules.json through `v.timing` (motion.timing()); these are the fallbacks. */
+  timing: { exit_ratio: 0.65, follower_frames: [0, 4, 9, 15, 22, 30] },
+  /* Exit length for an entrance: about 0.65x, never under 0.12 s. */
+  exitLen: inLen => Math.max(inLen * M.timing.exit_ratio, 0.12),
+  /* 0 -> 1 entrance over `inLen` (decelerating), hold, 1 -> 0 exit over the last `outLen` seconds of
+     `dur` (accelerating away). `outLen` defaults to exitLen(inLen). */
+  env(t, dur, inLen = 0.45, outLen) {
+    if (outLen == null) outLen = M.exitLen(inLen);
     if (t < inLen) return M.outCubic(M.prog(t, 0, inLen));
     if (t > dur - outLen) return 1 - M.inCubic(M.prog(t, dur - outLen, dur));
     return 1;
   },
+  /* Start offset in seconds of follower `i` (0 = leader): uneven frame offsets, never an even stagger. */
+  follower(i, fps = 30) {
+    const f = M.timing.follower_frames, n = f.length;
+    if (i < n) return f[i] / fps;
+    const gap = n > 1 ? f[n - 1] - f[n - 2] : 4, extra = i - n + 1;
+    return (f[n - 1] + extra * gap + extra * (extra + 1) / 2) / fps;
+  },
+  /* Seek-safe from-to tween: a pure function of t from fixed values, so any frame renders alone. */
+  tween: (t, start, end, a, b, ease) => a + (b - a) * (ease || (k => k))(M.prog(t, start, end)),
   /* Safe zone (fractions of the frame) matching editor/craft/craft.json `standard` profiles. */
   /* `v.bottom_limit` (0-1) lifts the bottom edge above burned captions; set by `motion add`. */
   safe(W, H, v) {
@@ -66,6 +82,7 @@ window.addEventListener('load', async () => {
   const canvas = document.querySelector('canvas');
   canvas.width = W; canvas.height = H;
   const v = Object.assign({}, THEME_DEFAULTS, MOTION.defaults || {}, window.__VARS || {});
+  if (v.timing) Object.assign(M.timing, v.timing);
   for (const f of v.fonts || []) {
     try { const face = new FontFace(f.family, `url("${f.url}")`, { weight: String(f.weight || 400) }); document.fonts.add(await face.load()); }
     catch (e) { console.warn('font not loaded', f.family, String(e)); }
