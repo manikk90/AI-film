@@ -2,6 +2,7 @@
 name: researcher
 description: Research agent. Takes the chosen topic and digs for the unique angle and the details that make a video rich - verified facts with sources and confidence, surprising numbers, little-known stories and human moments, era-accurate visual and sound details, myth vs record, and what existing videos already said. Writes 02-research.md and FACTS.md for the writer and a detail bank for the director. Use before any script on a real, historical, cultural or mythological topic.
 tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch
+model: sonnet
 effort: medium
 autoCompactWindow: 100000
 ---
