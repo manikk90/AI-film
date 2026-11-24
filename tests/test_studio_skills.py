@@ -75,8 +75,10 @@ class LivingPaintingTest(unittest.TestCase):
             # still: only the top half moves
             ff("-f", "lavfi", "-i", "testsrc2=s=216x192:r=30:d=6", "-f", "lavfi", "-i", "color=gray:s=216x192:r=30:d=6",
                "-filter_complex", "[0][1]vstack", "-pix_fmt", "yuv420p", str(still))
-            # seam: a steady slow drift that never comes back (frame 0 and the last frame differ a lot)
-            ff("-f", "lavfi", "-i", "gradients=s=216x384:r=30:d=6:speed=0.004:seed=3", "-pix_fmt", "yuv420p", str(seam))
+            # seam: the same stripes drifting a third of a period in 6 s, so the last frame never meets the first.
+            # (Built with geq, not the gradients source, whose drift speed differs between FFmpeg builds.)
+            ff("-f", "lavfi", "-i", "color=black:s=216x384:r=30:d=6", "-vf",
+               "geq=lum='128+90*sin(2*PI*(X/36+Y/64-T/18))':cb=128:cr=128", "-pix_fmt", "yuv420p", str(seam))
             r_good = lc.check(lc.frames(str(good)))
             self.assertNotIn("seam", r_good["fails"], r_good)
             self.assertNotIn("still", r_good["fails"], r_good)
