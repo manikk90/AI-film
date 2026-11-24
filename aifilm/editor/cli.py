@@ -1,7 +1,7 @@
 """`python3 -m aifilm.editor` (alias `mann`): Mann, the AI video editor's command line.
 
 Flow: doctor -> ingest -> transcribe -> assets -> suggest -> [owner: approve-style, lock-script]
--> autocut (draft EDL) -> Mann refines -> storyboard -> [owner: approve] -> render -> qc -> deliver.
+-> takes (cleaner cut, optional) -> autocut (draft EDL) -> Mann refines -> storyboard -> [owner: approve] -> render -> qc -> deliver.
 Corrections: status tells whole vs part; part -> storyboard --changed + preview-part -> approve --clips -> render.
 Style lab: fetch -> analyze-style -> publish-style.
 """
@@ -51,6 +51,15 @@ def parser():
     p.add_argument("--style", required=True)
     p.add_argument("--seconds", type=float)
     p.add_argument("--aspect", choices=sorted(G.SIZES))
+    p = c.add_parser("takes", help="Cleaner cut: speech islands, retake groups (keep last fluent), fillers, word-time pads -> analysis/takes.json")
+    p.add_argument("edit")
+    p.add_argument("--script", help="Script file inside the edit folder (e.g. SCRIPT.md) to map takes to lines")
+    p.add_argument("--tone", choices=["aggressive", "balanced", "documentary"], default="balanced")
+    p.add_argument("--source", help="A-roll file inside the edit folder (default: the most-spoken video)")
+    p.add_argument("--keep", action="append", default=[], metavar="GROUP=TAKE", help="Owner override: keep this take, e.g. G01=L02 (repeatable)")
+    p.add_argument("--model", default="small")
+    p.add_argument("--language", help="e.g. hi, en; omit to auto-detect")
+    p.add_argument("--no-subcheck", action="store_true", help="Skip re-transcribing each kept piece")
     p = c.add_parser("beats", help="Tempo and beat times of a music file")
     p.add_argument("audio")
     p = c.add_parser("library-scan", help="Index a reusable music/SFX/LUT/overlay folder")
@@ -169,6 +178,19 @@ def main(argv=None):
                       "problems": r["problems"]}
         elif cmd == "autocut":
             result = G.autocut(args.edit, args.style, args.seconds, args.aspect)
+        elif cmd == "takes":
+            from . import takes as TK
+            keep = {}
+            for item in args.keep:
+                g, sep, t = item.partition("=")
+                if not sep or not g.strip() or not t.strip():
+                    raise ProductionError("--keep needs GROUP=TAKE, e.g. G01=L02")
+                keep[g.strip()] = t.strip()
+            rec = TK.analyse(args.edit, args.source, args.script, args.tone, TK.whisper_transcriber(args.model, args.language), keep,
+                             check=not args.no_subcheck)
+            result = {"takes": str(Path(args.edit) / TK.TAKES), "source": rec["source"], "levels": rec["levels"], "stats": rec["stats"],
+                      "groups": [{"id": g["id"], "kind": g["kind"], "kept": g["takes"][g["kept"]].get("unit", "restart"), "text": g["text"]}
+                                 for g in rec["groups"]], "flagged": rec["fillers"]["flagged"]}
         elif cmd == "beats":
             result = G.beats(args.audio)
         elif cmd == "library-scan":

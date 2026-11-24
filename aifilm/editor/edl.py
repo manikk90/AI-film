@@ -183,6 +183,8 @@ def validate(root, edl):
             require(inside(root, subs["words"]).is_file(), "Caption word timings missing: " + subs["words"])
     if edl.get("script"):
         require(inside(root, edl["script"]).is_file(), "Script file missing: " + edl["script"])
+    if edl.get("takes"):
+        require(inside(root, edl["takes"]).is_file(), "Takes file missing: {} (run `takes` again)".format(edl["takes"]))
     typo = edl.get("typography") or {}
     if typo:
         from . import craft
@@ -523,6 +525,7 @@ def global_files(edl):
     files += ([edl["subtitles"]["file"]] if edl.get("subtitles") else []) + ([edl["grade"]["lut"]] if edl.get("grade", {}).get("lut") else [])
     files += [edl["subtitles"]["words"]] if (edl.get("subtitles") or {}).get("words") else []
     files += [edl["script"]] if edl.get("script") else []
+    files += [edl["takes"]] if edl.get("takes") else []  # a new take pick needs a new storyboard approval
     return sorted(set(files))
 
 
@@ -757,6 +760,9 @@ def storyboard(root, frames_per_clip=1, only=None):
         from . import craft
         rec["craft"] = craft.check(root, edl)
         craft_md = craft.markdown(rec["craft"], craft.manual_checklist(edl))
+        if edl.get("takes"):
+            from . import takes as TK
+            craft_md = TK.markdown(root, edl) + "\n" + craft_md
         if only:
             write_json(out / "part.json", rec)
             (out / "PART.md").write_text(storyboard_markdown(edl, rec, total) + "\n" + craft_md, encoding="utf-8")
