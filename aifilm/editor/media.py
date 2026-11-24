@@ -113,6 +113,28 @@ def black_segments(path, min_seconds=0.5):
     return [{"start": float(a), "end": float(b)} for a, b in re.findall(r"black_start:([0-9.]+) black_end:([0-9.]+)", err)]
 
 
+def stream_durations(path):
+    """Duration of the first video and first audio stream (None when absent), from the
+    packets themselves so a container-level duration cannot hide a short stream."""
+    need("ffprobe")
+    out = {}
+    for kind, sel in (("video", "v:0"), ("audio", "a:0")):
+        res = run(["ffprobe", "-v", "error", "-select_streams", sel, "-show_entries", "packet=pts_time,duration_time",
+                   "-of", "csv=p=0", Path(path).resolve()], 300).stdout
+        ends = []
+        for line in res.splitlines():
+            parts = [p for p in line.strip().split(",") if p and p != "N/A"]
+            if len(parts) == 2:
+                ends.append(float(parts[0]) + float(parts[1]))
+        out[kind] = round(max(ends), 4) if ends else None
+    return out
+
+
+def tail_black(segments, duration, window):
+    """True when a black segment covers any of the last `window` seconds of the video."""
+    return any(b["end"] > duration - window + 1e-3 for b in segments)
+
+
 def frame_rgb(path, at, size=(48, 27)):
     """Decode one frame at `at` seconds into a list of (r, g, b) tuples at a tiny size."""
     need("ffmpeg")

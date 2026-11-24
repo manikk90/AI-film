@@ -71,6 +71,11 @@ def parser():
     p = c.add_parser("craft-check", help="Automatic craft checks on <edit>/edl.json (also run by storyboard and qc)")
     p.add_argument("edit")
     p.add_argument("--no-contrast", action="store_true", help="Skip sampling frames for text contrast")
+    p = c.add_parser("treatments", help="Draft speaker/overlay/cover table for the beats of <edit>/edl.json (read-only)")
+    p.add_argument("edit")
+    p = c.add_parser("clips", help="Long video to shorts: snap candidate clips to sentences, score with the weighted rubric, rank")
+    p.add_argument("edit")
+    p.add_argument("candidates", help="JSON list of {source: raw/<file>, start, end, scores: {hook, standalone, emotion, value, payoff}}")
     c.add_parser("pairings", help="Font pairings (Devanagari support verified)")
     c.add_parser("themes", help="Colour themes")
     p = c.add_parser("fonts-install", help="Fetch open-licensed fonts from npm (@fontsource), merge Latin+Devanagari, install")
@@ -204,6 +209,14 @@ def main(argv=None):
             findings = C.check(args.edit, E.load(args.edit), sample_contrast=not args.no_contrast)
             print(json.dumps(findings, indent=2, ensure_ascii=False))
             return 1 if any(f["result"] == "fail" for f in findings) else 0
+        elif cmd == "treatments":
+            from . import treatment as TR
+            edl = E.load(args.edit)
+            wf = Path(args.edit) / "captions.words.json"
+            words = json.loads(wf.read_text(encoding="utf-8")) if wf.exists() else None
+            result = {"words": bool(words), "rows": TR.plan(TR.lines_from_edl(edl, words), edl["format"].get("fps", 30))}
+        elif cmd == "clips":
+            result = G.clip_candidates(args.edit, json.loads(Path(args.candidates).read_text(encoding="utf-8")))
         elif cmd == "pairings":
             result = C.data()["font_pairings"]
         elif cmd == "themes":

@@ -109,7 +109,37 @@
       "script_match_min": 0.6,
       "fluent_min_share": 0.8,
       "subcheck_opening_words": 2
-    }
+    },
+    "speaker_run_max_seconds": 8.0,
+    "cover_min_seconds": 3.0,
+    "cover_max_seconds": 8.0,
+    "face_between_covers_min_seconds": 2.0,
+    "overlay_lead_frames": 6,
+    "face_box_pad": 0.1,
+    "face_overlap_max_share": 0.02,
+    "av_length_delta_max_frames": 1,
+    "tail_not_black_seconds": 0.4,
+    "clip_score_weights": {
+      "hook": 0.3,
+      "standalone": 0.25,
+      "emotion": 0.2,
+      "value": 0.15,
+      "payoff": 0.1
+    },
+    "clip_red_flag_penalty": 15,
+    "clip_filler_max_share": 0.3,
+    "snap_start_window_seconds": 1.5,
+    "snap_end_window_seconds": 3.0,
+    "snap_end_pad_seconds": 0.3,
+    "motion_exit_to_entrance": 0.65,
+    "motion_follower_offsets_frames": [
+      0,
+      4,
+      9,
+      15,
+      22,
+      30
+    ]
   },
   "history": [
     {
@@ -160,6 +190,41 @@
       "value": "0.8 s, 0.25 s, 0.3 s, 0.6, 0.8, 2 words; Hindi/Hinglish starters flagged only",
       "kind": "observed",
       "source": "Mann starting defaults for the takes method (not from the repos, not owner); untested on owner footage"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "speaker_run_max_seconds, cover_min_seconds, cover_max_seconds, overlay_lead_frames",
+      "value": "8 s, 3-8 s, 6 frames",
+      "kind": "observed",
+      "source": "iart-ai/motion-skills talking-head-b-roll (MIT): speaker/overlay/cover rhythm and lead/sync/wait timing; method adopted 2026-11-23, not an owner rule"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "face_between_covers_min_seconds",
+      "value": "2 s",
+      "kind": "observed",
+      "source": "Barty-Bart/motion-graphics motion-broll (MIT): face time between cutaways; method adopted 2026-11-23, not an owner rule"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "av_length_delta_max_frames, tail_not_black_seconds, face_box_pad, face_overlap_max_share",
+      "value": "1 frame, 0.4 s, 10 %, 2 % (pad and share are our working defaults)",
+      "kind": "observed",
+      "source": "kurbaitaev/ghost-editor QC (MIT): nothing over the face, A/V lengths, last 0.4 s not black; method adopted 2026-11-23, not an owner rule"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "clip_score_weights, snap_start_window_seconds, snap_end_window_seconds, snap_end_pad_seconds",
+      "value": "hook .30 standalone .25 emotion .20 value .15 payoff .10; 1.5 s, 3 s, +300 ms (red-flag penalty 15 and filler 30 % are our working defaults)",
+      "kind": "observed",
+      "source": "agricidaniel/claude-shorts scoring rubric and boundary snap (MIT); method adopted 2026-11-23, not an owner rule"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "motion_exit_to_entrance, motion_follower_offsets_frames",
+      "value": "0.65x, 0/4/9/15/22/30 frames",
+      "kind": "observed",
+      "source": "hughminhphan/motion-kit (MIT): exits faster than entrances, uneven follower offsets; method adopted 2026-11-23, not an owner rule"
     }
   ]
 }

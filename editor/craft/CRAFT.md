@@ -1,6 +1,6 @@
 # Mann's craft rulebook
 
-96 rules in 15 domains; 28 are checked automatically by `craft-check` (also run by `storyboard` and `qc`), the rest are Mann's frame-by-frame checklist. Thresholds live in `editor/rules.json`; owner corrections change them there.
+98 rules in 15 domains; 30 are checked automatically by `craft-check` (also run by `storyboard` and `qc`), the rest are Mann's frame-by-frame checklist. Thresholds live in `editor/rules.json`; owner corrections change them there.
 
 Contents: [Cuts](#cuts) · [Transitions](#transitions) · [Continuity](#continuity) · [Eyelines and eye-trace](#eyelines-and-eye-trace) · [Shot composition](#shot-composition) · [Shot sizes, angles and moves](#shot-sizes-angles-and-moves) · [Pacing and rhythm](#pacing-and-rhythm) · [Typography hierarchy](#typography-hierarchy) · [Colour](#colour) · [Safe zones and grids](#safe-zones-and-grids) · [Sound](#sound) · [Motion graphics](#motion-graphics) · [VFX and effects](#vfx-and-effects) · [Story structure for short video](#story-structure-for-short-video) · [Accessibility](#accessibility) · [Safe zones](#safe-zone-profiles) · [Type scale](#type-scale) · [Font pairings](#font-pairings) · [Colour themes](#colour-themes) · [Sources](#sources)
 
@@ -343,6 +343,13 @@ Contents: [Cuts](#cuts) · [Transitions](#transitions) · [Continuity](#continui
 - **How (Mann):** Face tracking (OpenCV) moves the crop; craft-check measures where the tracked face lands: centre between 20 % and 80 % of the width, 15 % and 55 % of the height, and above the caption band.
 - **Avoid:** Centre crops that cut the speaker out; faces under the captions.
 
+### Nothing over the face `face-clear` · auto-checked
+
+- **What:** No text item or overlay is drawn on the speaker's face while the face is on screen.
+- **When:** Every edit with reframing or declared treatments, for every text item and overlay.
+- **How (Mann):** craft-check maps the reframe face track onto the timeline (reframe plan, or the frame's fit and zoom), grows each face box by `face_box_pad`, and fails when a text box or an overlay's `bbox` (or its measured alpha) covers more than `face_overlap_max_share` of it. Cover beats and insert spans are skipped.
+- **Avoid:** Lower thirds across the chin, centred titles on the eyes, stickers on the mouth.
+
 ## Shot sizes, angles and moves
 
 ### Shot sizes `shot-sizes`
@@ -416,6 +423,13 @@ Contents: [Cuts](#cuts) · [Transitions](#transitions) · [Continuity](#continui
 - **When:** Shorts and Reels built to replay.
 - **How (Mann):** Match cut the last frame to the first; end the music on an upbeat.
 - **Avoid:** Outros, logos and 'thanks for watching' at the end of a Short.
+
+### Speaker, overlay or cover per line `speaker-overlay-cover` · auto-checked
+
+- **What:** Every spoken line is shown one of three ways: the speaker alone, the speaker with a transparent overlay (a keyword, a number, a list), or a cover (an opaque full frame of B-roll while the voice runs on).
+- **When:** Talking-head edits, interviews, explainers and shorts cut from long videos. Declare it with `treatment: speaker|overlay|cover` (and an overlay's `timing: lead|sync|wait`) on each EDL beat.
+- **How (Mann):** `suggest` drafts the table from the transcript. craft-check: open and close on the speaker, no speaker-only stretch over `speaker_run_max_seconds`, covers between `cover_min_seconds` and `cover_max_seconds`, at least `face_between_covers_min_seconds` of speaker between covers (inserts count as covers). Overlays lead structure by `overlay_lead_frames`, land numbers on their spoken word, and make punchlines wait for the revealing word.
+- **Avoid:** A long unbroken head; covers so short they flicker or so long the speaker is lost; text that invents figures nobody said.
 
 ## Typography hierarchy
 
@@ -784,3 +798,6 @@ Set `"typography": {"theme": "<id>"}`; `mg-new` puts the theme into the Hyperfra
 - **itu_sync:** ITU-R BT.1359: audio/video sync detectability about +45 ms (audio early) to -125 ms (audio late) (https://www.itu.int/rec/R-REC-BT.1359)
 - **cuts:** Film-cut glossaries: MasterClass, Adobe (J and L cuts), No Film School, Artlist (https://www.masterclass.com/articles/essential-film-cuts, https://www.adobe.com/creativecloud/video/discover/j-cut-and-l-cut, https://nofilmschool.com/essential-cuts-every-video-editor-needs-know)
 - **fonts:** Font availability and Devanagari subsets verified on the npm registry (@fontsource/<family>, v5.3.0) on 2026-11-02; all fonts listed are open-licensed (OFL) Google Fonts
+- **iart-motion-skills:** iart-ai/motion-skills, talking-head-b-roll skill (MIT): speaker / overlay / cover treatments and lead / sync / wait timing; method adopted 2026-11-23 (https://github.com/iart-ai/motion-skills)
+- **barty-motion-graphics:** Barty-Bart/motion-graphics, motion-broll skill (MIT): cutaway length and face time between cutaways; method adopted 2026-11-23 (https://github.com/Barty-Bart/motion-graphics)
+- **ghost-editor:** kurbaitaev/ghost-editor QC (MIT): nothing over the face, A/V lengths, tail not black; method adopted 2026-11-23 (https://github.com/kurbaitaev/ghost-editor)

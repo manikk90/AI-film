@@ -8,7 +8,7 @@
 const MOTION = {
 defaults: JSON.parse(document.getElementById('meta').textContent).vars,
 render(ctx, t, v, W, H) {
-  const s = M.safe(W, H, v), base = Math.min(W, H), e = M.env(t, v.duration, 0.55, 0.4);
+  const s = M.safe(W, H, v), base = Math.min(W, H), e = M.env(t, v.duration, 0.55);
   const pad = base * 0.035, ns = M.fit(ctx, v.name, s.w * 0.8, base * 0.062, v, 'display'), ts = M.fit(ctx, v.title, s.w * 0.8, base * 0.036, v, 'text');
   ctx.font = M.font(v, 'display', ns); const nw = ctx.measureText(v.name).width;
   ctx.font = M.font(v, 'text', ts); const tw = ctx.measureText(v.title).width;
