@@ -30,7 +30,14 @@
     "max_grades_per_film": 2,
     "max_same_framing_run": 4,
     "flash_max_per_second": 3,
-    "music_under_voice_db": 10
+    "music_under_voice_db": 10,
+    "sfx_role_db_vs_voice_p95": {"ui": -14, "whoosh": -12, "impact": -8, "meme": -3},
+    "sfx_level_tolerance_db": 2.0,
+    "sfx_inaudible_db_vs_voice_p95": -24,
+    "sfx_whoosh_lead_frames": 2,
+    "cut_to_beat_max_median_frames": 1,
+    "beat_kick_lowpass_hz": 120,
+    "headphone_check_count": 5
   },
   "history": [
     {
@@ -60,6 +67,20 @@
       "value": "see editor/craft/craft.json sources",
       "kind": "owner",
       "source": "owner asked Mann to learn and harness the craft rulebook; values from SMPTE ST 2046-1, Netflix timed-text guides, WCAG 2.x, or labelled defaults"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "sfx_role_db_vs_voice_p95, sfx_level_tolerance_db, sfx_inaudible_db_vs_voice_p95",
+      "value": "ui -14, whoosh -12, impact -8, meme -3 dB vs the voice p95 peak; +-2 dB; inaudible below -24 dB",
+      "kind": "observed",
+      "source": "external calibration from kurbaitaev/ghost-editor (MIT), method adopted 2026-11-23; the 2 dB tolerance and -24 dB inaudible line are Mann starting defaults; not owner rules"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "sfx_whoosh_lead_frames, cut_to_beat_max_median_frames, beat_kick_lowpass_hz, headphone_check_count",
+      "value": "whoosh 2 frames early, median cut-to-beat <= 1 frame, kicks < 120 Hz, 5 timestamps",
+      "kind": "observed",
+      "source": "external calibration from Barty-Bart/motion-graphics (MIT) sound-effects method, adopted 2026-11-23; its -16 LUFS / -4 dBTP mix targets are not used (Mann keeps -14 / -1); not owner rules"
     }
   ]
 }

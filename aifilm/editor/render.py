@@ -384,15 +384,23 @@ def _qc(root):
     for f in craft.check(root, edl, sample_contrast=False):
         if f["result"] != "pass":
             checks.append({"check": "craft: " + f["check"], "result": f["result"], "detail": "{} (rule `{}`)".format(f["detail"], f["rule"])})
+    sound_measured, risky = None, []
+    if info["has_audio"]:
+        from . import sound
+        sound_checks, sound_measured, risky = sound.qc_checks(root, edl, master, rules)
+        checks += sound_checks
     failed = [c for c in checks if c["result"] == "fail"]
     record = {"edl_fingerprint": current, "master_sha256": master_sha, "checked": now(), "passed": not failed, "checks": checks,
-              "measured": {"probe": info, "loudness": loud, "pace": stats},
+              "measured": {"probe": info, "loudness": loud, "pace": stats, "sound": sound_measured}, "headphone_check": risky,
               "not_checked": ["picture quality and continuity by eye", "lip sync", "audio quality by ear",
                               "spoken words vs the approved script (run `transcribe` on the master when Whisper is available)"]}
     write_json(root / "renders" / "qc.json", record)
     lines = ["# QC: {}".format(edl.get("title", "untitled")), "", "Result: **{}**".format("PASS" if record["passed"] else "FAIL"), "",
              "| Check | Result | Detail |", "|---|---|---|"]
     lines += ["| {} | {} | {} |".format(c["check"], c["result"].upper(), c["detail"]) for c in checks]
+    if risky:
+        lines += ["", "## Headphone check: {} riskiest timestamps".format(len(risky)), ""]
+        lines += ["{}. {} - {}".format(n, r["tc"], r["why"]) for n, r in enumerate(risky, 1)]
     lines += ["", "Not checked by this tool (Mann reviews the contact frames and says so plainly):", ""]
     lines += ["- " + x for x in record["not_checked"]]
     tmp = root / "renders" / ".QC.md.tmp"
