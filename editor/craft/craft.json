@@ -10,7 +10,10 @@
     "wcag": "WCAG 2.x: text contrast 4.5:1 (3:1 for large text); no more than three flashes in any one-second period (https://www.w3.org/TR/WCAG21/)",
     "itu_sync": "ITU-R BT.1359: audio/video sync detectability about +45 ms (audio early) to -125 ms (audio late) (https://www.itu.int/rec/R-REC-BT.1359)",
     "cuts": "Film-cut glossaries: MasterClass, Adobe (J and L cuts), No Film School, Artlist (https://www.masterclass.com/articles/essential-film-cuts, https://www.adobe.com/creativecloud/video/discover/j-cut-and-l-cut, https://nofilmschool.com/essential-cuts-every-video-editor-needs-know)",
-    "fonts": "Font availability and Devanagari subsets verified on the npm registry (@fontsource/<family>, v5.3.0) on 2026-11-02; all fonts listed are open-licensed (OFL) Google Fonts"
+    "fonts": "Font availability and Devanagari subsets verified on the npm registry (@fontsource/<family>, v5.3.0) on 2026-11-02; all fonts listed are open-licensed (OFL) Google Fonts",
+    "iart-motion-skills": "iart-ai/motion-skills, talking-head-b-roll skill (MIT): speaker / overlay / cover treatments and lead / sync / wait timing; method adopted 2026-11-23 (https://github.com/iart-ai/motion-skills)",
+    "barty-motion-graphics": "Barty-Bart/motion-graphics, motion-broll skill (MIT): cutaway length and face time between cutaways; method adopted 2026-11-23 (https://github.com/Barty-Bart/motion-graphics)",
+    "ghost-editor": "kurbaitaev/ghost-editor QC (MIT): nothing over the face, A/V lengths, tail not black; method adopted 2026-11-23 (https://github.com/kurbaitaev/ghost-editor)"
   },
   "domains": [
     {
@@ -463,6 +466,15 @@
           "how": "Face tracking (OpenCV) moves the crop; craft-check measures where the tracked face lands: centre between 20 % and 80 % of the width, 15 % and 55 % of the height, and above the caption band.",
           "avoid": "Centre crops that cut the speaker out; faces under the captions.",
           "check": "auto"
+        },
+        {
+          "id": "face-clear",
+          "name": "Nothing over the face",
+          "what": "No text item or overlay is drawn on the speaker's face while the face is on screen.",
+          "when": "Every edit with reframing or declared treatments, for every text item and overlay.",
+          "how": "craft-check maps the reframe face track onto the timeline (reframe plan, or the frame's fit and zoom), grows each face box by `face_box_pad`, and fails when a text box or an overlay's `bbox` (or its measured alpha) covers more than `face_overlap_max_share` of it. Cover beats and insert spans are skipped.",
+          "avoid": "Lower thirds across the chin, centred titles on the eyes, stickers on the mouth.",
+          "check": "auto"
         }
       ]
     },
@@ -565,6 +577,15 @@
           "how": "Match cut the last frame to the first; end the music on an upbeat.",
           "avoid": "Outros, logos and 'thanks for watching' at the end of a Short.",
           "check": "manual"
+        },
+        {
+          "id": "speaker-overlay-cover",
+          "name": "Speaker, overlay or cover per line",
+          "what": "Every spoken line is shown one of three ways: the speaker alone, the speaker with a transparent overlay (a keyword, a number, a list), or a cover (an opaque full frame of B-roll while the voice runs on).",
+          "when": "Talking-head edits, interviews, explainers and shorts cut from long videos. Declare it with `treatment: speaker|overlay|cover` (and an overlay's `timing: lead|sync|wait`) on each EDL beat.",
+          "how": "`suggest` drafts the table from the transcript. craft-check: open and close on the speaker, no speaker-only stretch over `speaker_run_max_seconds`, covers between `cover_min_seconds` and `cover_max_seconds`, at least `face_between_covers_min_seconds` of speaker between covers (inserts count as covers). Overlays lead structure by `overlay_lead_frames`, land numbers on their spoken word, and make punchlines wait for the revealing word.",
+          "avoid": "A long unbroken head; covers so short they flicker or so long the speaker is lost; text that invents figures nobody said.",
+          "check": "auto"
         }
       ]
     },

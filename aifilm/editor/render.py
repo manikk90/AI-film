@@ -361,6 +361,17 @@ def _qc(root):
               "{} dBTP (max {})".format(loud["true_peak"], target.get("true_peak", rules["true_peak_max_db"])))
     blacks = [b for b in media.black_segments(master, rules["max_black_seconds"]) if not edl.get("allow_black")]
     check("black frames", not blacks, ", ".join("{}-{}".format(E.tc(b["start"]), E.tc(b["end"])) for b in blacks) or "none")
+    # A/V lengths and a black tail (method: kurbaitaev/ghost-editor QC, MIT; thresholds `observed` in rules.json).
+    if info["has_audio"]:
+        lengths = media.stream_durations(master)
+        if lengths["video"] is not None and lengths["audio"] is not None:
+            delta = abs(lengths["video"] - lengths["audio"])
+            limit = rules["av_length_delta_max_frames"] * frame
+            check("A/V length", delta <= limit + 1e-3, "video {:.3f}s, audio {:.3f}s, delta {:.0f} ms (max {:.0f} ms)".format(
+                lengths["video"], lengths["audio"], delta * 1000, limit * 1000))
+    window = rules["tail_not_black_seconds"]
+    tail = media.tail_black(media.black_segments(master, 0.1), info["duration"], window) and not edl.get("allow_black")
+    check("tail not black", not tail, "last {}s {}".format(window, "goes black (hold the last frame: tpad=stop_mode=clone)" if tail else "has picture"))
     dead = [s for s in media.silences(master, rules["dead_air_noise_db"], rules["max_dead_air_seconds"])
             if not any(abs((s["start"] or 0) - float(d)) < 0.5 for d in edl.get("deliberate_silences", []))]
     check("dead air", not dead, ", ".join("{}-{}".format(E.tc(s["start"]), E.tc(s["end"] if s["end"] is not None else total)) for s in dead) or "none")
@@ -384,15 +395,23 @@ def _qc(root):
     for f in craft.check(root, edl, sample_contrast=False):
         if f["result"] != "pass":
             checks.append({"check": "craft: " + f["check"], "result": f["result"], "detail": "{} (rule `{}`)".format(f["detail"], f["rule"])})
+    sound_measured, risky = None, []
+    if info["has_audio"]:
+        from . import sound
+        sound_checks, sound_measured, risky = sound.qc_checks(root, edl, master, rules)
+        checks += sound_checks
     failed = [c for c in checks if c["result"] == "fail"]
     record = {"edl_fingerprint": current, "master_sha256": master_sha, "checked": now(), "passed": not failed, "checks": checks,
-              "measured": {"probe": info, "loudness": loud, "pace": stats},
+              "measured": {"probe": info, "loudness": loud, "pace": stats, "sound": sound_measured}, "headphone_check": risky,
               "not_checked": ["picture quality and continuity by eye", "lip sync", "audio quality by ear",
                               "spoken words vs the approved script (run `transcribe` on the master when Whisper is available)"]}
     write_json(root / "renders" / "qc.json", record)
     lines = ["# QC: {}".format(edl.get("title", "untitled")), "", "Result: **{}**".format("PASS" if record["passed"] else "FAIL"), "",
              "| Check | Result | Detail |", "|---|---|---|"]
     lines += ["| {} | {} | {} |".format(c["check"], c["result"].upper(), c["detail"]) for c in checks]
+    if risky:
+        lines += ["", "## Headphone check: {} riskiest timestamps".format(len(risky)), ""]
+        lines += ["{}. {} - {}".format(n, r["tc"], r["why"]) for n, r in enumerate(risky, 1)]
     lines += ["", "Not checked by this tool (Mann reviews the contact frames and says so plainly):", ""]
     lines += ["- " + x for x in record["not_checked"]]
     tmp = root / "renders" / ".QC.md.tmp"

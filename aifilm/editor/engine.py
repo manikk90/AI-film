@@ -15,6 +15,7 @@ from pathlib import Path
 from ..core import inside, now, project_lock, read_json, require, write_json
 from . import edl as E
 from . import media
+from .treatment import rank_clips, score_clip, snap_clip  # noqa: F401  (engine.snap_clip / score_clip / rank_clips)
 
 REPO = Path(__file__).resolve().parents[2]
 CATALOG = REPO / "editor" / "styles" / "catalog.json"
@@ -358,14 +359,45 @@ def _suggest(root, aspect):
     for _, _, s in top:
         ideas += [{"style": s["slug"], "idea": t} for t in s["twists"]]
     ideas += [{"style": None, "idea": "{}: {}".format(n, d)} for n, d in GENERIC_IDEAS]
+    plan = treatment_plan(root, prof)
     result = {"created": now(), "profile": {k: v for k, v in prof.items() if k not in ("videos", "music", "sfx", "images", "overlays")},
               "target_aspect": target,
               "recommended": [{"slug": s["slug"], "name": s["name"], "score": sc, "why": why} for sc, why, s in top],
               "experiment": experiment, "ranking": [{"slug": s["slug"], "score": sc} for (sc, _), s in ranked],
-              "unique_ideas": ideas, "hook_candidates": hooks[:8], "problems": problems}
+              "unique_ideas": ideas, "hook_candidates": hooks[:8], "problems": problems, "treatment_plan": plan}
     write_json(root / "suggestions.json", result)
     _atomic_text(root / "SUGGESTIONS.md", suggestions_markdown(result))
     return result
+
+
+def treatment_plan(root, prof, fps=30):
+    """Speaker / overlay / cover draft for the first transcribed video (method: iart-ai/motion-skills,
+    MIT; see aifilm/editor/treatment.py). None without a Whisper transcript."""
+    from . import treatment as TR
+    for v in prof["videos"]:
+        t = transcript_for(root, v["file"])
+        words = [w for s in (t or {}).get("segments", []) for w in s.get("words", [])]
+        if words:
+            return {"file": v["file"], "rows": TR.plan(TR.sentences(words), fps)}
+    return None
+
+
+def clip_candidates(root, candidates):
+    """Long video to shorts (method: agricidaniel/claude-shorts, MIT): snap each candidate
+    ({source, start, end, scores}) to the source's Whisper words, take its text from the snapped
+    words, score it with the weighted rubric and red flags, rank, and write analysis/clips.json."""
+    root = Path(root)
+    with project_lock(root):
+        out = []
+        for c in candidates:
+            t = transcript_for(root, c["source"])
+            words = [w for s in (t or {}).get("segments", []) for w in s.get("words", [])]
+            snapped = snap_clip(words, float(c["start"]), float(c["end"]))
+            text = " ".join(w["word"].strip() for w in words if snapped["start"] - 0.01 <= w["start"] and w["end"] <= snapped["end"] + 0.01)
+            out.append(dict(c, **snapped, text=text or c.get("text", ""), transcript=bool(words)))
+        ranked = rank_clips(out)
+        write_json(root / "analysis" / "clips.json", {"created": now(), "clips": ranked})
+        return ranked
 
 
 def suggestions_markdown(r):
@@ -382,6 +414,15 @@ def suggestions_markdown(r):
     lines += ["- {}{}".format("[{}] ".format(i["style"]) if i["style"] else "", i["idea"]) for i in r["unique_ideas"]]
     lines += ["", "## Hook candidates", ""] + ["- `{}` at {}: {}".format(h["file"], E.tc(h["at"]), h["why"]) for h in r["hook_candidates"]]
     lines += ["", "## Problems found", ""] + (["- " + x for x in r["problems"]] or ["- none measured"])
+    plan = r.get("treatment_plan")
+    lines += ["", "## Speaker / overlay / cover (draft per line)", ""]
+    if plan:
+        from .treatment import table_markdown
+        lines += ["From `{}`'s transcript. A draft: covers need B-roll that shows what the line says, and on-screen words come only "
+                  "from what is said. Put the chosen `treatment`/`timing` on the EDL beats; craft-check holds the rhythm.".format(plan["file"]), "",
+                  table_markdown(plan["rows"]).rstrip("\n")]
+    else:
+        lines.append("- needs a transcript (`transcribe`) to plan per line")
     lines += ["", "Next: the owner finalises a style (`approve-style`), then `autocut --style <slug>` drafts the cut for the storyboard.", ""]
     return "\n".join(lines)
 
@@ -465,20 +506,45 @@ def _autocut(root, slug, seconds, aspect, title):
     speech_led = s["fit"]["speech"] == "high" or (s["fit"]["speech"] == "any" and prof["audio_activity"] > 0.5)
     notes, clips, words_by_source = [], [], {}
     gap = float(cfg.get("silence_cut") or 0.35)
+    takes_rec = None
     if speech_led:
-        aroll = max(videos, key=lambda v: v.get("audio_activity", 0))
-        spans, words = speech_segments(root, aroll, gap)
-        words_by_source[sid[aroll["file"]]] = words
-        if not words:
-            notes.append("Cuts follow audio-activity islands, not words: run `transcribe` for word-accurate cuts and captions.")
-        pad = 0.06
-        spans = chunk([{"start": max(sp["start"] - pad, 0), "end": min(sp["end"] + pad, aroll["probe"]["duration"])} for sp in spans], avg * 1.6)
-        used = 0.0
-        for sp in spans:
-            if used >= seconds:
-                break
-            clips.append({"source": sid[aroll["file"]], "in": round(sp["start"], 3), "out": round(sp["end"], 3), "beat": "A-roll"})
-            used += sp["end"] - sp["start"]
+        from . import takes as TK
+        takes_rec, stale = TK.load(root)
+        if takes_rec and stale:
+            notes.append(stale + "; this draft ignores it.")
+            takes_rec = None
+        by_file = {v["file"]: v for v in videos}
+        if takes_rec and takes_rec["source"] not in by_file:
+            notes.append("analysis/takes.json is for {}, which is not ingested video; ignored.".format(takes_rec["source"]))
+            takes_rec = None
+        aroll = by_file[takes_rec["source"]] if takes_rec else max(videos, key=lambda v: v.get("audio_activity", 0))
+    if takes_rec:
+        # Cleaner cut: word-accurate keep pieces from `takes` (retakes resolved, fillers out). Every piece is kept,
+        # in source order; none is chunked, since each cut already sits on word times and the frame grid.
+        words_by_source[sid[aroll["file"]]] = takes_rec["kept_words"]
+        for p in takes_rec["pieces"]:
+            clips.append({"source": sid[aroll["file"]], "in": p["in"], "out": p["out"],
+                          "beat": "A-roll {}".format(p["id"]) if p["kind"] == "speech" else "{} {} (protected sound)".format(p["kind"], p["id"])})
+        st = takes_rec["stats"]
+        notes.append("A-roll from analysis/takes.json: {} pieces, {} retake group(s) and {} false start(s) resolved (last fluent take kept), "
+                     "{} filler(s) removed, {} flagged for the owner; retake groups are listed on the storyboard.".format(
+                         st["pieces"], st["retake_groups"], st["false_starts"], st["fillers_removed"], st["fillers_flagged"]))
+        if sum(p["out"] - p["in"] for p in takes_rec["pieces"]) > seconds * 1.2:
+            notes.append("The cleaned read is longer than the {:.0f}s target; nothing was dropped, trim story beats by hand.".format(seconds))
+    if speech_led:
+        if not takes_rec:
+            spans, words = speech_segments(root, aroll, gap)
+            words_by_source[sid[aroll["file"]]] = words
+            if not words:
+                notes.append("Cuts follow audio-activity islands, not words: run `transcribe` (or `takes`) for word-accurate cuts and captions.")
+            pad = 0.06
+            spans = chunk([{"start": max(sp["start"] - pad, 0), "end": min(sp["end"] + pad, aroll["probe"]["duration"])} for sp in spans], avg * 1.6)
+            used = 0.0
+            for sp in spans:
+                if used >= seconds:
+                    break
+                clips.append({"source": sid[aroll["file"]], "in": round(sp["start"], 3), "out": round(sp["end"], 3), "beat": "A-roll"})
+                used += sp["end"] - sp["start"]
         broll = [v for v in videos if v is not aroll]
         every = int(cfg.get("broll_every") or (3 if broll else 0))
         if broll and every:
@@ -506,7 +572,9 @@ def _autocut(root, slug, seconds, aspect, title):
             used += dur
         notes.append("Montage: one segment per shot at its strongest motion, the strongest shot first as the hook.")
     require(clips, "The footage gave no usable segments for this style")
-    if cfg.get("beat_sync") and music and (music.get("beats") or {}).get("bpm"):
+    if cfg.get("beat_sync") and takes_rec:
+        notes.append("Beat sync skipped: the A-roll cuts sit on word times from analysis/takes.json.")
+    elif cfg.get("beat_sync") and music and (music.get("beats") or {}).get("bpm"):
         beat = 60.0 / music["beats"]["bpm"]
         n = max(1, round(avg / beat))
         for c in clips:
@@ -566,6 +634,8 @@ def _autocut(root, slug, seconds, aspect, title):
     script = Path(root) / "SCRIPT.md"
     if script.exists():
         edl["script"] = "SCRIPT.md"
+    if takes_rec:
+        edl["takes"] = "analysis/takes.json"
     caps = cfg.get("captions")
     cue_count = write_captions(root, edl, words_by_source, caps) if caps else 0
     if caps and cue_count:

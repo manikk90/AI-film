@@ -1,7 +1,7 @@
 """`python3 -m aifilm.editor` (alias `mann`): Mann, the AI video editor's command line.
 
 Flow: doctor -> ingest -> transcribe -> assets -> suggest -> [owner: approve-style, lock-script]
--> autocut (draft EDL) -> Mann refines -> storyboard -> [owner: approve] -> render -> qc -> deliver.
+-> takes (cleaner cut, optional) -> autocut (draft EDL) -> Mann refines -> storyboard -> [owner: approve] -> render -> qc -> deliver.
 Corrections: status tells whole vs part; part -> storyboard --changed + preview-part -> approve --clips -> render.
 Style lab: fetch -> analyze-style -> publish-style.
 """
@@ -51,7 +51,30 @@ def parser():
     p.add_argument("--style", required=True)
     p.add_argument("--seconds", type=float)
     p.add_argument("--aspect", choices=sorted(G.SIZES))
+    p = c.add_parser("takes", help="Cleaner cut: speech islands, retake groups (keep last fluent), fillers, word-time pads -> analysis/takes.json")
+    p.add_argument("edit")
+    p.add_argument("--script", help="Script file inside the edit folder (e.g. SCRIPT.md) to map takes to lines")
+    p.add_argument("--tone", choices=["aggressive", "balanced", "documentary"], default="balanced")
+    p.add_argument("--source", help="A-roll file inside the edit folder (default: the most-spoken video)")
+    p.add_argument("--keep", action="append", default=[], metavar="GROUP=TAKE", help="Owner override: keep this take, e.g. G01=L02 (repeatable)")
+    p.add_argument("--model", default="small")
+    p.add_argument("--language", help="e.g. hi, en; omit to auto-detect")
+    p.add_argument("--no-subcheck", action="store_true", help="Skip re-transcribing each kept piece")
     p = c.add_parser("beats", help="Tempo and beat times of a music file")
+    p.add_argument("audio")
+    p = c.add_parser("sound-cues", help="Typed SFX cues from <edit>/edl.json: whoosh 2 frames early, pop on the frame, riser ends on the next hit")
+    p.add_argument("edit")
+    p.add_argument("--riser", type=float, default=1.0, help="Riser length in seconds")
+    p = c.add_parser("sfx-gain", help="Gain for an SFX so its peak sits at its role's level below the voice's p95 peak")
+    p.add_argument("voice")
+    p.add_argument("sfx")
+    p.add_argument("--role", required=True, choices=list(E.SFX_ROLES))
+    p = c.add_parser("music-offset", help="Music start offset that puts the EDL's cuts on the beat (ms error per cut)")
+    p.add_argument("edit")
+    p.add_argument("--min", type=float, default=0.0, help="Earliest music start, seconds into the file")
+    p.add_argument("--max", type=float, help="Latest music start (default: 4 beats)")
+    p.add_argument("--step", type=float, default=0.001)
+    p = c.add_parser("beat-lock", help="Beat grid (librosa if installed) and the off-beat check: kicks <120 Hz vs the beat lines")
     p.add_argument("audio")
     p = c.add_parser("library-scan", help="Index a reusable music/SFX/LUT/overlay folder")
     p.add_argument("folder")
@@ -62,6 +85,11 @@ def parser():
     p = c.add_parser("craft-check", help="Automatic craft checks on <edit>/edl.json (also run by storyboard and qc)")
     p.add_argument("edit")
     p.add_argument("--no-contrast", action="store_true", help="Skip sampling frames for text contrast")
+    p = c.add_parser("treatments", help="Draft speaker/overlay/cover table for the beats of <edit>/edl.json (read-only)")
+    p.add_argument("edit")
+    p = c.add_parser("clips", help="Long video to shorts: snap candidate clips to sentences, score with the weighted rubric, rank")
+    p.add_argument("edit")
+    p.add_argument("candidates", help="JSON list of {source: raw/<file>, start, end, scores: {hook, standalone, emotion, value, payoff}}")
     c.add_parser("pairings", help="Font pairings (Devanagari support verified)")
     c.add_parser("themes", help="Colour themes")
     p = c.add_parser("fonts-install", help="Fetch open-licensed fonts from npm (@fontsource), merge Latin+Devanagari, install")
@@ -169,8 +197,43 @@ def main(argv=None):
                       "problems": r["problems"]}
         elif cmd == "autocut":
             result = G.autocut(args.edit, args.style, args.seconds, args.aspect)
+        elif cmd == "takes":
+            from . import takes as TK
+            keep = {}
+            for item in args.keep:
+                g, sep, t = item.partition("=")
+                if not sep or not g.strip() or not t.strip():
+                    raise ProductionError("--keep needs GROUP=TAKE, e.g. G01=L02")
+                keep[g.strip()] = t.strip()
+            rec = TK.analyse(args.edit, args.source, args.script, args.tone, TK.whisper_transcriber(args.model, args.language), keep,
+                             check=not args.no_subcheck)
+            result = {"takes": str(Path(args.edit) / TK.TAKES), "source": rec["source"], "levels": rec["levels"], "stats": rec["stats"],
+                      "groups": [{"id": g["id"], "kind": g["kind"], "kept": g["takes"][g["kept"]].get("unit", "restart"), "text": g["text"]}
+                                 for g in rec["groups"]], "flagged": rec["fillers"]["flagged"]}
         elif cmd == "beats":
             result = G.beats(args.audio)
+        elif cmd in ("sound-cues", "sfx-gain", "music-offset", "beat-lock"):
+            from . import sound as SD
+            rules = R.load_rules()["rules"]
+            if cmd == "sound-cues":
+                result = {"cues": SD.cues_from_edl(E.load(args.edit), riser_seconds=args.riser, rules=rules)}
+            elif cmd == "sfx-gain":
+                result = SD.gain_for_files(args.voice, args.sfx, args.role, rules)
+            elif cmd == "music-offset":
+                edl = E.load(args.edit)
+                music = (edl.get("audio") or {}).get("music")
+                if not music:
+                    raise ProductionError("edl.json has no audio.music")
+                from ..core import inside
+                grid = SD.beat_grid(inside(args.edit, music["file"]))
+                period = SD.period_of(grid["beats"])
+                if not period:
+                    raise ProductionError("No usable beat grid in {}".format(music["file"]))
+                hi = args.max if args.max is not None else args.min + 4 * period
+                result = dict(SD.music_offset(grid["beats"], SD.cut_times(edl), (args.min, hi, args.step)),
+                              bpm=grid.get("bpm"), method=grid["method"], current_start=float(music.get("start", 0)))
+            else:
+                result = SD.beat_grid(args.audio)
         elif cmd == "library-scan":
             result = {"indexed": len(G.library_scan(args.folder))}
         elif cmd == "styles":
@@ -182,6 +245,14 @@ def main(argv=None):
             findings = C.check(args.edit, E.load(args.edit), sample_contrast=not args.no_contrast)
             print(json.dumps(findings, indent=2, ensure_ascii=False))
             return 1 if any(f["result"] == "fail" for f in findings) else 0
+        elif cmd == "treatments":
+            from . import treatment as TR
+            edl = E.load(args.edit)
+            wf = Path(args.edit) / "captions.words.json"
+            words = json.loads(wf.read_text(encoding="utf-8")) if wf.exists() else None
+            result = {"words": bool(words), "rows": TR.plan(TR.lines_from_edl(edl, words), edl["format"].get("fps", 30))}
+        elif cmd == "clips":
+            result = G.clip_candidates(args.edit, json.loads(Path(args.candidates).read_text(encoding="utf-8")))
         elif cmd == "pairings":
             result = C.data()["font_pairings"]
         elif cmd == "themes":

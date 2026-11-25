@@ -30,7 +30,128 @@
     "max_grades_per_film": 2,
     "max_same_framing_run": 4,
     "flash_max_per_second": 3,
-    "music_under_voice_db": 10
+    "music_under_voice_db": 10,
+    "takes": {
+      "rms_window_s": 0.5,
+      "floor_percentile": 10,
+      "speech_percentile": 90,
+      "threshold_above_floor_db": 6,
+      "min_dynamic_range_db": 8,
+      "laugh_above_floor_db": 10,
+      "island_min_pause_s": 0.3,
+      "false_start_ngram": 3,
+      "false_start_similarity": 0.8,
+      "false_start_window_s": 3,
+      "retake_ngram": 4,
+      "retake_similarity": 0.7,
+      "retake_window_s": 60,
+      "pad_in_s": 0.12,
+      "pad_out_s": 0.25,
+      "filler_pad_s": 0.05,
+      "fillers": [
+        "um",
+        "umm",
+        "uh",
+        "uhh",
+        "er",
+        "err",
+        "erm",
+        "hmm",
+        "hm"
+      ],
+      "flag_only_fillers": [
+        "matlab",
+        "toh",
+        "na",
+        "haan",
+        "मतलब",
+        "तो",
+        "ना",
+        "हाँ",
+        "हां"
+      ],
+      "tones": {
+        "aggressive": [
+          [
+            0.25,
+            1.0,
+            0.1
+          ],
+          [
+            1.0,
+            null,
+            0.2
+          ]
+        ],
+        "balanced": [
+          [
+            0.26,
+            null,
+            0.18
+          ]
+        ],
+        "documentary": [
+          [
+            1.0,
+            3.0,
+            2.0
+          ],
+          [
+            3.0,
+            null,
+            3.0
+          ]
+        ]
+      },
+      "unit_merge_pause_s": 0.8,
+      "restart_pause_s": 0.25,
+      "standalone_pause_s": 0.3,
+      "script_match_min": 0.6,
+      "fluent_min_share": 0.8,
+      "subcheck_opening_words": 2
+    },
+    "speaker_run_max_seconds": 8.0,
+    "cover_min_seconds": 3.0,
+    "cover_max_seconds": 8.0,
+    "face_between_covers_min_seconds": 2.0,
+    "overlay_lead_frames": 6,
+    "face_box_pad": 0.1,
+    "face_overlap_max_share": 0.02,
+    "av_length_delta_max_frames": 1,
+    "tail_not_black_seconds": 0.4,
+    "clip_score_weights": {
+      "hook": 0.3,
+      "standalone": 0.25,
+      "emotion": 0.2,
+      "value": 0.15,
+      "payoff": 0.1
+    },
+    "clip_red_flag_penalty": 15,
+    "clip_filler_max_share": 0.3,
+    "snap_start_window_seconds": 1.5,
+    "snap_end_window_seconds": 3.0,
+    "snap_end_pad_seconds": 0.3,
+    "motion_exit_to_entrance": 0.65,
+    "motion_follower_offsets_frames": [
+      0,
+      4,
+      9,
+      15,
+      22,
+      30
+    ],
+    "sfx_role_db_vs_voice_p95": {
+      "ui": -14,
+      "whoosh": -12,
+      "impact": -8,
+      "meme": -3
+    },
+    "sfx_level_tolerance_db": 2.0,
+    "sfx_inaudible_db_vs_voice_p95": -24,
+    "sfx_whoosh_lead_frames": 2,
+    "cut_to_beat_max_median_frames": 1,
+    "beat_kick_lowpass_hz": 120,
+    "headphone_check_count": 5
   },
   "history": [
     {
@@ -60,6 +181,76 @@
       "value": "see editor/craft/craft.json sources",
       "kind": "owner",
       "source": "owner asked Mann to learn and harness the craft rulebook; values from SMPTE ST 2046-1, Netflix timed-text guides, WCAG 2.x, or labelled defaults"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "takes (silence floor, guard, laugh, retakes, fillers, aggressive/documentary gap rows)",
+      "value": "F = p10 of 0.5 s RMS, threshold F+6 dB, guard S-F < 8 dB, laugh F+10 dB, 3-gram > 0.8 within 3 s, 4-gram > 0.7 within 60 s, fillers 50 ms pad",
+      "kind": "observed",
+      "source": "external calibration from louisedesadeleer/cut-video SKILL.md (MIT, a5a87a6) via projects/editor-repos/re/SPEC.md; not owner"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "takes (island pause, word pads, balanced inner-pause shrink, subcheck, frame snap)",
+      "value": "islands split at 0.3 s, in -0.12 s, out +0.25 s, pauses > 0.26 s -> 0.18 s",
+      "kind": "observed",
+      "source": "external calibration from kurbaitaev/ghost-editor references/take-selection.md (MIT, d71bdb6) via projects/editor-repos/re/SPEC.md; not owner"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "takes (unit_merge_pause_s, restart_pause_s, standalone_pause_s, script_match_min, fluent_min_share, subcheck_opening_words, flag_only_fillers)",
+      "value": "0.8 s, 0.25 s, 0.3 s, 0.6, 0.8, 2 words; Hindi/Hinglish starters flagged only",
+      "kind": "observed",
+      "source": "Mann starting defaults for the takes method (not from the repos, not owner); untested on owner footage"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "speaker_run_max_seconds, cover_min_seconds, cover_max_seconds, overlay_lead_frames",
+      "value": "8 s, 3-8 s, 6 frames",
+      "kind": "observed",
+      "source": "iart-ai/motion-skills talking-head-b-roll (MIT): speaker/overlay/cover rhythm and lead/sync/wait timing; method adopted 2026-11-23, not an owner rule"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "face_between_covers_min_seconds",
+      "value": "2 s",
+      "kind": "observed",
+      "source": "Barty-Bart/motion-graphics motion-broll (MIT): face time between cutaways; method adopted 2026-11-23, not an owner rule"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "av_length_delta_max_frames, tail_not_black_seconds, face_box_pad, face_overlap_max_share",
+      "value": "1 frame, 0.4 s, 10 %, 2 % (pad and share are our working defaults)",
+      "kind": "observed",
+      "source": "kurbaitaev/ghost-editor QC (MIT): nothing over the face, A/V lengths, last 0.4 s not black; method adopted 2026-11-23, not an owner rule"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "clip_score_weights, snap_start_window_seconds, snap_end_window_seconds, snap_end_pad_seconds",
+      "value": "hook .30 standalone .25 emotion .20 value .15 payoff .10; 1.5 s, 3 s, +300 ms (red-flag penalty 15 and filler 30 % are our working defaults)",
+      "kind": "observed",
+      "source": "agricidaniel/claude-shorts scoring rubric and boundary snap (MIT); method adopted 2026-11-23, not an owner rule"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "motion_exit_to_entrance, motion_follower_offsets_frames",
+      "value": "0.65x, 0/4/9/15/22/30 frames",
+      "kind": "observed",
+      "source": "hughminhphan/motion-kit (MIT): exits faster than entrances, uneven follower offsets; method adopted 2026-11-23, not an owner rule"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "sfx_role_db_vs_voice_p95, sfx_level_tolerance_db, sfx_inaudible_db_vs_voice_p95",
+      "value": "ui -14, whoosh -12, impact -8, meme -3 dB vs the voice p95 peak; +-2 dB; inaudible below -24 dB",
+      "kind": "observed",
+      "source": "external calibration from kurbaitaev/ghost-editor (MIT), method adopted 2026-11-23; the 2 dB tolerance and -24 dB inaudible line are Mann starting defaults; not owner rules"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "sfx_whoosh_lead_frames, cut_to_beat_max_median_frames, beat_kick_lowpass_hz, headphone_check_count",
+      "value": "whoosh 2 frames early, median cut-to-beat <= 1 frame, kicks < 120 Hz, 5 timestamps",
+      "kind": "observed",
+      "source": "external calibration from Barty-Bart/motion-graphics (MIT) sound-effects method, adopted 2026-11-23; its -16 LUFS / -4 dBTP mix targets are not used (Mann keeps -14 / -1); not owner rules"
     }
   ]
 }

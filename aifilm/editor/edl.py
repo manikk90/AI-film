@@ -27,6 +27,10 @@ from pathlib import Path
 from ..core import ProductionError, file_hash, fingerprint, inside, now, project_lock, read_json, require, write_json
 from . import media
 
+# sound pass (aifilm/editor/sound.py): SFX level roles and typed cue names
+SFX_ROLES = ("ui", "whoosh", "impact", "meme")
+CUE_NAMES = ("movement", "scene_cut", "appear", "success", "build_up", "reveal", "typing", "meme", "none")
+
 TRANSITIONS = {
     "cut", "fade", "fadeblack", "fadewhite", "dissolve", "wipeleft", "wiperight", "wipeup", "wipedown",
     "slideleft", "slideright", "slideup", "slidedown", "smoothleft", "smoothright", "circleopen", "circleclose",
@@ -128,6 +132,7 @@ def validate(root, edl):
         num(clip.get("freeze", 0), cid + ".freeze", 0, 10)
         require(clip_duration(clip) >= frame, "{}: clip is shorter than one frame ({:.3f}s)".format(cid, frame))
         require(clip.get("reframe") in (None, "auto", "center"), cid + ": reframe must be auto or center")
+        require(clip.get("cue") in (None,) + CUE_NAMES, "{}: cue must be one of {}".format(cid, list(CUE_NAMES)))
         kind, tdur = transition(clip)
         require(kind in TRANSITIONS, "{}: unknown transition {!r}".format(cid, kind))
         require(i > 0 or kind == "cut", cid + ": the first clip cannot have a transition in")
@@ -143,8 +148,11 @@ def validate(root, edl):
             require(isinstance(zoom, dict), cid + ": zoom must be an object like {\"from\": 1.0, \"to\": 1.2}")
             num(zoom.get("from", 1.0), cid + ".zoom.from", 1.0, 3.0)
             num(zoom.get("to", 1.0), cid + ".zoom.to", 1.0, 3.0)
+        require(clip.get("treatment") in (None, "speaker", "overlay", "cover"), cid + ": treatment must be speaker, overlay or cover")
+        require(clip.get("timing") in (None, "lead", "sync", "wait"), cid + ": timing must be lead, sync or wait")
         for text in as_list(clip.get("text")):
             require(isinstance(text, dict), cid + ": each text item must be an object with a value")
+            require(text.get("timing") in (None, "lead", "sync", "wait"), cid + ": text timing must be lead, sync or wait")
             require(isinstance(text.get("value"), str) and text["value"].strip(), cid + ": text needs a value")
             require(text.get("position", "bottom") in TEXT_POSITIONS, cid + ": text position must be top/center/bottom")
             require(text.get("role") in (None, "title", "headline", "body", "caption", "label"), cid + ": text role must be title/headline/body/caption/label")
@@ -155,6 +163,7 @@ def validate(root, edl):
             require(a < b <= probes[ins["source"]]["duration"] + 0.05, cid + ": insert in/out outside its source")
             at = num(ins.get("at", 0), cid + ".insert.at", 0)
             require(at + (b - a) <= clip_duration(clip) + 0.05, cid + ": insert runs past the end of its clip")
+            require(ins.get("cue") in (None,) + CUE_NAMES, "{}: insert cue must be one of {}".format(cid, list(CUE_NAMES)))
     grade = edl.get("grade", {})
     require(grade.get("preset", "neutral") in GRADES, "Unknown grade preset {!r}; choose from {}".format(grade.get("preset"), sorted(GRADES)))
     if grade.get("lut"):
@@ -168,10 +177,18 @@ def validate(root, edl):
         require(isinstance(sfx, dict) and isinstance(sfx.get("file"), str), "each audio.sfx item needs a \"file\"")
         require(media.probe(inside(root, sfx["file"]))["has_audio"], "SFX {} has no audio".format(sfx["file"]))
         num(sfx.get("at"), "sfx.at", 0)
+        require(sfx.get("role") in (None,) + SFX_ROLES, "sfx {}: role must be one of {}".format(sfx["file"], list(SFX_ROLES)))
     for ov in edl.get("overlays", []):
         require(isinstance(ov, dict) and isinstance(ov.get("file"), str), "each overlay needs a \"file\"")
         media.probe(inside(root, ov["file"]))
         num(ov.get("at", 0), "overlay.at", 0)
+        if ov.get("bbox") is not None:
+            b = ov["bbox"]
+            require(isinstance(b, list) and len(b) == 4 and all(isinstance(v, (int, float)) and 0 <= v <= 1 for v in b)
+                    and b[0] < b[2] and b[1] < b[3], "overlay.bbox must be [x0, y0, x1, y1] as fractions of the frame")
+        if ov.get("duration") is not None:
+            num(ov["duration"], "overlay.duration", 0.04)
+        require(ov.get("cue") in (None,) + CUE_NAMES, "overlay {}: cue must be one of {}".format(ov["file"], list(CUE_NAMES)))
     subs = edl.get("subtitles")
     if subs:
         require(isinstance(subs, dict) and isinstance(subs.get("file"), str), "subtitles needs a \"file\"")
@@ -183,6 +200,8 @@ def validate(root, edl):
             require(inside(root, subs["words"]).is_file(), "Caption word timings missing: " + subs["words"])
     if edl.get("script"):
         require(inside(root, edl["script"]).is_file(), "Script file missing: " + edl["script"])
+    if edl.get("takes"):
+        require(inside(root, edl["takes"]).is_file(), "Takes file missing: {} (run `takes` again)".format(edl["takes"]))
     typo = edl.get("typography") or {}
     if typo:
         from . import craft
@@ -523,6 +542,7 @@ def global_files(edl):
     files += ([edl["subtitles"]["file"]] if edl.get("subtitles") else []) + ([edl["grade"]["lut"]] if edl.get("grade", {}).get("lut") else [])
     files += [edl["subtitles"]["words"]] if (edl.get("subtitles") or {}).get("words") else []
     files += [edl["script"]] if edl.get("script") else []
+    files += [edl["takes"]] if edl.get("takes") else []  # a new take pick needs a new storyboard approval
     return sorted(set(files))
 
 
@@ -631,7 +651,8 @@ def clip_summary(edl, row, clip):
             "start": row["start"], "duration": row["duration"], "transition": kind if kind == "cut" else "{} {:.2f}s".format(kind, tdur),
             "grade": clip.get("grade") or edl.get("grade", {}).get("preset", "neutral"),
             "text": " | ".join(t["value"] for t in as_list(clip.get("text"))), "beat": clip.get("beat", ""), "zoom": clip.get("zoom"),
-            "fx": as_list(clip.get("fx")), "freeze": clip.get("freeze", 0), "inserts": len(clip.get("inserts", []))}
+            "fx": as_list(clip.get("fx")), "freeze": clip.get("freeze", 0), "inserts": len(clip.get("inserts", [])),
+            "treatment": clip.get("treatment"), "timing": clip.get("timing")}
 
 
 def diff(old, new):
@@ -641,8 +662,8 @@ def diff(old, new):
     lines += ["- removed {}".format(i) for i in before if i not in after]
     for i in after:
         if i in before:
-            changed = [k for k in ("source", "in", "out", "speed", "transition", "grade", "text", "beat", "zoom", "fx", "freeze", "inserts")
-                       if before[i].get(k) != after[i].get(k)]
+            changed = [k for k in ("source", "in", "out", "speed", "transition", "grade", "text", "beat", "zoom", "fx", "freeze", "inserts",
+                                    "treatment", "timing") if before[i].get(k) != after[i].get(k)]
             if changed:
                 lines.append("- changed {}: {}".format(i, ", ".join("{} {!r} -> {!r}".format(k, before[i].get(k), after[i].get(k)) for k in changed)))
     if [c["id"] for c in old if c["id"] in after] != [c["id"] for c in new if c["id"] in before]:
@@ -757,6 +778,9 @@ def storyboard(root, frames_per_clip=1, only=None):
         from . import craft
         rec["craft"] = craft.check(root, edl)
         craft_md = craft.markdown(rec["craft"], craft.manual_checklist(edl))
+        if edl.get("takes"):
+            from . import takes as TK
+            craft_md = TK.markdown(root, edl) + "\n" + craft_md
         if only:
             write_json(out / "part.json", rec)
             (out / "PART.md").write_text(storyboard_markdown(edl, rec, total) + "\n" + craft_md, encoding="utf-8")
@@ -791,7 +815,8 @@ def storyboard_markdown(edl, rec, total):
         lines.append("| {} | `{}` | {} | {} | {} {:.2f}-{:.2f}s{} | {:.2f}s | {} | {} | {} | {} | {} |".format(
             i, f["file"], tc(f["timeline"]), c["id"], c["source"], c["in"], c["out"],
             " x{}".format(c["speed"]) if c["speed"] != 1.0 else "", c["duration"], c["transition"], c["grade"],
-            ", ".join(extras) or "-", c["text"].replace("|", "/") or "-", c["beat"].replace("|", "/") or "-"))
+            ", ".join(extras) or "-", c["text"].replace("|", "/") or "-", ("[{}{}] ".format(c["treatment"], " " + c["timing"] if c.get("timing") else "") if c.get("treatment") else "")
+            + (c["beat"].replace("|", "/") or "-")))
     audio = edl.get("audio", {})
     lines += ["", "## Sound plan", ""]
     music = audio.get("music")
@@ -799,7 +824,7 @@ def storyboard_markdown(edl, rec, total):
                                                               ", ducked under voice" if music.get("duck", True) else "") if music else "none"))
     lines.append("- Source audio: {}".format("kept at {} dB".format(audio.get("source_gain_db", 0)) if audio.get("keep_source", True) else "muted"))
     for s in audio.get("sfx", []):
-        lines.append("- SFX `{}` at {} ({} dB)".format(s["file"], tc(s["at"]), s.get("gain_db", 0)))
+        lines.append("- SFX `{}` at {} ({} dB{})".format(s["file"], tc(s["at"]), s.get("gain_db", 0), ", role " + s["role"] if s.get("role") else ""))
     for o in edl.get("overlays", []):
         lines.append("- Motion graphic `{}` at {}".format(o["file"], tc(o.get("at", 0))))
     if edl.get("subtitles"):

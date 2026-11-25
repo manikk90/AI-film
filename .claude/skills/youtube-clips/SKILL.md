@@ -43,6 +43,10 @@ Find the best moments in a long YouTube video and turn each into a vertical clip
 - **QC before delivery:** `python3 studio/frame_check.py final.mp4 --size WxH --fps N --audio <source audio>`: no black or frozen frames, right size and fps, audio present with the source's length. Listen to the sync yourself at three points: the check does not prove lip or beat sync.
 - **Studio tools for these steps:**
   - word timing: `python3 studio/mms_align.py` (MMS_FA, `--windows` for squeezed lines) when check_env says it is ready, else `studio/word_timing.py` for known words; Whisper (large-v3) only for unknown words
+- **Studio method:**
+  - **Scoring (step 1):** give each of 8-12 candidates a 0-100 mark for hook, standalone, emotion, value and payoff; the total is weighted 0.30 / 0.25 / 0.20 / 0.15 / 0.10 (`editor/rules.json` `clip_score_weights`). A clip that points back to earlier in the video, opens on a pronoun with nothing to refer to, or stops mid-sentence loses standalone points; heavy filler lowers value. Method from agricidaniel/claude-shorts (MIT), our own code.
+  - **Clip edges:** `python3 -m aifilm.editor clips <edit> candidates.json` snaps each start to a sentence start within 1.5 s (else the nearest word), extends each end to a sentence end within 3 s plus 300 ms, then scores and ranks the clips into `analysis/clips.json`.
+  - **Per line:** `python3 -m aifilm.editor treatments <edit>` drafts speaker / overlay / cover for each beat; `craft-check` holds the rhythm and keeps text off the face.
 
 ---
 From [aanshai.vercel.app/skills](https://aanshai.vercel.app/skills) · Reel formats
