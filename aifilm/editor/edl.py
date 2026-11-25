@@ -27,6 +27,10 @@ from pathlib import Path
 from ..core import ProductionError, file_hash, fingerprint, inside, now, project_lock, read_json, require, write_json
 from . import media
 
+# sound pass (aifilm/editor/sound.py): SFX level roles and typed cue names
+SFX_ROLES = ("ui", "whoosh", "impact", "meme")
+CUE_NAMES = ("movement", "scene_cut", "appear", "success", "build_up", "reveal", "typing", "meme", "none")
+
 TRANSITIONS = {
     "cut", "fade", "fadeblack", "fadewhite", "dissolve", "wipeleft", "wiperight", "wipeup", "wipedown",
     "slideleft", "slideright", "slideup", "slidedown", "smoothleft", "smoothright", "circleopen", "circleclose",
@@ -128,6 +132,7 @@ def validate(root, edl):
         num(clip.get("freeze", 0), cid + ".freeze", 0, 10)
         require(clip_duration(clip) >= frame, "{}: clip is shorter than one frame ({:.3f}s)".format(cid, frame))
         require(clip.get("reframe") in (None, "auto", "center"), cid + ": reframe must be auto or center")
+        require(clip.get("cue") in (None,) + CUE_NAMES, "{}: cue must be one of {}".format(cid, list(CUE_NAMES)))
         kind, tdur = transition(clip)
         require(kind in TRANSITIONS, "{}: unknown transition {!r}".format(cid, kind))
         require(i > 0 or kind == "cut", cid + ": the first clip cannot have a transition in")
@@ -158,6 +163,7 @@ def validate(root, edl):
             require(a < b <= probes[ins["source"]]["duration"] + 0.05, cid + ": insert in/out outside its source")
             at = num(ins.get("at", 0), cid + ".insert.at", 0)
             require(at + (b - a) <= clip_duration(clip) + 0.05, cid + ": insert runs past the end of its clip")
+            require(ins.get("cue") in (None,) + CUE_NAMES, "{}: insert cue must be one of {}".format(cid, list(CUE_NAMES)))
     grade = edl.get("grade", {})
     require(grade.get("preset", "neutral") in GRADES, "Unknown grade preset {!r}; choose from {}".format(grade.get("preset"), sorted(GRADES)))
     if grade.get("lut"):
@@ -171,6 +177,7 @@ def validate(root, edl):
         require(isinstance(sfx, dict) and isinstance(sfx.get("file"), str), "each audio.sfx item needs a \"file\"")
         require(media.probe(inside(root, sfx["file"]))["has_audio"], "SFX {} has no audio".format(sfx["file"]))
         num(sfx.get("at"), "sfx.at", 0)
+        require(sfx.get("role") in (None,) + SFX_ROLES, "sfx {}: role must be one of {}".format(sfx["file"], list(SFX_ROLES)))
     for ov in edl.get("overlays", []):
         require(isinstance(ov, dict) and isinstance(ov.get("file"), str), "each overlay needs a \"file\"")
         media.probe(inside(root, ov["file"]))
@@ -181,6 +188,7 @@ def validate(root, edl):
                     and b[0] < b[2] and b[1] < b[3], "overlay.bbox must be [x0, y0, x1, y1] as fractions of the frame")
         if ov.get("duration") is not None:
             num(ov["duration"], "overlay.duration", 0.04)
+        require(ov.get("cue") in (None,) + CUE_NAMES, "overlay {}: cue must be one of {}".format(ov["file"], list(CUE_NAMES)))
     subs = edl.get("subtitles")
     if subs:
         require(isinstance(subs, dict) and isinstance(subs.get("file"), str), "subtitles needs a \"file\"")
@@ -816,7 +824,7 @@ def storyboard_markdown(edl, rec, total):
                                                               ", ducked under voice" if music.get("duck", True) else "") if music else "none"))
     lines.append("- Source audio: {}".format("kept at {} dB".format(audio.get("source_gain_db", 0)) if audio.get("keep_source", True) else "muted"))
     for s in audio.get("sfx", []):
-        lines.append("- SFX `{}` at {} ({} dB)".format(s["file"], tc(s["at"]), s.get("gain_db", 0)))
+        lines.append("- SFX `{}` at {} ({} dB{})".format(s["file"], tc(s["at"]), s.get("gain_db", 0), ", role " + s["role"] if s.get("role") else ""))
     for o in edl.get("overlays", []):
         lines.append("- Motion graphic `{}` at {}".format(o["file"], tc(o.get("at", 0))))
     if edl.get("subtitles"):

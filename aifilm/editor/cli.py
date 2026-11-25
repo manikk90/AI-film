@@ -62,6 +62,20 @@ def parser():
     p.add_argument("--no-subcheck", action="store_true", help="Skip re-transcribing each kept piece")
     p = c.add_parser("beats", help="Tempo and beat times of a music file")
     p.add_argument("audio")
+    p = c.add_parser("sound-cues", help="Typed SFX cues from <edit>/edl.json: whoosh 2 frames early, pop on the frame, riser ends on the next hit")
+    p.add_argument("edit")
+    p.add_argument("--riser", type=float, default=1.0, help="Riser length in seconds")
+    p = c.add_parser("sfx-gain", help="Gain for an SFX so its peak sits at its role's level below the voice's p95 peak")
+    p.add_argument("voice")
+    p.add_argument("sfx")
+    p.add_argument("--role", required=True, choices=list(E.SFX_ROLES))
+    p = c.add_parser("music-offset", help="Music start offset that puts the EDL's cuts on the beat (ms error per cut)")
+    p.add_argument("edit")
+    p.add_argument("--min", type=float, default=0.0, help="Earliest music start, seconds into the file")
+    p.add_argument("--max", type=float, help="Latest music start (default: 4 beats)")
+    p.add_argument("--step", type=float, default=0.001)
+    p = c.add_parser("beat-lock", help="Beat grid (librosa if installed) and the off-beat check: kicks <120 Hz vs the beat lines")
+    p.add_argument("audio")
     p = c.add_parser("library-scan", help="Index a reusable music/SFX/LUT/overlay folder")
     p.add_argument("folder")
     p = c.add_parser("styles", help="List the 50 catalog styles")
@@ -198,6 +212,28 @@ def main(argv=None):
                                  for g in rec["groups"]], "flagged": rec["fillers"]["flagged"]}
         elif cmd == "beats":
             result = G.beats(args.audio)
+        elif cmd in ("sound-cues", "sfx-gain", "music-offset", "beat-lock"):
+            from . import sound as SD
+            rules = R.load_rules()["rules"]
+            if cmd == "sound-cues":
+                result = {"cues": SD.cues_from_edl(E.load(args.edit), riser_seconds=args.riser, rules=rules)}
+            elif cmd == "sfx-gain":
+                result = SD.gain_for_files(args.voice, args.sfx, args.role, rules)
+            elif cmd == "music-offset":
+                edl = E.load(args.edit)
+                music = (edl.get("audio") or {}).get("music")
+                if not music:
+                    raise ProductionError("edl.json has no audio.music")
+                from ..core import inside
+                grid = SD.beat_grid(inside(args.edit, music["file"]))
+                period = SD.period_of(grid["beats"])
+                if not period:
+                    raise ProductionError("No usable beat grid in {}".format(music["file"]))
+                hi = args.max if args.max is not None else args.min + 4 * period
+                result = dict(SD.music_offset(grid["beats"], SD.cut_times(edl), (args.min, hi, args.step)),
+                              bpm=grid.get("bpm"), method=grid["method"], current_start=float(music.get("start", 0)))
+            else:
+                result = SD.beat_grid(args.audio)
         elif cmd == "library-scan":
             result = {"indexed": len(G.library_scan(args.folder))}
         elif cmd == "styles":

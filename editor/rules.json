@@ -139,7 +139,19 @@
       15,
       22,
       30
-    ]
+    ],
+    "sfx_role_db_vs_voice_p95": {
+      "ui": -14,
+      "whoosh": -12,
+      "impact": -8,
+      "meme": -3
+    },
+    "sfx_level_tolerance_db": 2.0,
+    "sfx_inaudible_db_vs_voice_p95": -24,
+    "sfx_whoosh_lead_frames": 2,
+    "cut_to_beat_max_median_frames": 1,
+    "beat_kick_lowpass_hz": 120,
+    "headphone_check_count": 5
   },
   "history": [
     {
@@ -225,6 +237,20 @@
       "value": "0.65x, 0/4/9/15/22/30 frames",
       "kind": "observed",
       "source": "hughminhphan/motion-kit (MIT): exits faster than entrances, uneven follower offsets; method adopted 2026-11-23, not an owner rule"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "sfx_role_db_vs_voice_p95, sfx_level_tolerance_db, sfx_inaudible_db_vs_voice_p95",
+      "value": "ui -14, whoosh -12, impact -8, meme -3 dB vs the voice p95 peak; +-2 dB; inaudible below -24 dB",
+      "kind": "observed",
+      "source": "external calibration from kurbaitaev/ghost-editor (MIT), method adopted 2026-11-23; the 2 dB tolerance and -24 dB inaudible line are Mann starting defaults; not owner rules"
+    },
+    {
+      "date": "2026-11-23",
+      "rule": "sfx_whoosh_lead_frames, cut_to_beat_max_median_frames, beat_kick_lowpass_hz, headphone_check_count",
+      "value": "whoosh 2 frames early, median cut-to-beat <= 1 frame, kicks < 120 Hz, 5 timestamps",
+      "kind": "observed",
+      "source": "external calibration from Barty-Bart/motion-graphics (MIT) sound-effects method, adopted 2026-11-23; its -16 LUFS / -4 dBTP mix targets are not used (Mann keeps -14 / -1); not owner rules"
     }
   ]
 }
