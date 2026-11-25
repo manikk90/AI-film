@@ -23,9 +23,30 @@ def frontmatter(path):
 
 
 class StudioTest(unittest.TestCase):
+    def test_model_tiers_decide_on_opus_and_act_on_sonnet(self):
+        # owner rule 2026-11-24: decisions on the stronger model, actions on the cheaper one
+        tiers = {"director": "opus", "writer": "opus", "marich": "opus",
+                 "researcher": "sonnet", "social": "sonnet", "mann": "sonnet", "crew": "sonnet"}
+        self.assertEqual(sorted(tiers), sorted(p.stem for p in AGENTS.glob("*.md")))
+        for name, model in tiers.items():
+            fields, _ = frontmatter(AGENTS / f"{name}.md")
+            self.assertEqual(fields.get("model"), model, name)
+        crew = (AGENTS / "crew.md").read_text(encoding="utf-8")
+        for must in ["WORK_ORDER.md", "QUESTION", "STATUS.md", "Never yours", ".done.md"]:
+            self.assertIn(must, crew)
+        self.assertIn("Agent", frontmatter(AGENTS / "crew.md")[0].get("disallowedTools", ""))
+        wo = (REPO / "studio" / "templates" / "WORK_ORDER.md").read_text(encoding="utf-8")
+        for must in ["Decisions already made", "Acceptance checks", "Not settled here"]:
+            self.assertIn(must, wo)
+        director = (AGENTS / "director.md").read_text(encoding="utf-8")
+        skill = (REPO / ".claude" / "skills" / "viral-studio" / "SKILL.md").read_text(encoding="utf-8")
+        readme = (REPO / "studio" / "README.md").read_text(encoding="utf-8")
+        for doc in (director, skill, readme, (REPO / "AGENTS.md").read_text(encoding="utf-8")):
+            self.assertIn("work order", doc.lower())
+
     def test_agents(self):
         names = sorted(p.stem for p in AGENTS.glob("*.md"))
-        self.assertEqual(names, ["director", "mann", "marich", "researcher", "social", "writer"])
+        self.assertEqual(names, ["crew", "director", "mann", "marich", "researcher", "social", "writer"])
         for p in AGENTS.glob("*.md"):
             with self.subTest(agent=p.stem):
                 fields, body = frontmatter(p)

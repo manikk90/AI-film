@@ -115,6 +115,28 @@ Auto mode never skips:
 - a risk or rights gap Marich or the director flags as blocking (Daksh's and Marich's own limits still apply)
 - Mann's gate (see "Covers" above) — it is never in scope for auto mode
 
+## Model tiers (decide on Opus, act on Sonnet)
+
+Owner rule, 2026-11-24: decisions go to the stronger model, actions to the cheaper one.
+
+| Role | Model | Why |
+|---|---|---|
+| Orchestrator (main session) | Opus | gates, picks, reads critiques, decides fixes, answers the crew's questions, talks to the owner. The owner keeps the session on Opus with `/model` |
+| `writer` | Opus | the script is the core creative decision |
+| `director` | Opus | format, critique, shot list, cue map, voice and music direction, QC verdict |
+| `marich` | Opus | reverse-engineering analysis and the replica spec |
+| `researcher`, `social` | Sonnet | search, gather and summarise with sources |
+| `mann` | Sonnet | runs the edit; the owner's three decisions stay code-enforced |
+| `crew` | Sonnet | executes work orders: code, renders, ElevenLabs calls, SFX, edit, mix, QC runs, packaging |
+
+The tier is the `model:` line in each `.claude/agents/<name>.md`; `tests/test_studio.py` checks it.
+
+**Work orders.** Every build job reaches the crew as `projects/<slug>/work/WO-NN-<task>.md` (template: `studio/templates/WORK_ORDER.md`), written by the director or the orchestrator. It lists the inputs, every decision already made, concrete steps, the output and acceptance checks the reviewer can re-run. The crew hands back `WO-NN-<task>.done.md` with each check as PASS / FAIL / NOT RUN and the evidence.
+
+**Escalation.** The crew never decides words, story, style, look, voice, music direction, cuts or whether a check may be skipped. When the order does not settle one of these, it writes `QUESTION (crew, WO-NN)` under "Requests between agents" in `STATUS.md`, finishes what does not depend on it and hands back. The orchestrator answers it or sends it to the director; it reaches the owner only when it is a real owner decision (a gate, a lock, a rights call).
+
+**Review.** A crew handback is not done until the director or the orchestrator has checked it against its acceptance checks (frames looked at, numbers re-run when they matter). A failed check goes back to the crew with a fix list; it is not passed on to the owner.
+
 ## Rules that never bend
 - No production before the script is approved (Gate 2), and none before 3 timecode frames and the music sketch are approved (Gate 3). Approved means the owner's explicit words, or, only in auto mode, the orchestrator's logged `auto-approved` line for a clean result.
 - Rights, licences, real people's likenesses and sourced facts are checked by a person's rules, never auto-approved: a rights gap or an unverified sound (`studio/openverse_audio.py verify`) blocks delivery.

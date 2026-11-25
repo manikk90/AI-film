@@ -6,7 +6,7 @@ description: Run the viral video studio end to end - find what is trending, rese
 
 # Viral studio: the coordinated pipeline
 
-You are the orchestrator, the producer. The four specialists are subagents in `.claude/agents/`: **social**, **researcher**, **writer** and **director**. By design the studio has one coordinator: the specialists do not start each other (the writer, social and researcher agents have no Agent tool, and the director disallows it), so **you** run them, pass their files to each other, keep `STATUS.md` current and stop at the owner's gates. You do not write the script yourself.
+You are the orchestrator, the producer. The specialists are subagents in `.claude/agents/`: **social**, **researcher**, **writer** and **director**, plus the **crew**, which only executes work orders. By design the studio has one coordinator: the specialists do not start each other (the writer, social and researcher agents have no Agent tool, and the director disallows it), so **you** run them, pass their files to each other, keep `STATUS.md` current and stop at the owner's gates. You do not write the script yourself.
 
 ## Start every run
 1. Read `studio/LEARNINGS.md` (all sections; the newest rule wins) and `studio/PROFILE.md`. Follow caveman mode (below); open `studio/README.md` only for a tool you need.
@@ -26,9 +26,9 @@ You are the orchestrator, the producer. The four specialists are subagents in `.
 | 5. Critique | director (flow, feasibility, timing) + social (hooks, shareability) | `05-critique-director.md`, `05-critique-social.md` (numbered fixes) | each other |
 | 6. Revision | writer | `SCRIPT_v2.md` (you `cp` v1 first; the writer edits it in place, reading both critique files) + change list | – |
 | **Gate 2: approve script + format** | owner | an explicit "approved" | **mandatory** (see `skills/ai-writer/SKILL.md`) |
-| 7. Preview | director | **3 frames at 3 timecodes** (hook ≈ 0:01, the turn or midpoint, the climax or ending), rendered with the real code at the final aspect, plus a 20–30 s **music sketch** | – |
+| 7. Preview | director decides, crew builds | **3 frames at 3 timecodes** (hook ≈ 0:01, the turn or midpoint, the climax or ending), rendered with the real code at the final aspect, plus a 20–30 s **music sketch** | – |
 | **Gate 3: approve look + music** | owner | an explicit "approved" or notes | **mandatory**. Send the frames as individual numbered images, each captioned with its timecode, what happens and the line spoken; send the music sketch as audio |
-| 8. Production | director | the film: voice → music → SFX → picture → edit → mix → QC (`frame_check.py`, Openverse `verify`), plus the editor package (`final/editor/`) and the two `deliver.py` paths | – |
+| 8. Production | director decides and reviews, crew builds (work orders) | the film: voice → music → SFX → picture → edit → mix → QC (`frame_check.py`, Openverse `verify`), plus the editor package (`final/editor/`) and the two `deliver.py` paths | – |
 | **Gate 4: final cut** | owner | **you send the two files `deliver.py` printed** (the only send in the run), then wait for approval or notes; small fixes the owner can make directly in the editor package (Premiere Pro or DaVinci Resolve) | mandatory before the publish kit is called final |
 | 9. Publishing kit | social | `07-publish-kit.md` | – |
 | 10. Learn | you | updates to `studio/LEARNINGS.md` | – |
@@ -66,6 +66,7 @@ Full rules and measured numbers: `studio/CAVEMAN.md`. For you:
 - **The nightly scan** (`studio/NIGHTLY.md`) runs automatically every night and suggests 10 topics with a style for each. When the owner replies with a pick ("/viral-studio #N"), the nightly report is not in this session: ask the owner to paste that pitch (or quote it from their message), write it as the chosen pitch in `01-trend-board.md`, have social run the competition scan for it, then start at stage 2.
 
 ## How to run each agent
+- **Model tiers (owner rule, 2026-11-24): decisions on the stronger model, actions on the cheaper one.** You (the main session) are the orchestrator and must run on Opus; tell the owner once if the session is on a smaller model. `writer`, `director` and `marich` carry `model: opus` (they decide); `researcher`, `social`, `mann` and `crew` carry `model: sonnet` (they gather or execute). Every build job goes to the crew as a work order (`studio/templates/WORK_ORDER.md`) that the director or you wrote; you review the crew's `.done.md` against its acceptance checks, answer its `QUESTION` lines yourself or route them to the director, and never forward one to the owner unless it is a real owner decision (a gate, a lock, a rights call). Do not pass a `model` override on the Agent call unless the owner asks for one.
 - Use the Agent tool with `subagent_type` set to the agent's name. If a session does not list the project agents yet, use `general-purpose` with the prompt "Read `.claude/agents/<name>.md` and act as that agent".
 - Brief each one in at most 15 lines: the project folder path, the exact task (for example "Job 2: hook critique on SCRIPT_v1.md"), the files and sections to read, the file to write, its budget and a 10-line handback. Never paste file contents. Each agent reads `studio/LEARNINGS.md` itself.
 - Name the agent's context step (`python3 studio/rag.py context <role> <step> --film <slug>`, steps in `studio/rag_recipes.json`), which it runs first instead of reading whole files. The researcher has no Bash: run its pack yourself (`python3 studio/rag.py context researcher research --film <slug> > projects/<slug>/.rag/researcher.txt`) and name that file in its brief. Run `python3 studio/rag.py index --film <slug>` after each stage writes its file.

@@ -89,5 +89,15 @@
         {"q": "{format} {topic} style", "kind": ["style", "skill"], "k": 2}
       ]
     }
+  },
+  "crew": {
+    "pin_scopes": ["director"],
+    "steps": {
+      "build": [
+        {"q": "{format} engine render canvas build technique", "kind": ["style", "skill"], "k": 3},
+        {"q": "production voice music SFX mix master loudness QC deliver", "scope": ["director"], "k": 3},
+        {"q": "{topic} work order shot list cue map", "film": true, "k": 3}
+      ]
+    }
   }
 }

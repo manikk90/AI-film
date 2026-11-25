@@ -15,7 +15,7 @@ sys.path.insert(0, str(REPO / "studio"))
 import caveman as C  # noqa: E402
 
 AGENTS = REPO / ".claude" / "agents"
-EFFORT = {"social": "medium", "researcher": "medium", "writer": "high", "director": "high", "mann": "high", "marich": "high"}
+EFFORT = {"social": "medium", "researcher": "medium", "writer": "high", "director": "high", "mann": "high", "marich": "high", "crew": "medium"}
 
 
 def block(text):

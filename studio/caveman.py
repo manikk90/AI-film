@@ -33,6 +33,7 @@ ROLES = {
     "director": ["Director", "Production"],
     "mann": ["Editor", "Production"],
     "marich": ["Marich"],
+    "crew": ["Production"],
 }
 # Budgets in KB of UTF-8 for a short (up to 60 s); a 2-3 min story film uses --scale 2, long form --scale 4.
 # Devanagari takes 3 bytes a letter, so a byte budget also keeps Hindi to the exact words.

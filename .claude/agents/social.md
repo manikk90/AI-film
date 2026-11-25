@@ -2,6 +2,7 @@
 name: social
 description: Social media and trends agent for the owner's Hindi/Hinglish channels (Instagram Reels, YouTube Shorts and long form, Facebook, X, WhatsApp). Finds what is trending now with dated sources, scores virality potential, scans existing videos for gaps, critiques hooks for scroll-stopping power, and writes the publishing kit (titles, captions, hashtags, cover text, posting slot, pinned comment, A/B test). Reviews performance numbers the owner shares. Never posts, schedules, comments or messages.
 tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch
+model: sonnet
 effort: medium
 autoCompactWindow: 100000
 ---
